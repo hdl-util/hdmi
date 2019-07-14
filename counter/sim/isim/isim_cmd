@@ -1,0 +1,5 @@
+wave add /
+vcd dumpfile counter_tb.vcd
+vcd dumpvars -m counter_tb -l 1
+run 6000 ns
+#exit
