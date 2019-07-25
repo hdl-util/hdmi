@@ -27,9 +27,9 @@ wire vsync = cy >= 490 && cy < 492;
 wire draw_area = cx < SCREEN_WIDTH && cy < SCREEN_HEIGHT;
 
 wire	[9:0]	TMDS_red, TMDS_green, TMDS_blue;
-TMDS_encoder red_encoder	(.clk(CLK_PIXEL), .VD(rgb[23:16]), 	.CD(2'b00), 			.VDE(draw_area), .TMDS(TMDS_red));
-TMDS_encoder green_encoder	(.clk(CLK_PIXEL), .VD(rgb[15:8]), .CD(2'b00), 			.VDE(draw_area), .TMDS(TMDS_green));
-TMDS_encoder blue_encoder	(.clk(CLK_PIXEL), .VD(rgb[7:0]),	.CD({vsync,hsync}),	.VDE(draw_area), .TMDS(TMDS_blue));
+TMDS_channel #(.CN(2)) red_channel (.clk(CLK_PIXEL), .VD(rgb[23:16]), .CD(2'b00), .M(draw_area ? 2'd1 : 2'd0), .TMDS(TMDS_red));
+TMDS_channel #(.CN(1)) green_channel (.clk(CLK_PIXEL), .VD(rgb[15:8]), .CD(2'b00), .M(draw_area ? 2'd1 : 2'd0), .TMDS(TMDS_green));
+TMDS_channel #(.CN(0)) blue_channel (.clk(CLK_PIXEL), .VD(rgb[7:0]), .CD({vsync,hsync}), .M(draw_area ? 2'd1 : 2'd0), .TMDS(TMDS_blue));
 
 
 reg [3:0] TMDS_mod10=0;  // modulus 10 counter
