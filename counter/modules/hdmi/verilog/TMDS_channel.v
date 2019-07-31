@@ -48,16 +48,16 @@ reg signed [4:0] CNT = $signed(4'd0);
 task video_coding;
     input [7:0] d;
     output [9:0] video_coding;
-    reg [3:0] N1d = 0;
+    reg [2:0] N1d = 0;
     reg [3:0] N1q_m = 0;
     reg [3:0] N0q_m;
     reg [8:0] q_m;
     integer i;
-    for (i = 0; i < 8; i=i+1) // 1 bit saving possible here: N1d==0 and d[0] ==1 implies N1d = 8
+    for (i = 1; i < 8; i=i+1) // 1 bit saving here by ignoring d[0]
         N1d = N1d + d[i];
     
     q_m[0] = d[0];
-    if (N1d > 4'd4 || (N1d == 4'd4 && d[0] == 0))
+    if (N1d > 3'd3)
     begin
         for (i = 1; i < 8; i=i+1)
             q_m[i] = ~(q_m[i-1] ^ d[i]);
@@ -74,7 +74,7 @@ task video_coding;
         N1q_m = N1q_m + q_m[i];
     N0q_m = 4'd8 - N1q_m;
 
-    if (CNT == $signed(4'd0) || N1q_m == N0q_m)
+    if (CNT == $signed(4'd0) || N1q_m == 4'd4)
     begin
         video_coding[9] = ~q_m[8];
         video_coding[8] = q_m[8];
@@ -89,7 +89,7 @@ task video_coding;
         video_coding[9] = 1'b0;
         video_coding[8] = q_m[8];
         video_coding[7:0] = q_m[7:0];
-        if ((CNT > $signed(4'd0) && N1q_m > N0q_m) || (CNT < $signed(4'd0) && N0q_m > N1q_m))
+        if ((CNT > $signed(4'd0) && N1q_m > 4'd4) || (CNT < $signed(4'd0) && N0q_m > 4'd4))
         begin
             video_coding[9] = 1'b1;
             video_coding[7:0] = ~video_coding[7:0];
@@ -129,3 +129,5 @@ begin
         2'd3: TMDS = terc4_coding(DID);
     endcase
 end
+
+endmodule

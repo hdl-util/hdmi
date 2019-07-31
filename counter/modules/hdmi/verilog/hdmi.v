@@ -14,16 +14,16 @@ module hdmi (
 
 OBUFDS obufds(.din({TMDS_shift_red[0], TMDS_shift_green[0], TMDS_shift_blue[0], CLK_PIXEL}), .pad_out({TMDSp, TMDS_clockp}), .pad_out_b({TMDSn,TMDS_clockn}));
 
-parameter FRAME_WIDTH = 800;
-parameter FRAME_HEIGHT = 525;
-parameter SCREEN_WIDTH = 640;
-parameter SCREEN_HEIGHT = 480;
+parameter FRAME_WIDTH = 10'd800;
+parameter FRAME_HEIGHT = 10'd525;
+parameter SCREEN_WIDTH = 10'd640;
+parameter SCREEN_HEIGHT = 10'd480;
 
-always @(posedge CLK_PIXEL) cx <= cx == FRAME_WIDTH-1 ? 0 : cx+1;
-always @(posedge CLK_PIXEL) cy <= cx == FRAME_WIDTH-1 ? (cy == FRAME_HEIGHT-1 ? 0 : cy+1) : cy;
+always @(posedge CLK_PIXEL) cx <= cx == FRAME_WIDTH-1 ? 10'd0 : cx+1;
+always @(posedge CLK_PIXEL) cy <= cx == FRAME_WIDTH-1 ? (cy == FRAME_HEIGHT-1 ? 10'd0 : cy+1) : cy;
 
-wire hsync = cx >= 656 && cx < 752;
-wire vsync = cy >= 490 && cy < 492;
+wire hsync = cx >= 10'd656 && cx < 10'd752;
+wire vsync = cy >= 10'd490 && cy < 10'd492;
 wire draw_area = cx < SCREEN_WIDTH && cy < SCREEN_HEIGHT;
 
 wire	[9:0]	TMDS_red, TMDS_green, TMDS_blue;
