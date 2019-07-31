@@ -1,11 +1,12 @@
-// Implementation of HDMI Spec v1.3a Section 5 operating modes for a TMDS channel.
+// Implementation of HDMI Spec v1.3a Section 5.4: Encoding
 // Sameer Puri https://purisa.me
+
 module TMDS_channel(
            input clk,
            input [7:0] VD,
            input [3:0] DID,
            input [1:0] CD,
-           input [1:0] M,  // Select mode (0 = control, 1 = video, 2 = DI packet this, 3 = DI packet that)
+           input [2:0] M,  // Mode select (0 = control, 1 = video, 2 = video guard, 3 = island, 4 = island guard)
            output reg [9:0] TMDS = 0
        );
 
@@ -125,8 +126,9 @@ begin
     case (M)
         2'd0: TMDS = control_coding(CD);
         2'd1: video_coding(VD, TMDS);
-        2'd2: TMDS = terc4_coding(DID);
+        2'd2: TMDS = video_guard_band(CN);
         2'd3: TMDS = terc4_coding(DID);
+        2'd4: TMDS = data_guard_band(CN);
     endcase
 end
 
