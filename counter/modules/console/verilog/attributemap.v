@@ -1,11 +1,12 @@
 module attributemap (
+           input wire clk,
            input wire [7:0] attribute,
            output reg [23:0] fgrgb,
            output reg [23:0] bgrgb,
            output reg blink
        );
 // See https://en.wikipedia.org/wiki/Video_Graphics_Array#Color_palette
-always @*
+always @(posedge clk)
 begin
     case(attribute[3:0])
         4'h0: fgrgb <= 24'h000000;

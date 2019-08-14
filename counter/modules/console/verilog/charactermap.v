@@ -1,9 +1,10 @@
 module charactermap (
+           input wire clk,
            input wire [7:0] character,
            output reg [127:0] characterraster
        );
 
-always @*
+always @(posedge clk)
 begin
     case (character)
         8'h00 : characterraster = 128'h00000000000000000000000000000000;

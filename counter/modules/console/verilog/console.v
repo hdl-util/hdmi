@@ -1,5 +1,5 @@
 module console (
-           input wire CLK_PIXEL,
+           input wire clk_pixel,
            input wire [7:0] character,
            input wire [7:0] attribute,
            input wire [9:0] cx,
@@ -9,18 +9,18 @@ module console (
        );
 
 wire [127:0] characterraster;
-charactermap charactermap(.character(character), .characterraster(characterraster));
+charactermap charactermap(.clk(clk_pixel), .character(character), .characterraster(characterraster));
 
 wire [23:0] fgrgb, bgrgb;
 wire blink;
-attributemap attributemap(.attribute(attribute), .fgrgb(fgrgb), .bgrgb(bgrgb), .blink(blink));
+attributemap attributemap(.clk(clk_pixel), .attribute(attribute), .fgrgb(fgrgb), .bgrgb(bgrgb), .blink(blink));
 
 reg [9:0] prevcy = 0;
 reg [3:0] vindex = 0;
 reg [2:0] hindex = 0;
 reg [5:0] blink_timer = 0;
 
-always @(posedge CLK_PIXEL)
+always @(posedge clk_pixel)
 begin
     if (cx == 0 && cy == 0)
     begin
