@@ -1,4 +1,4 @@
-// Implementation of HDMI Spec v1.3a Section 5.1: Overview & Section 5.2: Operating Modes
+// Implementation of HDMI Spec v1.3a Section 5.1: Overview && Section 5.2: Operating Modes
 // By Sameer Puri https://purisa.me
 
 module hdmi (
@@ -32,7 +32,7 @@ reg [BIT_HEIGHT:0] screen_height;
 reg [BIT_WIDTH:0] screen_start_x;
 reg [BIT_HEIGHT:0] screen_start_y;
 
-always @*
+always @(posedge clk_pixel)
 begin
     case (VIDEO_ID_CODE)
         1:
@@ -64,8 +64,8 @@ begin
             screen_height = 1080;
         end
     endcase
-    screen_start_x = frame_width - 1 - screen_width;
-    screen_start_y = frame_height - 1 - screen_height;
+    screen_start_x = frame_width - 1'b1 - screen_width;
+    screen_start_y = frame_height - 1'b1 - screen_height;
 end
 
 reg hsync;
@@ -114,24 +114,24 @@ tmds_channel #(.CN(2)) red_channel (.clk_pixel(clk_pixel), .video_data(rgb[23:16
 tmds_channel #(.CN(1)) green_channel (.clk_pixel(clk_pixel), .video_data(rgb[15:8]), .control_data(ctrl[1:0]), .mode(mode), .tmds(tmds_green));
 tmds_channel #(.CN(0)) blue_channel (.clk_pixel(clk_pixel), .video_data(rgb[7:0]), .control_data({vsync,hsync}), .mode(mode), .tmds(tmds_blue));
 
-reg [3:0] tmds_counter = 0;
-reg [9:0] tmds_shift_red = 0, tmds_shift_green = 0, tmds_shift_blue = 0;
+reg [3:0] tmds_counter = 4'd0;
+reg [9:0] tmds_shift_red, tmds_shift_green, tmds_shift_blue;
 
 always @(posedge clk_tmds)
 begin
-    if (tmds_counter == 4'd9)
+    if (tmds_counter == 4'd0)
     begin
-        tmds_shift_red = tmds_red;
-        tmds_shift_green = tmds_green;
-        tmds_shift_blue = tmds_blue;
-        tmds_counter = 4'd0;
+        tmds_shift_red <= tmds_red;
+        tmds_shift_green <= tmds_green;
+        tmds_shift_blue <= tmds_blue;
+        tmds_counter <= 4'd9;
     end
     else
     begin
-        tmds_shift_red = tmds_shift_red[9:1];
-        tmds_shift_green = tmds_shift_green[9:1];
-        tmds_shift_blue = tmds_shift_blue[9:1];
-        tmds_counter = tmds_counter + 1'b1;
+        tmds_shift_red <= tmds_shift_red[9:1];
+        tmds_shift_green <= tmds_shift_green[9:1];
+        tmds_shift_blue <= tmds_shift_blue[9:1];
+        tmds_counter <= tmds_counter - 1'b1;
     end
 end
 
