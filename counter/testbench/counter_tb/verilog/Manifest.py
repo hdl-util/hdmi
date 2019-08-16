@@ -1,7 +1,7 @@
 files = [
-    "counter_tb.v", 
+    "hdmi_tb.v", 
 ]
 
 modules = {
-  "local" : [ "../../../modules/counter/verilog" ],
+  "local" : [ "../../../modules/hdmi/verilog" ],
 }

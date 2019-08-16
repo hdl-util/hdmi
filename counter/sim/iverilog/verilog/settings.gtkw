@@ -1,0 +1,50 @@
+[*]
+[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
+[*] Fri Aug 16 16:40:45 2019
+[*]
+[dumpfile] "/home/purisame/Documents/projects/compute/counter/sim/iverilog/verilog/hdmi_tb.vcd"
+[dumpfile_mtime] "Fri Aug 16 16:35:43 2019"
+[dumpfile_size] 11815627
+[savefile] "/home/purisame/Documents/projects/compute/counter/sim/iverilog/verilog/settings.gtkw"
+[timestart] 2440
+[size] 2556 1392
+[pos] -1 -1
+*0.000000 2419 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] hdmi_tb.
+[sst_width] 212
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 427
+@24
+hdmi_tb.U_hdmi.cx[9:0]
+hdmi_tb.U_hdmi.cy[9:0]
+@28
+hdmi_tb.U_hdmi.vsync
+hdmi_tb.U_hdmi.hsync
+hdmi_tb.U_hdmi.control_data[5:0]
+hdmi_tb.U_hdmi.data_island_data[11:0]
+hdmi_tb.U_hdmi.data_island_guard
+hdmi_tb.U_hdmi.data_island_period
+hdmi_tb.U_hdmi.data_island_preamble
+hdmi_tb.U_hdmi.tmds_shift_blue[9:0]
+hdmi_tb.U_hdmi.tmds_shift_green[9:0]
+hdmi_tb.U_hdmi.tmds_shift_red[9:0]
+hdmi_tb.U_hdmi.clk_pixel
+hdmi_tb.U_hdmi.clk_tmds
+@24
+hdmi_tb.U_hdmi.mode[2:0]
+@22
+hdmi_tb.U_hdmi.tmds_counter[3:0]
+@24
+hdmi_tb.U_hdmi.screen_height[9:0]
+hdmi_tb.U_hdmi.screen_width[9:0]
+hdmi_tb.U_hdmi.frame_height[9:0]
+hdmi_tb.U_hdmi.frame_width[9:0]
+hdmi_tb.U_hdmi.screen_start_x[9:0]
+hdmi_tb.U_hdmi.screen_start_y[9:0]
+@28
+hdmi_tb.U_hdmi.tmds_blue[9:0]
+hdmi_tb.U_hdmi.tmds_green[9:0]
+hdmi_tb.U_hdmi.tmds_red[9:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -31,3 +31,9 @@ Makefile
 project
 project.tcl
 files.tcl
+*.vcd
+*.vvp
+run.command
+modelsim.ini
+transcript
+work/
