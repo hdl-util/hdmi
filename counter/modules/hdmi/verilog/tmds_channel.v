@@ -1,5 +1,5 @@
-// Implementation of HDMI Spec v1.3a Section 5.4: Encoding
-// By Sameer Puri https://purisa.me
+// Implementation of HDMI Spec v1.4a Section 5.4: Encoding, Section 5.2.2.1: Video Guard Band, Section 5.2.3.3: Data Island Guard Bands.
+// By Sameer Puri https://github.com/sameer
 
 module tmds_channel(
            input clk_pixel,
@@ -10,8 +10,11 @@ module tmds_channel(
            output reg [9:0] tmds = 10'b1101010100
        );
 
-parameter CN = 0; // Channel Number
+// TMDS Channel number.
+// There are only 3 possible channel numbers in HDMI 1.4a: 0, 1, 2.
+parameter CN = 0;
 
+// Apply selected mode.
 always @(posedge clk_pixel)
 begin
     case (mode)
@@ -23,7 +26,7 @@ begin
     endcase
 end
 
-/////////////////////////////////////
+// See Section 5.4.4.1
 // (c) fpga4fun.com & KNJN LLC 2013
 wire [7:0] din = video_data;
 wire [3:0] Nb1s = din[0] + din[1] + din[2] + din[3] + din[4] + din[5] + din[6] + din[7];
@@ -39,14 +42,15 @@ wire [3:0] balance_acc_new = invert_q_m ? balance_acc-balance_acc_inc : balance_
 wire [9:0] video_coding = {invert_q_m, q_m[8], q_m[7:0] ^ {8{invert_q_m}}};
 
 always @(posedge clk_pixel) balance_acc <= mode != 3'd1 ? 4'd0 : balance_acc_new;
-////////////////////////////////////
 
+// See Section 5.4.2
 wire [9:0] control_coding = 
     control_data == 2'b00 ? 10'b1101010100
     : control_data == 2'b01 ? 10'b0010101011 
     : control_data == 2'b10 ? 10'b0101010100
     : 10'b0101010100;
 
+// See Section 5.4.3
 wire [9:0] terc4_coding =
     data_island_data == 4'b0000 ? 10'b1010011100
     : data_island_data == 4'b0001 ? 10'b1001100011
@@ -65,9 +69,10 @@ wire [9:0] terc4_coding =
     : data_island_data == 4'b1110 ? 10'b0101100011
     : 10'b1011000011;
 
-
+// See Section 5.2.2.1
 wire [9:0] video_guard_band = (CN == 2'd0 || CN == 2'd2) ? 10'b1011001100 : 10'b0100110011;
 
+// See Section 5.2.3.3
 wire [9:0] data_guard_band = (CN == 2'd1 || CN == 2'd2) ? 10'b0100110011
     : control_data == 2'b00 ? 10'b1010001110
     : control_data == 2'b01 ? 10'b1001110001

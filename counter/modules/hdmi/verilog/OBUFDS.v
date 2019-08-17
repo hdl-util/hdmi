@@ -6,6 +6,8 @@
 
 `timescale 1 ps / 1 ps
 `ifdef __ICARUS__
+// For purposes of simulation, OBUFDS just outputs the input signal along with an inverted copy.
+// Check other simulators using https://gist.github.com/amuramatsu/be54c5548a0ece78c95897d570915a0e.
 module OBUFDS (
            input  wire [3:0] din,       //       din.export
            output reg [3:0] pad_out,   //   pad_out.export
