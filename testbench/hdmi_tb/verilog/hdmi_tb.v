@@ -1,7 +1,5 @@
-//--------------------------------------------------------
-// Design  : Simple testbench for an 8-bit verilog counter
-// Author  : Javier D. Garcia-Lasheras
-//--------------------------------------------------------
+// Testbench for hdmi module (supports Icarus Verilog)
+// By Sameer Puri https://github.com/sameer
 
 module hdmi_tb();
 // Declare inputs as regs and outputs as wires
@@ -28,9 +26,8 @@ end
 
 // Clock generator
 always begin
-  #1 clk_pixel = $time % 10 == 1 ? ~clk_pixel : clk_pixel; // Toggle clock every 5 ticks
-  
-  clk_tmds = ~clk_tmds; // Toggle clock every 5 ticks
+  #1 clk_pixel = $time % 10 == 1 ? ~clk_pixel : clk_pixel; // Toggle every 10 ticks
+  clk_tmds = ~clk_tmds; // Toggle every tick
 end
 
 // Connect DUT to test bench
