@@ -1,0 +1,5 @@
+wave add /
+vcd dumpfile hdmi_tb.vcd
+vcd dumpvars -m hdmi_tb -l 1
+run 6000 ns
+#exit
