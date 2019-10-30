@@ -142,6 +142,9 @@ tmds_channel #(.CN(0)) blue_channel (.clk_pixel(clk_pixel), .video_data(video_da
 
 // See Section 5.4.1
 reg [3:0] tmds_counter = 4'd0;
+
+// All channels are initialized to the 0,0 control signal from 5.4.2.
+// This gives time for the first pixel to be generated due to the 1-pixel clock delay.
 reg [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, tmds_shift_blue = 10'b1101010100;
 
 always @(posedge clk_tmds)
