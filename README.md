@@ -15,6 +15,23 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 * Consult `top/max10/verilog/max10_top.v` for an example of usage.
 * Please create an issue if you run into any problems
 
+### Pixel/TMDS Clock
+
+You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below: 
+
+* 640x480 (1) @ 60Hz: 25.2MHz
+* 720x480 (2,3) @ 60Hz: 27.027MHz
+* 1280x720 (4) @ 60Hz: 74.25MHz
+* 1920x1080 (16) @ 60Hz: 148.5MHz
+
+The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
+
+## Potential limitations
+
+* Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
+* LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
+    * Needs further investigation
+* Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
 
 ### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
 
