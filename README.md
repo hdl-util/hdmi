@@ -17,12 +17,12 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 
 ### Pixel/TMDS Clock
 
-You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below: 
+You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below:
 
-* 640x480 (1) @ 60Hz: 25.2MHz
-* 720x480 (2,3) @ 60Hz: 27.027MHz
-* 1280x720 (4) @ 60Hz: 74.25MHz
-* 1920x1080 (16) @ 60Hz: 148.5MHz
+* 640x480 (1) @ 60Hz: 25.2MHz, @ 59.94Hz: 25.175MHz
+* 720x480 (2,3) @ 60Hz: 27.027MHz, @ 59.94Hz: 27MHz
+* 1280x720 (4) @ 60Hz: 74.25MHz, @ 59.94Hz: 74.176MHz
+* 1920x1080 (16) @ 60Hz: 148.5MHz, @59.94Hz: 148.352MHz
 
 The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
 
