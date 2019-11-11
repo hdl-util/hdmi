@@ -25,9 +25,9 @@ parameter VIDEO_ID_CODE = 1;
 parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 9 : VIDEO_ID_CODE == 4 ? 10 : 11;
 parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 10 : 9;
 
-// HDMI sinks are backwards-compatible with DVI input.
-// A true HDMI signal sends auxiliary data (i.e. audio) which cannot be properly parsed by sinks expecting a DVI signal.
-// Enable this flag if the output should be a DVI signal (i.e. using an HDMI to DVI adapter, or direct DVI output).
+// A true HDMI signal can send auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
+// HDMI signal sinks are fortunately backwards-compatible with DVI signals.
+// Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
 parameter DVI_OUTPUT = 1'b0;
 
 // True differential buffer built with altera_gpio_lite from the Intel IP Catalog.
@@ -114,7 +114,7 @@ end
 // See Section 5.2
 wire video_data_period = cx >= screen_start_x && cy >= screen_start_y;
 wire video_guard = (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
-wire video_preamble = (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
+wire video_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
 
 // See Section 5.2.3.1
 wire data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + 32 && cx < screen_start_x + 34)) && cy < screen_start_y;
