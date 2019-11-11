@@ -29,6 +29,7 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 ## Potential limitations
 
 * Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
+	* Workaround: use DDR other special I/O features
 * LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
     * Needs further investigation
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
@@ -64,4 +65,7 @@ Dual-licensed under Apache License 2.0 and MIT License.
 ## Special Thanks
 
 * Mike Field's (@hamsternz) demos of DVI and HDMI output for helping me better understand HDMI
+	* http://www.hamsterworks.co.nz/mediawiki/index.php/Dvid_test
+	* http://www.hamsterworks.co.nz/mediawiki/index.php/Minimal_DVI-D
 * Jean P. Nicolle (fpga4fun.com) for implementing TMDS 8b/10b encoding
+	* https://www.fpga4fun.com/HDMI.html
