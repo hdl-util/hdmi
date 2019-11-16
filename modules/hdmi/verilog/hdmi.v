@@ -113,7 +113,7 @@ end
 
 // See Section 5.2
 wire video_data_period = cx >= screen_start_x && cy >= screen_start_y;
-wire video_guard = (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
+wire video_guard = !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
 wire video_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
 
 // See Section 5.2.3.1
