@@ -38,8 +38,8 @@ wire [8:0] q_m = {~cond1, cond1 ? (q_m[6:0] ~^ video_data[7:1]) : (q_m[6:0] ^ vi
 wire [3:0] N1q_m07 = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7];
 wire [3:0] N0q_m07 = 4'd8 - N1q_m07;
 
-wire cond2 = acc == 0 || (N1q_m07 == N0q_m07);
-wire cond3 = (acc > 0 && N1q_m07 > N0q_m07) || (acc < 0 && N0q_m07 > N1q_m07);
+wire cond2 = acc == 0 || (N1q_m07 == 4'd4);
+wire cond3 = (acc > 0 && N1q_m07 > 4'd4) || (acc < 0 && N1q_m07 < 4'd4);
 
 wire [9:0] q_out = {cond2 ? ~q_m[8] : cond3, q_m[8], ((cond2 && q_m[8]) || !cond3) ? q_m[7:0] : ~q_m[7:0] };
 wire [9:0] video_coding = q_out;
