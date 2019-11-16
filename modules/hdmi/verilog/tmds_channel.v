@@ -55,7 +55,7 @@ wire [9:0] control_coding =
     control_data == 2'b00 ? 10'b1101010100
     : control_data == 2'b01 ? 10'b0010101011 
     : control_data == 2'b10 ? 10'b0101010100
-    : 10'b0101010100;
+    : 10'b1010101011;
 
 // See Section 5.4.3
 wire [9:0] terc4_coding =
