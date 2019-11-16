@@ -27,21 +27,28 @@ begin
 end
 
 // See Section 5.4.4.1
-// (c) fpga4fun.com & KNJN LLC 2013
-wire [7:0] din = video_data;
-wire [3:0] Nb1s = din[0] + din[1] + din[2] + din[3] + din[4] + din[5] + din[6] + din[7];
-wire XNOR = (Nb1s>4'd4) || (Nb1s==4'd4 && din[0]==1'b0);
-wire [8:0] q_m = {~XNOR, q_m[6:0] ^ din[7:1] ^ {7{XNOR}}, din[0]};
 
-reg [3:0] balance_acc = 0;
-wire [3:0] balance = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7] - 4'd4;
-wire balance_sign_eq = (balance[3] == balance_acc[3]);
-wire invert_q_m = (balance==0 || balance_acc==0) ? ~q_m[8] : balance_sign_eq;
-wire [3:0] balance_acc_inc = balance - ({q_m[8] ^ ~balance_sign_eq} & ~(balance==0 || balance_acc==0));
-wire [3:0] balance_acc_new = invert_q_m ? balance_acc-balance_acc_inc : balance_acc+balance_acc_inc;
-wire [9:0] video_coding = {invert_q_m, q_m[8], q_m[7:0] ^ {8{invert_q_m}}};
+reg signed [4:0] acc = 4'd0;
 
-always @(posedge clk_pixel) balance_acc <= mode != 3'd1 ? 4'd0 : balance_acc_new;
+wire [3:0] N1D = video_data[0] + video_data[1] + video_data[2] + video_data[3] + video_data[4] + video_data[5] + video_data[6] + video_data[7];
+
+wire cond1 = N1D > 4'd4 || (N1D == 4'd4 && video_data[0] == 1'd0);
+wire [8:0] q_m = {~cond1, cond1 ? (q_m[6:0] ~^ video_data[7:1]) : (q_m[6:0] ^ video_data[7:1]), video_data[0]};
+
+wire [3:0] N1q_m07 = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7];
+wire [3:0] N0q_m07 = 4'd8 - N1q_m07;
+
+wire cond2 = acc == 0 || (N1q_m07 == N0q_m07);
+wire cond3 = (acc > 0 && N1q_m07 > N0q_m07) || (acc < 0 && N0q_m07 > N1q_m07);
+
+wire [9:0] q_out = {cond2 ? ~q_m[8] : cond3, q_m[8], ((cond2 && q_m[8]) || !cond3) ? q_m[7:0] : ~q_m[7:0] };
+wire [9:0] video_coding = q_out;
+
+wire signed [4:0] acc_pt1 = ((cond2 && ~q_m[8]) || (!cond2 && !cond3)) ? $signed(N1q_m07) - $signed(N0q_m07) : $signed(N0q_m07) - $signed(N1q_m07);
+wire signed [2:0] acc_pt2 = cond2 ? $signed(2'd0) : cond3 ? $signed({q_m[8], 1'b0}) : -$signed({~q_m[8], 1'b0});
+wire signed [4:0] acc_new = acc + (acc_pt1 + acc_pt2);
+
+always @(posedge clk_pixel) acc <= mode != 3'd1 ? $signed(4'd0) : acc_new;
 
 // See Section 5.4.2
 wire [9:0] control_coding = 
