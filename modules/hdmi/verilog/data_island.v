@@ -27,11 +27,13 @@ begin
     if (enable)
     begin
         if (counter < 24) // Compute ECC only on subpacket data
+        begin
             ecc0 <= ecc0_nextnext;
             ecc1 <= ecc1_nextnext;
             ecc2 <= ecc2_nextnext;
             ecc3 <= ecc3_nextnext;
-            ecc4 <= ecc4_next; 
+            ecc4 <= ecc4_next;
+        end
         else if (counter == 31) // Reset ECC for next packet
         begin
             ecc0 <= 8'd0;

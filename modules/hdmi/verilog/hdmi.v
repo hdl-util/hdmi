@@ -150,12 +150,18 @@ reg [23:0] video_data = 24'd0;
 reg [11:0] data_island_data = 12'd0;
 reg [5:0] control_data = 6'd0;
 
+wire [8:0] data;
+data_island data_island (.clk_pixel(clk_pixel), .enable(data_island_period), .sub4(16'd0), .sub0(64'd0), .sub1(64'd0), .sub2(64'd0), .sub3(64'd0), .data(data));
+
 always @(posedge clk_pixel)
 begin
     mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
     video_data <= rgb;
     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
-    data_island_data <= {4'd0, 4'd0, {cx != screen_start_x, 1'b0, vsync, hsync}}; // NULL packet
+    data_island_data[11:4] <= data[8:1];
+    data_island_data[3] <= cx != screen_start_x;
+    data_island[2] <= data[0];
+    data_island_data[1:0] <= {vsync, hsync};
     control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
 end
 
