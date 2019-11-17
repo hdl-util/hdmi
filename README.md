@@ -42,12 +42,16 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 
 ### To-do List
 - [x] 24-bit color
-- [x] Null data island packets
-- [x] Video formats 1, 2, 3, 4, and 16
+- [x] Data island packets
+	- [x] Null packet
+	- [x] ECC with BCH systematic encoding GF(2^8)
+	- [ ] Audio clock regeneration
+	- [ ] L-PCM audio
+	- [ ] 1-bit audio
+- [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
 - [x] VGA-compatible text mode
 	- [x] IBM 8x16 font
 	- [ ] Alternate fonts
-- [ ] LPCM audio data island packets
 - [ ] Other color formats (YCbCr, 32-bit color, etc.)
 - [ ] Support other video id codes
 	- [ ] Interlaced video
