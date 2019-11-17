@@ -16,7 +16,7 @@ module hdmi (
 
 // Defaults to 640x480 which should be supported by almost if not all HDMI sinks.
 // See CEA-861-D for enumeration of video id codes.
-// Formats 1, 2, 3, 4, and 16 are supported.
+// Formats 1, 2, 3, 4, 16, 17, 18, and 19 are supported.
 // Pixel repetition, interlaced scans and other special output modes are not implemented.
 parameter VIDEO_ID_CODE = 1;
 
@@ -73,6 +73,20 @@ begin
             screen_width = 1920;
             screen_height = 1080;
         end
+        17, 18:
+        begin
+            frame_width = 864;
+            frame_height = 625;
+            screen_width = 720;
+            screen_height = 576;
+        end
+        19:
+        begin
+            frame_width = 1980;
+            frame_height = 750;
+            screen_width = 1280;
+            screen_height = 720;
+        end
     endcase
 end
 
@@ -99,6 +113,16 @@ case (VIDEO_ID_CODE)
     16:
     begin
         hsync <= cx > 87 && cx <= 87 + 44;
+        vsync <= cy < 5;
+    end
+    17, 18:
+    begin
+        hsync <= ~(cx > 11 && cx <= 11 + 64);
+        vsync <= ~(cy < 5);
+    end
+    19:
+    begin
+        hsync <= cx > 439 && cx <= 439 + 40;
         vsync <= cy < 5;
     end
 endcase
