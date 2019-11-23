@@ -160,7 +160,7 @@ begin
     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
     data_island_data[11:4] <= data[8:1];
     data_island_data[3] <= cx != screen_start_x;
-    data_island[2] <= data[0];
+    data_island_data[2] <= data[0];
     data_island_data[1:0] <= {vsync, hsync};
     control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
 end
