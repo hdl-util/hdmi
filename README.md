@@ -68,7 +68,8 @@ Dual-licensed under Apache License 2.0 and MIT License.
 * [HDMI Specification v1.4a](https://libgen.is/book/index.php?md5=28FFF92120C7A2C88F91727004DA71ED)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
 * [DVI Specification v1.0](https://www.cs.unc.edu/~stc/FAQs/Video/dvi_spec-V1_0.pdf)
-* [IEC 60958-1](https://ia803003.us.archive.org/30/items/gov.in.is.iec.60958.1.2004/is.iec.60958.1.2004.pdf) (L-PCM audio)
+* [IEC 60958-1](https://ia803003.us.archive.org/30/items/gov.in.is.iec.60958.1.2004/is.iec.60958.1.2004.pdf)
+* [IEC 60958-3](https://ia800905.us.archive.org/22/items/gov.in.is.iec.60958.3.2003/is.iec.60958.3.2003.pdf)
 
 ## Special Thanks
 
@@ -77,4 +78,4 @@ Dual-licensed under Apache License 2.0 and MIT License.
 	* http://www.hamsterworks.co.nz/mediawiki/index.php/Minimal_DVI-D
 * Jean P. Nicolle (fpga4fun.com) for implementing TMDS 8b/10b encoding
 	* https://www.fpga4fun.com/HDMI.html
-* Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, 61937, etc.
+* Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, etc.
