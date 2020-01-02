@@ -1,3 +1,29 @@
+
+// See HDMI 1.4a Section 5.3.3.
+module audio_clock_regeneration_packet
+(
+    input wire packet_clk,
+    input wire [19:0] N,
+    input wire [19:0] CTS,
+    output wire [15:0] sub4,
+    output wire [55:0] sub3,
+    output wire [55:0] sub2,
+    output wire [55:0] sub1,
+    output wire [55:0] sub0,
+);
+
+always @(posedge packet_clk)
+begin
+    sub4 <= {8'b00000001, 8'd0, 8'd0};
+    sub3 <= {12'd0, CTS, 4'd0, N};
+    sub2 <= {12'd0, CTS, 4'd0, N};
+    sub1 <= {12'd0, CTS, 4'd0, N};
+    sub0 <= {12'd0, CTS, 4'd0, N};
+end
+
+endmodule
+
+// See HDMI 1.4a Section 5.3.4.
 // 2-channel L-PCM or IEC 61937 audio in IEC 60958 frames with consumer grade IEC 60958-3
 module audio_sample_packet (
     input wire packet_clk,
@@ -67,6 +93,7 @@ begin
     frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 8'd1;
     // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
     sub4 <= {8'b00000010, {3'b000, LAYOUT, 4'b0001}, {3'b000, frame_counter == 8'd0, 4'b0000}};
+    // See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
     sub3 <= 56'd0;
     sub2 <= 56'd0;
     sub1 <= 56'd0;
