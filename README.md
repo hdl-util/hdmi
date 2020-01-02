@@ -77,3 +77,4 @@ Dual-licensed under Apache License 2.0 and MIT License.
 	* http://www.hamsterworks.co.nz/mediawiki/index.php/Minimal_DVI-D
 * Jean P. Nicolle (fpga4fun.com) for implementing TMDS 8b/10b encoding
 	* https://www.fpga4fun.com/HDMI.html
+* Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, 61937, etc.
