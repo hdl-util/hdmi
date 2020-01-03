@@ -1,8 +1,8 @@
 files = [
-    "hdmi.v",
+    "hdmi.sv",
     "tmds_channel.v",
-    "data_island.v",
-    "audio.v",
+    "data_island.sv",
+    "audio.sv",
     "OBUFDS.v",
     "altera_gpio_lite.sv"
 ]

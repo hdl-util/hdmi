@@ -1,30 +1,20 @@
 // Implementation of HDMI Spec v1.4a Section 5.4: Encoding, Section 5.2.2.1: Video Guard Band, Section 5.2.3.3: Data Island Guard Bands.
 // By Sameer Puri https://github.com/sameer
 
-module tmds_channel(
-           input clk_pixel,
-           input [7:0] video_data,
-           input [3:0] data_island_data,
-           input [1:0] control_data,
-           input [2:0] mode,  // Mode select (0 = control, 1 = video, 2 = video guard, 3 = island, 4 = island guard)
-           output reg [9:0] tmds = 10'b1101010100
-       );
-
-// TMDS Channel number.
-// There are only 3 possible channel numbers in HDMI 1.4a: 0, 1, 2.
-parameter CN = 0;
-
-// Apply selected mode.
-always @(posedge clk_pixel)
-begin
-    case (mode)
-        3'd0: tmds <= control_coding;
-        3'd1: tmds <= video_coding;
-        3'd2: tmds <= video_guard_band;
-        3'd3: tmds <= terc4_coding;
-        3'd4: tmds <= data_guard_band;
-    endcase
-end
+module tmds_channel
+#(
+    // TMDS Channel number.
+    // There are only 3 possible channel numbers in HDMI 1.4a: 0, 1, 2.
+    parameter CN = 0
+)
+(
+    input clk_pixel,
+    input [7:0] video_data,
+    input [3:0] data_island_data,
+    input [1:0] control_data,
+    input [2:0] mode,  // Mode select (0 = control, 1 = video, 2 = video guard, 3 = island, 4 = island guard)
+    output reg [9:0] tmds = 10'b1101010100
+);
 
 // See Section 5.4.4.1
 
@@ -85,5 +75,17 @@ wire [9:0] data_guard_band = (CN == 2'd1 || CN == 2'd2) ? 10'b0100110011
     : control_data == 2'b01 ? 10'b1001110001
     : control_data == 2'b10 ? 10'b0101100011
     : 10'b1011000011;
+
+// Apply selected mode.
+always @(posedge clk_pixel)
+begin
+    case (mode)
+        3'd0: tmds <= control_coding;
+        3'd1: tmds <= video_coding;
+        3'd2: tmds <= video_guard_band;
+        3'd3: tmds <= terc4_coding;
+        3'd4: tmds <= data_guard_band;
+    endcase
+end
 
 endmodule

@@ -1,94 +1,102 @@
 // Implementation of HDMI Spec v1.3a Section 5.1: Overview, Section 5.2: Operating Modes, Section 5.3.1: Packet Header, Section 5.3.2: Null Packet, Section 5.4.1: Serialization
 // By Sameer Puri https://github.com/sameer
 
-module hdmi (
-           input wire clk_tmds,
-           input wire clk_pixel,
-           input wire [23:0] rgb,
+module hdmi 
+#(
+    // Defaults to 640x480 which should be supported by almost if not all HDMI sinks.
+    // See CEA-861-D for enumeration of video id codes.
+    // Formats 1, 2, 3, 4, 16, 17, 18, and 19 are supported.
+    // Pixel repetition, interlaced scans and other special output modes are not implemented.
+    parameter VIDEO_ID_CODE = 1,
 
-           output wire [2:0] tmds_p,
-           output wire tmds_clock_p,
-           output wire [2:0] tmds_n,
-           output wire tmds_clock_n,
-           output reg [BIT_WIDTH:0] cx = 0,
-           output reg [BIT_HEIGHT:0] cy = 0
+    // 59.94 Hz = 0, 60Hz = 1
+    parameter VIDEO_RATE = 0,
+
+    // Defaults to minimum bit lengths required to represent positions.
+    // Modify these parameters if you have alternate desired bit lengths.
+    parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 9 : VIDEO_ID_CODE == 4 ? 10 : 11,
+    parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 10 : 9,
+
+    // A true HDMI signal can send auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
+    // HDMI signal sinks are fortunately backwards-compatible with DVI signals.
+    // Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
+    parameter DVI_OUTPUT = 1'b0
+)
+(
+    input wire clk_tmds,
+    input wire clk_pixel,
+    input wire [23:0] rgb,
+
+    output wire [2:0] tmds_p,
+    output wire tmds_clock_p,
+    output wire [2:0] tmds_n,
+    output wire tmds_clock_n,
+    output reg [BIT_WIDTH:0] cx = 0,
+    output reg [BIT_HEIGHT:0] cy = 0
 );
 
-// Defaults to 640x480 which should be supported by almost if not all HDMI sinks.
-// See CEA-861-D for enumeration of video id codes.
-// Formats 1, 2, 3, 4, 16, 17, 18, and 19 are supported.
-// Pixel repetition, interlaced scans and other special output modes are not implemented.
-parameter VIDEO_ID_CODE = 1;
-
-// Defaults to minimum bit lengths required to represent positions.
-// Modify these parameters if you have alternate desired bit lengths.
-parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 9 : VIDEO_ID_CODE == 4 ? 10 : 11;
-parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 10 : 9;
-
-// A true HDMI signal can send auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
-// HDMI signal sinks are fortunately backwards-compatible with DVI signals.
-// Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
-parameter DVI_OUTPUT = 1'b0;
+// All channels are initialized to the 0,0 control signal from 5.4.2.
+// This gives time for the first pixel to be generated due to the 1-pixel clock delay.
+reg [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, tmds_shift_blue = 10'b1101010100;
 
 // True differential buffer built with altera_gpio_lite from the Intel IP Catalog.
 // Interchangeable with Xilinx OBUFDS primitive where .din is .I, .pad_out is .O, .pad_out_b is .OB
 OBUFDS obufds(.din({tmds_shift_red[0], tmds_shift_green[0], tmds_shift_blue[0], clk_pixel}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n,tmds_clock_n}));
 
 // See CEA-861-D for more specifics formats described below.
-reg [BIT_WIDTH:0] frame_width = 858;
-reg [BIT_HEIGHT:0] frame_height = 525;
-reg [BIT_WIDTH:0] screen_width = 720;
-reg [BIT_HEIGHT:0] screen_height = 480;
+reg [BIT_WIDTH:0] frame_width;
+reg [BIT_HEIGHT:0] frame_height;
+reg [BIT_WIDTH:0] screen_width;
+reg [BIT_HEIGHT:0] screen_height;
 wire [BIT_WIDTH:0] screen_start_x = frame_width - screen_width;
 wire [BIT_HEIGHT:0] screen_start_y = frame_height - screen_height;
 
-always @*
-begin
+generate
     case (VIDEO_ID_CODE)
         1:
         begin
-            frame_width = 800;
-            frame_height = 525;
-            screen_width = 640;
-            screen_height = 480;
+            assign frame_width = 800;
+            assign frame_height = 525;
+            assign screen_width = 640;
+            assign screen_height = 480;
             end
         2, 3:
         begin
-            frame_width = 858;
-            frame_height = 525;
-            screen_width = 720;
-            screen_height = 480;
+            assign frame_width = 858;
+            assign frame_height = 525;
+            assign screen_width = 720;
+            assign screen_height = 480;
             end
         4:
         begin
-            frame_width = 1650;
-            frame_height = 750;
-            screen_width = 1280;
-            screen_height = 720;
+            assign frame_width = 1650;
+            assign frame_height = 750;
+            assign screen_width = 1280;
+            assign screen_height = 720;
         end
         16:
         begin
-            frame_width = 2200;
-            frame_height = 1125;
-            screen_width = 1920;
-            screen_height = 1080;
+            assign frame_width = 2200;
+            assign frame_height = 1125;
+            assign screen_width = 1920;
+            assign screen_height = 1080;
         end
         17, 18:
         begin
-            frame_width = 864;
-            frame_height = 625;
-            screen_width = 720;
-            screen_height = 576;
+            assign frame_width = 864;
+            assign frame_height = 625;
+            assign screen_width = 720;
+            assign screen_height = 576;
         end
         19:
         begin
-            frame_width = 1980;
-            frame_height = 750;
-            screen_width = 1280;
-            screen_height = 720;
+            assign frame_width = 1980;
+            assign frame_height = 750;
+            assign screen_width = 1280;
+            assign screen_height = 720;
         end
     endcase
-end
+endgenerate
 
 reg hsync = 0;
 reg vsync = 0;
@@ -150,8 +158,14 @@ reg [23:0] video_data = 24'd0;
 reg [11:0] data_island_data = 12'd0;
 reg [5:0] control_data = 6'd0;
 
+reg [23:0] header;
+reg [55:0] sub [3:0];
+
 wire [8:0] data;
-data_island data_island (.clk_pixel(clk_pixel), .enable(data_island_period), .sub4(16'd0), .sub0(64'd0), .sub1(64'd0), .sub2(64'd0), .sub3(64'd0), .data(data));
+wire clk_packet;
+data_island data_island (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .data(data), .clk_packet(clk_packet));
+
+audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE)) audio_clock_regeneration_packet (.clk_packet(clk_packet), .header(header), .sub(sub));
 
 always @(posedge clk_pixel)
 begin
@@ -172,10 +186,6 @@ tmds_channel #(.CN(0)) blue_channel (.clk_pixel(clk_pixel), .video_data(video_da
 
 // See Section 5.4.1
 reg [3:0] tmds_counter = 4'd0;
-
-// All channels are initialized to the 0,0 control signal from 5.4.2.
-// This gives time for the first pixel to be generated due to the 1-pixel clock delay.
-reg [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, tmds_shift_blue = 10'b1101010100;
 
 always @(posedge clk_tmds)
 begin
