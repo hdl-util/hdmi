@@ -166,14 +166,14 @@ module audio_sample_packet
     input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
     input logic [1:0] user_data_bit,
-    input logic [23:0] audio_sample_word [1:0],
-    output logic [15:0] header,
+    input logic [19:0] audio_sample_word [1:0],
+    output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
 
 // Left/right channel for stereo audio
-logic CHANNEL_LEFT = 4'b1000;
-logic CHANNEL_RIGHT = 4'b0100;
+logic [3:0] CHANNEL_LEFT = 4'b1000;
+logic [3:0] CHANNEL_RIGHT = 4'b0100;
 
 // See IEC 60958-1 5.1, Table 2
 wire [191:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
@@ -190,9 +190,9 @@ begin
 end
 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
-assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'b00000010};
+assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'd2};
 // See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
-assign sub[3:1] = {56'd0, 56'd0, 56'd0};
+assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
 assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1]}, {parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
 
 endmodule

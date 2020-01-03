@@ -7,5 +7,6 @@ modules = {
         "../../../modules/hdmi/verilog",
         "../../../modules/console/verilog",
         "../../../modules/pll/verilog",
+        "../../../modules/sound/verilog",
     ],
 }

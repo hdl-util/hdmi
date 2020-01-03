@@ -1,4 +1,4 @@
-module data_island (
+module data_island_assembler (
     input clk_pixel,
     input enable,
     input [23:0] header, // See Table 5-8 Packet Types

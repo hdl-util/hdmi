@@ -12,6 +12,8 @@ module hdmi
     // 59.94 Hz = 0, 60Hz = 1
     parameter VIDEO_RATE = 0,
 
+    parameter AUDIO_RATE = 4'b1100,
+
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
     parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 9 : VIDEO_ID_CODE == 4 ? 10 : 11,
@@ -20,12 +22,17 @@ module hdmi
     // A true HDMI signal can send auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
     // HDMI signal sinks are fortunately backwards-compatible with DVI signals.
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
-    parameter DVI_OUTPUT = 1'b0
+    parameter DVI_OUTPUT = 1'b0,
+
+    // Whether auxiliary audio data will be transmitted. Of the form 2-channel L-PCM or IEC 61937 compressed audio.
+    parameter AUDIO_OUTPUT = 1'b0
 )
 (
     input logic clk_tmds,
     input logic clk_pixel,
     input logic [23:0] rgb,
+    input logic [19:0] audio_sample_word,
+    input logic [7:0] packet_type,
 
     output logic [2:0] tmds_p,
     output logic tmds_clock_p,
@@ -160,14 +167,26 @@ logic [23:0] video_data = 24'd0;
 logic [11:0] data_island_data = 12'd0;
 logic [5:0] control_data = 6'd0;
 
-logic [23:0] header;
-logic [55:0] sub [3:0];
 
 logic [8:0] data;
 logic clk_packet;
-data_island data_island (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .data(data), .clk_packet(clk_packet));
+logic clk_packet_fanout [127:0];
 
-audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE)) audio_clock_regeneration_packet (.clk_packet(clk_packet), .header(header), .sub(sub));
+logic [23:0] headers [127:0];
+logic [55:0] subs [127:0] [3:0];
+logic [23:0] header;
+logic [55:0] sub [3:0];
+
+// NULL packet
+assign headers[0] = 24'd0;
+assign subs[0] = '{56'd0, 56'd0, 56'd0, 56'd0};
+
+audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_packet(clk_packet_fanout[1]), .header(headers[1]), .sub(subs[1]));
+
+audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE)) audio_sample_packet (.clk_packet(clk_packet_fanout[2]), .audio_sample_word('{audio_sample_word, audio_sample_word}), .header(headers[2]), .sub(subs[2]));
+
+packet_picker packet_picker (.clk_packet(clk_packet), .select(packet_type), .headers(headers), .subs(subs), .clk_packet_fanout(clk_packet_fanout), .header(header), .sub(sub));
+data_island_assembler data_island_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .data(data), .clk_packet(clk_packet));
 
 always @(posedge clk_pixel)
 begin

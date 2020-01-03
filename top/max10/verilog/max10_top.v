@@ -13,15 +13,18 @@ module max10_top (
            output wire			tmds_clock_n
        );
 assign CLK_50MHZ_ENABLE = 1'b1;
-assign CLK_32KHZ_ENABLE = 1'b0;
+assign CLK_32KHZ_ENABLE = 1'b1;
 
 wire clk_tmds;
 wire clk_pixel;
 pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 
+wire [15:0] audio_sample_word;
+sawtooth sawtooth (.clk_32kHz(CLK_32KHZ), .level(audio_sample_word));
+
 wire [23:0] rgb;
 wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
+hdmi #(.VIDEO_ID_CODE(3)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word({4'd0, audio_sample_word}), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
 
 reg [7:0] character = 8'h30;
 reg [5:0] prevcy = 0;
