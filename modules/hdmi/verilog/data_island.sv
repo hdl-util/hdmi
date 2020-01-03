@@ -3,12 +3,12 @@ module data_island (
     input enable,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
-    output reg [8:0] data, // See Figure 5-4 Data Island Packet and ECC Structure
-    output reg clk_packet
+    output logic [8:0] data, // See Figure 5-4 Data Island Packet and ECC Structure
+    output logic clk_packet
 );
 
 // Initialize parity bits to 0
-reg [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
+logic [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
 
 function automatic [7:0] next_ecc;
 input [7:0] ecc, next_bch_bit;
@@ -23,7 +23,7 @@ wire [7:0] parity_next [4:0] = '{next_ecc(parity[4], bch4[0]), next_ecc(parity[3
 // There's 56 bits being sent 2 bits at a time over TMDS channels 1 & 2, so the parity bits won't be ready in time otherwise.
 wire [7:0] parity_next_next [3:0] = '{next_ecc(parity_next[3], bch[3][1]), next_ecc(parity_next[2], bch[2][1]), next_ecc(parity_next[1], bch[1][1]), next_ecc(parity_next[0], bch[0][1])};
 
-reg [4:0] counter = 5'd0;
+logic [4:0] counter = 5'd0;
 
 always @(posedge clk_pixel)
 begin

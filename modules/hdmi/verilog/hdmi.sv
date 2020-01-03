@@ -23,33 +23,33 @@ module hdmi
     parameter DVI_OUTPUT = 1'b0
 )
 (
-    input wire clk_tmds,
-    input wire clk_pixel,
-    input wire [23:0] rgb,
+    input logic clk_tmds,
+    input logic clk_pixel,
+    input logic [23:0] rgb,
 
-    output wire [2:0] tmds_p,
-    output wire tmds_clock_p,
-    output wire [2:0] tmds_n,
-    output wire tmds_clock_n,
-    output reg [BIT_WIDTH:0] cx = 0,
-    output reg [BIT_HEIGHT:0] cy = 0
+    output logic [2:0] tmds_p,
+    output logic tmds_clock_p,
+    output logic [2:0] tmds_n,
+    output logic tmds_clock_n,
+    output logic [BIT_WIDTH:0] cx = 0,
+    output logic [BIT_HEIGHT:0] cy = 0
 );
 
 // All channels are initialized to the 0,0 control signal from 5.4.2.
 // This gives time for the first pixel to be generated due to the 1-pixel clock delay.
-reg [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, tmds_shift_blue = 10'b1101010100;
+logic [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, tmds_shift_blue = 10'b1101010100;
 
 // True differential buffer built with altera_gpio_lite from the Intel IP Catalog.
 // Interchangeable with Xilinx OBUFDS primitive where .din is .I, .pad_out is .O, .pad_out_b is .OB
 OBUFDS obufds(.din({tmds_shift_red[0], tmds_shift_green[0], tmds_shift_blue[0], clk_pixel}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n,tmds_clock_n}));
 
 // See CEA-861-D for more specifics formats described below.
-reg [BIT_WIDTH:0] frame_width;
-reg [BIT_HEIGHT:0] frame_height;
-reg [BIT_WIDTH:0] screen_width;
-reg [BIT_HEIGHT:0] screen_height;
-wire [BIT_WIDTH:0] screen_start_x = frame_width - screen_width;
-wire [BIT_HEIGHT:0] screen_start_y = frame_height - screen_height;
+logic [BIT_WIDTH:0] frame_width;
+logic [BIT_HEIGHT:0] frame_height;
+logic [BIT_WIDTH:0] screen_width;
+logic [BIT_HEIGHT:0] screen_height;
+logic [BIT_WIDTH:0] screen_start_x;
+logic [BIT_HEIGHT:0] screen_start_y;
 
 generate
     case (VIDEO_ID_CODE)
@@ -96,10 +96,12 @@ generate
             assign screen_height = 720;
         end
     endcase
+    assign screen_start_x = frame_width - screen_width;
+    assign screen_start_y = frame_height - screen_height;
 endgenerate
 
-reg hsync = 0;
-reg vsync = 0;
+logic hsync = 0;
+logic vsync = 0;
 always @(posedge clk_pixel)
 begin
 case (VIDEO_ID_CODE)
@@ -153,16 +155,16 @@ wire data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < scree
 wire data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
 wire data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + 32) && cy < screen_start_y;
 
-reg [2:0] mode = 3'd0;
-reg [23:0] video_data = 24'd0;
-reg [11:0] data_island_data = 12'd0;
-reg [5:0] control_data = 6'd0;
+logic [2:0] mode = 3'd0;
+logic [23:0] video_data = 24'd0;
+logic [11:0] data_island_data = 12'd0;
+logic [5:0] control_data = 6'd0;
 
-reg [23:0] header;
-reg [55:0] sub [3:0];
+logic [23:0] header;
+logic [55:0] sub [3:0];
 
-wire [8:0] data;
-wire clk_packet;
+logic [8:0] data;
+logic clk_packet;
 data_island data_island (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .data(data), .clk_packet(clk_packet));
 
 audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE)) audio_clock_regeneration_packet (.clk_packet(clk_packet), .header(header), .sub(sub));
@@ -179,13 +181,13 @@ begin
     control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
 end
 
-wire [9:0] tmds_red, tmds_green, tmds_blue;
+logic [9:0] tmds_red, tmds_green, tmds_blue;
 tmds_channel #(.CN(2)) red_channel (.clk_pixel(clk_pixel), .video_data(video_data[23:16]), .data_island_data(data_island_data[11:8]), .control_data(control_data[5:4]), .mode(mode), .tmds(tmds_red));
 tmds_channel #(.CN(1)) green_channel (.clk_pixel(clk_pixel), .video_data(video_data[15:8]), .data_island_data(data_island_data[7:4]), .control_data(control_data[3:2]), .mode(mode), .tmds(tmds_green));
 tmds_channel #(.CN(0)) blue_channel (.clk_pixel(clk_pixel), .video_data(video_data[7:0]), .data_island_data(data_island_data[3:0]), .control_data(control_data[1:0]), .mode(mode), .tmds(tmds_blue));
 
 // See Section 5.4.1
-reg [3:0] tmds_counter = 4'd0;
+logic [3:0] tmds_counter = 4'd0;
 
 always @(posedge clk_tmds)
 begin

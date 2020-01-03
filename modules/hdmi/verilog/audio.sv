@@ -9,13 +9,13 @@ module audio_clock_regeneration_packet
     parameter AUDIO_RATE = 4'b0000
 )
 (
-    input wire clk_packet,
-    output wire [23:0] header,
-    output wire [55:0] sub [3:0]
+    input logic clk_packet,
+    output logic [23:0] header,
+    output logic [55:0] sub [3:0]
 );
 
 // Indexed by audio rate, video code, video rate, N/CTS
-wire [19:0] TABLE [0:2] [0:5] [0:1] [1:0] = 
+logic [19:0] TABLE [0:2] [0:5] [0:1] [1:0] =
 '{
     '{ // 32 kHz
         '{
@@ -79,10 +79,10 @@ wire [19:0] TABLE [0:2] [0:5] [0:1] [1:0] =
     }
 };
 
-reg [19:0] N, CTS;
+logic [19:0] N, CTS;
 
 // Intentionally select an invalid index if none of the below were selected
-wire [2:0] audio_rate_index = AUDIO_RATE == 4'b0000 ? 3'd1 : AUDIO_RATE == 4'b0100 ? 3'd2 : AUDIO_RATE == 4'b1100 ? 3'd0 : 3'd3;
+logic [2:0] audio_rate_index = AUDIO_RATE == 4'b0000 ? 3'd1 : AUDIO_RATE == 4'b0100 ? 3'd2 : AUDIO_RATE == 4'b1100 ? 3'd0 : 3'd3;
 
 generate
     case (VIDEO_ID_CODE)
@@ -112,7 +112,7 @@ endgenerate
 
 wire [55:0] single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
 assign header = {8'd0, 8'd0, 8'd1};
-// "The four Subpackets each contain the same Audio Clock Regeneration Subpacket."
+// "The four Subpackets each contain the same Audio Clock logiceneration Subpacket."
 assign sub = '{single_sub, single_sub, single_sub, single_sub};
 
 endmodule
@@ -161,26 +161,26 @@ module audio_sample_packet
 
 )
 (
-    input wire clk_packet,
+    input logic clk_packet,
     // See IEC 60958-1 4.4 and Annex A. 0 indicates the signal is suitable for decoding to an analog audio signal.
-    input wire [1:0] valid_bit,
+    input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
-    input wire [1:0] user_data_bit,
-    input wire [23:0] audio_sample_word [1:0],
-    output wire [15:0] header,
-    output wire [55:0] sub [3:0]
+    input logic [1:0] user_data_bit,
+    input logic [23:0] audio_sample_word [1:0],
+    output logic [15:0] header,
+    output logic [55:0] sub [3:0]
 );
 
 // Left/right channel for stereo audio
-wire CHANNEL_LEFT = 4'b1000;
-wire CHANNEL_RIGHT = 4'b0100;
+logic CHANNEL_LEFT = 4'b1000;
+logic CHANNEL_RIGHT = 4'b0100;
 
 // See IEC 60958-1 5.1, Table 2
 wire [191:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
 wire [191:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
 
 
-reg [7:0] frame_counter = 8'd0;
+logic [7:0] frame_counter = 8'd0;
 
 wire [1:0] parity_bit = {^{audio_sample_word[1], valid_bit[1], user_data_bit[1], channel_status_right[frame_counter]}, ^{audio_sample_word[0], valid_bit[0], user_data_bit[0], channel_status_left[frame_counter]}};
 
