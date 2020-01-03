@@ -37,3 +37,4 @@ run.command
 modelsim.ini
 transcript
 work/
+*.wlf

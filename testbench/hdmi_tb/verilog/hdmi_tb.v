@@ -1,6 +1,8 @@
 // Testbench for hdmi module (supports Icarus Verilog)
 // By Sameer Puri https://github.com/sameer
 
+`timescale 1 ps / 1 ps
+
 module hdmi_tb();
 // Declare inputs as regs and outputs as wires
 reg clk_tmds = 0;
@@ -13,7 +15,9 @@ wire tmds_clock_n;
 wire [9:0] cx;
 wire [9:0] cy;
 
+`ifdef __ICARUS__
 defparam U_hdmi.cycles_per_second = 100;
+`endif
 
 // Initialize all variables
 initial begin   

@@ -1,8 +1,8 @@
 action = "simulation"
-sim_tool = "iverilog"
+sim_tool = "modelsim"
 sim_top = "hdmi_tb"
 
-sim_post_cmd = "vvp hdmi_tb.vvp; gtkwave hdmi_tb.vcd"
+sim_post_cmd = "vsim -novopt -do ../vsim.do -i hdmi_tb"
 
 modules = {
   "local" : [ "../../../testbench/hdmi_tb/verilog" ],

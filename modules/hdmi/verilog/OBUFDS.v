@@ -16,6 +16,15 @@ module OBUFDS (
 always @* pad_out <= din;
 always @* pad_out_b <= ~din;
 endmodule
+`elsif MODEL_TECH
+module OBUFDS (
+           input  wire [3:0] din,       //       din.export
+           output reg [3:0] pad_out,   //   pad_out.export
+           output reg [3:0] pad_out_b  // pad_out_b.export
+       );
+always @* pad_out <= din;
+always @* pad_out_b <= ~din;
+endmodule
 `else
 module OBUFDS (
            input  wire [3:0] din,       //       din.export
