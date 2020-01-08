@@ -12,6 +12,7 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 ## Usage
 
 * Take HDMI modules from `modules/hdmi/verilog` and add them to your own project.
+* Other helpful modules for displaying text / generating sound are also available in `modules/`.
 * Consult `top/max10/verilog/max10_top.v` for an example of usage.
 * Please create an issue if you run into any problems
 
@@ -31,7 +32,7 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 ## Potential limitations
 
 * Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
-	* Workaround: use DDR other special I/O features
+	* Workaround: use DDR/other special I/O features
 * LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
     * Needs further investigation
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
@@ -63,7 +64,7 @@ Dual-licensed under Apache License 2.0 and MIT License.
 
 ## Reference Documents
 
-*These documents are not hosted here! They are available on Library Genesis and other locations.*
+*These documents are not hosted here! They are available on Library Genesis and at other locations.*
 
 * [HDMI Specification v1.4a](https://libgen.is/book/index.php?md5=28FFF92120C7A2C88F91727004DA71ED)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
