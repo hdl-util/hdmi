@@ -1,4 +1,4 @@
-// Implementation of HDMI Spec v1.3a Section 5.1: Overview, Section 5.2: Operating Modes, Section 5.3.1: Packet Header, Section 5.3.2: Null Packet, Section 5.4.1: Serialization
+// Implementation of HDMI Spec v1.4a Section 5.1: Overview, Section 5.2: Operating Modes, Section 5.3.1: Packet Header, Section 5.3.2: Null Packet, Section 5.4.1: Serialization
 // By Sameer Puri https://github.com/sameer
 
 module hdmi 
@@ -12,34 +12,37 @@ module hdmi
     // 59.94 Hz = 0, 60Hz = 1
     parameter VIDEO_RATE = 0,
 
+    // As noted in Section 7.3, the minimal audio requirements are met: 16-bit to 24-bit L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
+    // 0000 = 44.1 kHz, 0100 = 48 kHz, 1100 = 32 kHz (same as those in IEC 60958-3)
     parameter AUDIO_RATE = 4'b1100,
 
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
-    parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 9 : VIDEO_ID_CODE == 4 ? 10 : 11,
-    parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 10 : 9,
+    parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
+    parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 11: 10,
+
+    // Defaults to 16-bit audio.
+    parameter AUDIO_BIT_WIDTH = 16;
 
     // A true HDMI signal can send auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
     // HDMI signal sinks are fortunately backwards-compatible with DVI signals.
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
-    parameter DVI_OUTPUT = 1'b0,
-
-    // Whether auxiliary audio data will be transmitted. Of the form 2-channel L-PCM or IEC 61937 compressed audio.
-    parameter AUDIO_OUTPUT = 1'b0
+    parameter DVI_OUTPUT = 1'b0
 )
 (
     input logic clk_tmds,
     input logic clk_pixel,
     input logic [23:0] rgb,
-    input logic [19:0] audio_sample_word,
+    input logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [1:0],
     input logic [7:0] packet_type,
 
     output logic [2:0] tmds_p,
     output logic tmds_clock_p,
     output logic [2:0] tmds_n,
     output logic tmds_clock_n,
-    output logic [BIT_WIDTH:0] cx = 0,
-    output logic [BIT_HEIGHT:0] cy = 0
+    output logic [BIT_WIDTH-1:0] cx = 0,
+    output logic [BIT_HEIGHT-1:0] cy = 0,
+    output logic clk_packet
 );
 
 // All channels are initialized to the 0,0 control signal from 5.4.2.
@@ -51,12 +54,12 @@ logic [9:0] tmds_shift_red = 10'b1101010100, tmds_shift_green = 10'b1101010100, 
 OBUFDS obufds(.din({tmds_shift_red[0], tmds_shift_green[0], tmds_shift_blue[0], clk_pixel}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n,tmds_clock_n}));
 
 // See CEA-861-D for more specifics formats described below.
-logic [BIT_WIDTH:0] frame_width;
-logic [BIT_HEIGHT:0] frame_height;
-logic [BIT_WIDTH:0] screen_width;
-logic [BIT_HEIGHT:0] screen_height;
-logic [BIT_WIDTH:0] screen_start_x;
-logic [BIT_HEIGHT:0] screen_start_y;
+logic [BIT_WIDTH-1:0] frame_width;
+logic [BIT_HEIGHT-1:0] frame_height;
+logic [BIT_WIDTH-1:0] screen_width;
+logic [BIT_HEIGHT-1:0] screen_height;
+logic [BIT_WIDTH-1:0] screen_start_x;
+logic [BIT_HEIGHT-1:0] screen_start_y;
 
 generate
     case (VIDEO_ID_CODE)
@@ -168,8 +171,7 @@ logic [11:0] data_island_data = 12'd0;
 logic [5:0] control_data = 6'd0;
 
 
-logic [8:0] data;
-logic clk_packet;
+logic [8:0] packet_data;
 logic clk_packet_fanout [127:0];
 
 logic [23:0] headers [127:0];
@@ -177,25 +179,35 @@ logic [55:0] subs [127:0] [3:0];
 logic [23:0] header;
 logic [55:0] sub [3:0];
 
+// See Section 5.3
+
 // NULL packet
-assign headers[0] = 24'd0;
-assign subs[0] = '{56'd0, 56'd0, 56'd0, 56'd0};
+assign headers[0] = 24'd0; assign subs[0] = '{56'd0, 56'd0, 56'd0, 56'd0};
 
 audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_packet(clk_packet_fanout[1]), .header(headers[1]), .sub(subs[1]));
 
-audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE)) audio_sample_packet (.clk_packet(clk_packet_fanout[2]), .audio_sample_word('{audio_sample_word, audio_sample_word}), .header(headers[2]), .sub(subs[2]));
+generate
+    if (AUDIO_BIT_WIDTH < 16 || AUDIO_BIT_WIDTH > 24)
+        localparam WORD_LENGTH = -1;
+    else if (AUDIO_BIT_WIDTH <= 20)
+        localparam WORD_LENGTH = {1'b0, AUDIO_BIT_WIDTH == 20 ? 3'b101 : 3'(20 - AUDIO_BIT_WIDTH)};
+    else if (AUDIO_BIT_WIDTH <= 24)
+        localparam WORD_LENGTH = {1'b1, AUDIO_BIT_WIDTH == 24 ? 3'b101 : 3'(24 - AUDIO_BIT_WIDTH)};
+endgenerate
+audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH(WORD_LENGTH)) audio_sample_packet (.clk_packet(clk_packet_fanout[2]), .audio_sample_word(audio_sample_word), .header(headers[2]), .sub(subs[2]));
 
-packet_picker packet_picker (.clk_packet(clk_packet), .select(packet_type), .headers(headers), .subs(subs), .clk_packet_fanout(clk_packet_fanout), .header(header), .sub(sub));
-data_island_assembler data_island_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .data(data), .clk_packet(clk_packet));
+// See Section 5.2.3.4
+packet_picker packet_picker (.clk_packet(clk_packet), .packet_type(packet_type), .headers(headers), .subs(subs), .clk_packet_fanout(clk_packet_fanout), .header(header), .sub(sub));
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .clk_packet(clk_packet));
 
 always @(posedge clk_pixel)
 begin
     mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
     video_data <= rgb;
     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
-    data_island_data[11:4] <= data[8:1];
+    data_island_data[11:4] <= packet_data[8:1];
     data_island_data[3] <= cx != screen_start_x;
-    data_island_data[2] <= data[0];
+    data_island_data[2] <= packet_data[0];
     data_island_data[1:0] <= {vsync, hsync};
     control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
 end
@@ -222,7 +234,7 @@ begin
         tmds_shift_red <= tmds_shift_red[9:1];
         tmds_shift_green <= tmds_shift_green[9:1];
         tmds_shift_blue <= tmds_shift_blue[9:1];
-        tmds_counter <= tmds_counter + 1'b1;
+        tmds_counter <= tmds_counter + 4'd1;
     end
 end
 

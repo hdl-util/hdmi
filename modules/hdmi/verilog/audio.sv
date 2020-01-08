@@ -14,6 +14,7 @@ module audio_clock_regeneration_packet
     output logic [55:0] sub [3:0]
 );
 
+// See Section 7.2.3. Values taken from Tables 7-1, 7-2, 7-3.
 // Indexed by audio rate, video code, video rate, N/CTS
 logic [19:0] TABLE [0:2] [0:5] [0:1] [1:0] =
 '{
@@ -117,8 +118,8 @@ assign sub = '{single_sub, single_sub, single_sub, single_sub};
 
 endmodule
 
-// See HDMI 1.4a Section 5.3.4.
-// 2-channel L-PCM or IEC 61937 audio in IEC 60958 frames with consumer grade IEC 60958-3
+// See Section 5.3.4.
+// 2-channel L-PCM or IEC 61937 audio in IEC 60958 frames with consumer grade IEC 60958-3.
 module audio_sample_packet 
 #(
     // A thorough explanation of the below parameters can be found in IEC 60958-3 5.2, 5.3.
@@ -139,9 +140,10 @@ module audio_sample_packet
     parameter MODE = 2'b00,
 
     // Set to all 0s for general device.
-    parameter CATEGORY_CODE = 8'd0,
+    parameter CATEGORY_CODE = 8'b00000000,
 
-    // Not really sure what this is
+    // TODO: not really sure what this is...
+    // 0000 = "Do no take into account"
     parameter SOURCE_NUMBER = 4'b0000,
 
     // 0000 = 44.1 kHz
@@ -172,12 +174,13 @@ module audio_sample_packet
 );
 
 // Left/right channel for stereo audio
-logic [3:0] CHANNEL_LEFT = 4'b1000;
-logic [3:0] CHANNEL_RIGHT = 4'b0100;
+const bit [3:0] CHANNEL_LEFT = 4'b1000;
+const bit [3:0] CHANNEL_RIGHT = 4'b0100;
 
+localparam CHANNEL_STATUS_LENGTH = 8'd192;
 // See IEC 60958-1 5.1, Table 2
-wire [191:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
-wire [191:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
 
 
 logic [7:0] frame_counter = 8'd0;
@@ -186,7 +189,7 @@ wire [1:0] parity_bit = {^{audio_sample_word[1], valid_bit[1], user_data_bit[1],
 
 always @(posedge clk_packet)
 begin
-    frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 8'd1;
+    frame_counter <= frame_counter == (CHANNEL_STATUS_LENGTH-1) ? 8'd0 : frame_counter + 8'd1;
 end
 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.

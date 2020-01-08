@@ -1,5 +1,5 @@
 files = [
-    "max10_top.v",
+    "max10_top.sv",
 ]
 
 modules = {

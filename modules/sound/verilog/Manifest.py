@@ -1,3 +1,4 @@
 files = [
-    "wave.sv"
+    "wave.sv",
+    "buffer.sv"
 ]

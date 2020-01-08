@@ -1,10 +1,14 @@
-module sawtooth (
-    input logic clk_32kHz,
-    output logic [15:0] level = 16'd0
+module sawtooth 
+#(
+    parameter BIT_WIDTH = 16
+)
+(
+    input logic clk_audio,
+    output logic [BIT_WIDTH:0] level = BIT_WIDTH'(0)
 );
 
-always @(posedge clk_32kHz)
+always @(posedge clk_audio)
 begin
-    level <= level + 16'd1;
+    level <= level + 1'd1;
 end
 endmodule

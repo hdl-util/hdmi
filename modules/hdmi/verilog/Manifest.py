@@ -1,7 +1,7 @@
 files = [
     "hdmi.sv",
     "tmds_channel.v",
-    "data_island_assembler.sv",
+    "packet_assembler.sv",
     "packet_picker.sv",
     "audio.sv",
     "OBUFDS.v",

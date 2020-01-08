@@ -1,6 +1,6 @@
 # verilog-hdmi
 
-FPGA cores for HDMI video/audio output and VGA-compatible text mode written in Verilog.
+FPGA cores for HDMI video/audio output and VGA-compatible text mode written in Verilog/SystemVerilog.
 
 ## Why?
 
@@ -45,8 +45,8 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 - [x] Data island packets
 	- [x] Null packet
 	- [x] ECC with BCH systematic encoding GF(2^8)
-	- [ ] Audio clock regeneration
-	- [ ] L-PCM audio
+	- [x] Audio clock regeneration
+	- [x] L-PCM audio
 	- [ ] 1-bit audio
 - [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
 - [x] VGA-compatible text mode
@@ -63,7 +63,7 @@ Dual-licensed under Apache License 2.0 and MIT License.
 
 ## Reference Documents
 
-*These documents are not hosted here! They are available on Library Genesis.*
+*These documents are not hosted here! They are available on Library Genesis and other locations.*
 
 * [HDMI Specification v1.4a](https://libgen.is/book/index.php?md5=28FFF92120C7A2C88F91727004DA71ED)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
@@ -76,6 +76,6 @@ Dual-licensed under Apache License 2.0 and MIT License.
 * Mike Field's (@hamsternz) demos of DVI and HDMI output for helping me better understand HDMI
 	* http://www.hamsterworks.co.nz/mediawiki/index.php/Dvid_test
 	* http://www.hamsterworks.co.nz/mediawiki/index.php/Minimal_DVI-D
-* Jean P. Nicolle (fpga4fun.com) for implementing TMDS 8b/10b encoding
+* Jean P. Nicolle (fpga4fun.com) for sparking my interest in HDMI
 	* https://www.fpga4fun.com/HDMI.html
 * Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, etc.
