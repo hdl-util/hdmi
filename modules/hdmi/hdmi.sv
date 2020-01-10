@@ -161,9 +161,19 @@ wire video_guard = !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start
 wire video_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
 
 // See Section 5.2.3.1
-wire data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + 32 && cx < screen_start_x + 34)) && cy < screen_start_y;
-wire data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
-wire data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + 32) && cy < screen_start_y;
+logic data_island_guard;
+logic data_island_preamble;
+logic data_island_period;
+generate
+    const bit [4:0] num_packets;
+    if (((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32 > 18)
+        assign num_packets = 18; // See 5.2.3.2 -- limited to 18 or fewer.
+    else
+        assign num_packets = ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32;
+    assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets *32 + 2)) && cy < screen_start_y;
+    assign data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
+    assign data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
+endgenerate
 
 logic [2:0] mode = 3'd0;
 logic [23:0] video_data = 24'd0;
