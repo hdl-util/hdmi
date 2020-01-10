@@ -11,9 +11,9 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 
 ## Usage
 
-* Take HDMI modules from `modules/hdmi/verilog` and add them to your own project.
+* Take HDMI modules from `modules/hdmi` and add them to your own project.
 * Other helpful modules for displaying text / generating sound are also available in `modules/`.
-* Consult `top/max10/verilog/max10_top.v` for an example of usage.
+* Consult `top/max10/max10_top.v` for an example of usage.
 * Please create an issue if you run into any problems
 
 ### Pixel/TMDS Clock

@@ -176,6 +176,7 @@ logic clk_packet_fanout [127:0];
 
 logic [23:0] headers [127:0];
 logic [55:0] subs [127:0] [3:0];
+
 logic [23:0] header;
 logic [55:0] sub [3:0];
 

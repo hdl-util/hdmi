@@ -9,10 +9,10 @@ syn_top = "max10_top"
 syn_project = "compute"
 syn_tool = "quartus"
 
-quartus_preflow = "../../../top/max10/pinout.tcl"
-quartus_postmodule = "../../../top/max10/module.tcl"
+quartus_preflow = "../../top/max10/pinout.tcl"
+quartus_postmodule = "../../top/max10/module.tcl"
 
 modules = {
-  "local" : [ "../../../top/max10/verilog" ],
+  "local" : [ "../../top/max10" ],
 }
 
