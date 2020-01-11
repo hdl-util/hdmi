@@ -168,7 +168,7 @@ module audio_sample_packet
     input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
     input logic [1:0] user_data_bit,
-    input logic [19:0] audio_sample_word [1:0],
+    input logic [23:0] audio_sample_word [1:0],
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );

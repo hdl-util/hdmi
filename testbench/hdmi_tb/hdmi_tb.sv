@@ -8,12 +8,16 @@ module hdmi_tb();
 reg clk_tmds = 0;
 reg clk_pixel = 0;
 reg [23:0] rgb = 0;
+reg [15:0] audio_sample_word [1:0] = '{16'd0, ~16'd0};
+reg [7:0] packet_type = 8'd2; // Audio
+
 wire [2:0] tmds_p;
 wire tmds_clock_p;
 wire [2:0] tmds_n;
 wire tmds_clock_n;
 wire [9:0] cx;
 wire [9:0] cy;
+wire clk_packet;
 
 `ifdef __ICARUS__
 defparam U_hdmi.cycles_per_second = 100;
@@ -39,12 +43,15 @@ hdmi U_hdmi (
   clk_tmds,
   clk_pixel,
   rgb,
+  audio_sample_word,
+  packet_type,
   tmds_p,
   tmds_clock_p,
   tmds_n,
   tmds_clock_n,
   cx,
-  cy
+  cy,
+  clk_packet
 );
 
 endmodule

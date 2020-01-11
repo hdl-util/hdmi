@@ -1,7 +1,7 @@
 files = [
-    "hdmi_tb.v", 
+    "hdmi_tb.sv",
 ]
 
 modules = {
-  "local" : [ "../../../modules/hdmi" ],
+  "local" : [ "../../modules/hdmi" ],
 }
