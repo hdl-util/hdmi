@@ -1,4 +1,4 @@
-// Testbench for hdmi module (supports Icarus Verilog)
+// Testbench for hdmi module
 // By Sameer Puri https://github.com/sameer
 
 `timescale 1 ps / 1 ps
@@ -17,7 +17,7 @@ wire [2:0] tmds_n;
 wire tmds_clock_n;
 wire [9:0] cx;
 wire [9:0] cy;
-wire clk_packet;
+wire packet_enable;
 
 `ifdef __ICARUS__
 defparam U_hdmi.cycles_per_second = 100;
@@ -26,7 +26,7 @@ defparam U_hdmi.cycles_per_second = 100;
 // Initialize all variables
 initial begin   
   $dumpfile("hdmi_tb.vcd");
-  $dumpvars(0, hdmi_tb);  
+  $dumpvars;
   // $display ("time\t clock clear count Q");	
   $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
   #240000 $finish;      // Terminate simulation
@@ -51,7 +51,7 @@ hdmi U_hdmi (
   tmds_clock_n,
   cx,
   cy,
-  clk_packet
+  packet_enable
 );
 
 endmodule

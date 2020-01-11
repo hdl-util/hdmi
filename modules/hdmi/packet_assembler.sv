@@ -4,7 +4,7 @@ module packet_assembler (
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
     output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
-    output logic clk_packet
+    output logic packet_enable
 );
 
 // Initialize parity bits to 0
@@ -51,7 +51,7 @@ wire [31:0] bch4 = {parity[4], header};
 // See Section 5.2.3.4 for further information.
 wire [5:0] idx = {counter, 1'b0};
 
-assign clk_packet = clk_pixel && counter == 5'd0 && enable;
+assign packet_enable = counter == 5'd0 && enable;
 
 always @(posedge clk_pixel)
 begin

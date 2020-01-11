@@ -15,7 +15,8 @@ module buffer
 )
 (
     input logic clk_audio,
-    input logic clk_packet,
+    input logic clk_pixel,
+    input logic packet_enable,
     input logic [BIT_WIDTH-1:0] audio_in [CHANNELS-1:0],
     output logic [BIT_WIDTH-1:0] audio_out [CHANNELS-1:0],
     output logic [$clog2(BUFFER_SIZE)-1:0] remaining
@@ -41,14 +42,17 @@ begin
     insert_position <= insert_position == BUFFER_END ? BUFFER_WIDTH'(0) : insert_position + 1'd1;
 end
 
-always @(posedge clk_packet)
+always @(posedge clk_pixel)
 begin
-    if (remaining > 1'd0) // Remove. Remaining constraint ensures that the remaining count does not wrap around from 0 to BUFFER_SIZE.
+    if (packet_enable)
     begin
-        remove_position <= remove_position == BUFFER_END ? BUFFER_WIDTH'(0) : remove_position + 1'd1;
-    end else
-    begin
-        // clk_packet but no items left
+        if (remaining > 1'd0) // Remove. Remaining constraint ensures that the remaining count does not wrap around from 0 to BUFFER_SIZE.
+        begin
+            remove_position <= remove_position == BUFFER_END ? BUFFER_WIDTH'(0) : remove_position + 1'd1;
+        end else
+        begin
+            // clk_packet but no items left
+        end
     end
 end
 

@@ -9,7 +9,8 @@ module audio_clock_regeneration_packet
     parameter AUDIO_RATE = 4'b0000
 )
 (
-    input logic clk_packet,
+    input logic clk_pixel,
+    input logic packet_enable,
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
@@ -163,7 +164,8 @@ module audio_sample_packet
 
 )
 (
-    input logic clk_packet,
+    input logic clk_pixel,
+    input logic packet_enable,
     // See IEC 60958-1 4.4 and Annex A. 0 indicates the signal is suitable for decoding to an analog audio signal.
     input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
@@ -187,9 +189,10 @@ logic [7:0] frame_counter = 8'd0;
 
 wire [1:0] parity_bit = {^{audio_sample_word[1], valid_bit[1], user_data_bit[1], channel_status_right[frame_counter]}, ^{audio_sample_word[0], valid_bit[0], user_data_bit[0], channel_status_left[frame_counter]}};
 
-always @(posedge clk_packet)
+always @(posedge clk_pixel)
 begin
-    frame_counter <= frame_counter == (CHANNEL_STATUS_LENGTH-1) ? 8'd0 : frame_counter + 8'd1;
+    if (packet_enable)
+        frame_counter <= frame_counter == (CHANNEL_STATUS_LENGTH-1) ? 8'd0 : frame_counter + 8'd1;
 end
 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
