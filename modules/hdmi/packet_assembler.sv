@@ -3,7 +3,7 @@ module packet_assembler (
     input enable,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
-    output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
+    output logic [8:0] packet_data = 9'd0, // See Figure 5-4 Data Island Packet and ECC Structure
     output logic packet_enable
 );
 

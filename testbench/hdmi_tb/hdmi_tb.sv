@@ -26,9 +26,9 @@ defparam U_hdmi.cycles_per_second = 100;
 // Initialize all variables
 initial begin   
   $dumpfile("hdmi_tb.vcd");
-  $dumpvars;
+  $dumpvars(0, hdmi_tb);
   // $display ("time\t clock clear count Q");	
-  $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
+  // $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
   #240000 $finish;      // Terminate simulation
 end
 
