@@ -5,7 +5,7 @@ module audio_clock_regeneration_packet
     parameter VIDEO_ID_CODE = 1,
     // 59.94 Hz = 0, 60 Hz = 1
     parameter VIDEO_RATE = 0,
-    // 0000 = 44.1 kHz, 0100 = 48 kHz, 1100 = 32 kHz
+    // 0000 = 44.1 kHz, 0010 = 48 kHz, 0011 = 32 kHz
     parameter AUDIO_RATE = 4'b0000
 )
 (
@@ -114,7 +114,7 @@ endgenerate
 
 wire [55:0] single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
 assign header = {8'd0, 8'd0, 8'd1};
-// "The four Subpackets each contain the same Audio Clock logiceneration Subpacket."
+// "The four Subpackets each contain the same Audio Clock regeneration Subpacket."
 assign sub = '{single_sub, single_sub, single_sub, single_sub};
 
 endmodule
@@ -132,7 +132,7 @@ module audio_sample_packet
     parameter SAMPLE_WORD_TYPE = 1'b0,
 
     // 0 = asserted, 1 = not asserted
-    parameter COPYRIGHT_ASSERTED = 1'b1,
+    parameter COPYRIGHT_NOT_ASSERTED = 1'b1,
 
     // 000 = no pre-emphasis, 100 = 50μs/15μs pre-emphasis
     parameter PRE_EMPHASIS = 3'b000,
@@ -153,8 +153,8 @@ module audio_sample_packet
     // Normal accuracy: +/- 1000 * 10E-6 (00), High accuracy +/- 50 * 10E-6 (10)
     parameter CLOCK_ACCURACY = 2'b00,
 
-    // Maxmium length of 20 bits (0) or 24 bits (1) followed by a 3-bit representation of the number of bits to subtract (except 101 is actually subtract 0)
-    parameter WORD_LENGTH = 4'b0100,
+    // 3-bit representation of the number of bits to subtract (except 101 is actually subtract 0) with LSB first, followed by maxmium length of 20 bits (0) or 24 bits (1)
+    parameter WORD_LENGTH = 4'b0010,
 
     // Frequency prior to conversion in a consumer playback system. 0000 = not indicated.
     parameter ORIGINAL_SAMPLING_FREQUENCY = 4'b0000,
@@ -176,13 +176,13 @@ module audio_sample_packet
 );
 
 // Left/right channel for stereo audio
-const bit [3:0] CHANNEL_LEFT = 4'b1000;
-const bit [3:0] CHANNEL_RIGHT = 4'b0100;
+logic [3:0] CHANNEL_LEFT = 4'b0001;
+logic [3:0] CHANNEL_RIGHT = 4'b0010;
 
 localparam CHANNEL_STATUS_LENGTH = 8'd192;
 // See IEC 60958-1 5.1, Table 2
-wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
-wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_NOT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_NOT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
 
 
 logic [7:0] frame_counter = 8'd0;
