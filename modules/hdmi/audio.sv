@@ -17,7 +17,7 @@ module audio_clock_regeneration_packet
 
 // See Section 7.2.3. Values taken from Tables 7-1, 7-2, 7-3.
 // Indexed by audio rate, video code, video rate, N/CTS
-logic [19:0] TABLE [0:2] [0:5] [0:1] [1:0] =
+logic [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
 '{
     '{ // 32 kHz
         '{
@@ -90,23 +90,23 @@ generate
     case (VIDEO_ID_CODE)
         1:
         begin
-            assign N = TABLE[audio_rate_index][0][VIDEO_RATE][1];
-            assign CTS = TABLE[audio_rate_index][0][VIDEO_RATE][0];
+            assign N = TABLE[audio_rate_index][0][VIDEO_RATE][0];
+            assign CTS = TABLE[audio_rate_index][0][VIDEO_RATE][1];
         end
         2, 3, 6, 7, 8, 9, 17, 18:
         begin
-            assign N = TABLE[audio_rate_index][1][VIDEO_RATE][1];
-            assign CTS = TABLE[audio_rate_index][1][VIDEO_RATE][0];
+            assign N = TABLE[audio_rate_index][1][VIDEO_RATE][0];
+            assign CTS = TABLE[audio_rate_index][1][VIDEO_RATE][1];
             end
         4, 5, 19:
         begin
-            assign N = TABLE[audio_rate_index][3][VIDEO_RATE][1];
-            assign CTS = TABLE[audio_rate_index][3][VIDEO_RATE][0];
+            assign N = TABLE[audio_rate_index][3][VIDEO_RATE][0];
+            assign CTS = TABLE[audio_rate_index][3][VIDEO_RATE][1];
         end
         16:
         begin
-            assign N = TABLE[audio_rate_index][4][VIDEO_RATE][1];
-            assign CTS = TABLE[audio_rate_index][4][VIDEO_RATE][0];
+            assign N = TABLE[audio_rate_index][4][VIDEO_RATE][0];
+            assign CTS = TABLE[audio_rate_index][4][VIDEO_RATE][1];
         end
     endcase
 endgenerate
@@ -199,6 +199,6 @@ end
 assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'd2};
 // See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
 assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
-assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1]}, {parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
+assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
 
 endmodule
