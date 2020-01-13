@@ -3,7 +3,7 @@ module packet_assembler (
     input enable,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
-    output logic [8:0] packet_data = 9'd0, // See Figure 5-4 Data Island Packet and ECC Structure
+    output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
     output logic packet_enable
 );
 
@@ -47,19 +47,17 @@ end
 wire [63:0] bch [3:0] = '{{parity[3], sub[3]}, {parity[2], sub[2]}, {parity[1], sub[1]}, {parity[0], sub[0]}};
 wire [31:0] bch4 = {parity[4], header};
 
-// BCH packets 0 to 3 are transferred two bits at a time, requiring a counter from 0 to 63, incrementing two at a time.
-// See Section 5.2.3.4 for further information.
-wire [5:0] idx = {counter, 1'b0};
+// BCH packets 0 to 3 are transferred two bits at a time, see Section 5.2.3.4 for further information.
+wire [5:0] counter_t2 = {counter, 1'b0};
+wire [5:0] counter_t2_p1 = {counter, 1'b1};
 
 assign packet_enable = counter == 5'd0 && enable;
+assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 
 always @(posedge clk_pixel)
 begin
     if (enable)
-    begin
-        packet_data <= {{bch[3][idx + 1], bch[2][idx + 1], bch[1][idx + 1], bch[0][idx + 1]}, {bch[3][idx], bch[2][idx], bch[1][idx], bch[0][idx]}, bch4[counter]};
         counter <= counter + 5'd1;
-    end
 end
 
 endmodule
