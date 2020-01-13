@@ -46,7 +46,7 @@ always @(posedge clk_pixel)
 begin
     if (packet_enable)
     begin
-        if (remaining > 1'd0) // Remove. Remaining constraint ensures that the remaining count does not wrap around from 0 to BUFFER_SIZE.
+        if (remaining > 1'd0) // Remove.
         begin
             remove_position <= remove_position == BUFFER_END ? BUFFER_WIDTH'(0) : remove_position + 1'd1;
         end else
