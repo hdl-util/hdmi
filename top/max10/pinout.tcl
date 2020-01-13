@@ -27,11 +27,12 @@ set_location_assignment PIN_27 -to CLK_32KHZ
 set_location_assignment PIN_30 -to CLK_32KHZ_ENABLE
 
 set_location_assignment PIN_26 -to CLK_50MHZ
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to CLK_50MHZ
 set_location_assignment PIN_17 -to CLK_50MHZ_ENABLE
 
-set_location_assignment PIN_47 -to tmds_p[2]
-set_location_assignment PIN_46 -to tmds_n[2]
+set_location_assignment PIN_47 -to RST
+
+set_location_assignment PIN_56 -to tmds_p[2]
+set_location_assignment PIN_55 -to tmds_n[2]
 set_location_assignment PIN_45 -to tmds_p[1]
 set_location_assignment PIN_44 -to tmds_n[1]
 set_location_assignment PIN_43 -to tmds_p[0]

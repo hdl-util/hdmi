@@ -1,16 +1,16 @@
 module max10_top (
-    input  wire       CLK_50MHZ,
-    input  wire       CLK_32KHZ,
-//    input  wire			RST,
+    input wire CLK_50MHZ,
+    input wire CLK_32KHZ,
+    input wire RST,
 
-    output wire       	CLK_50MHZ_ENABLE = 1'b1,
-    output wire			CLK_32KHZ_ENABLE = 1'b1,
-    output wire	[7:0]	LED = 8'd0,
+    output wire CLK_50MHZ_ENABLE = 1'b1,
+    output wire CLK_32KHZ_ENABLE = 1'b1,
+    output wire [7:0] LED = 8'd0,
 
-    output wire [2:0] 	tmds_p,
-    output wire			tmds_clock_p,
-    output wire [2:0] 	tmds_n,
-    output wire			tmds_clock_n
+    output wire [2:0] tmds_p,
+    output wire tmds_clock_p,
+    output wire [2:0] tmds_n,
+    output wire tmds_clock_n
 );
 
 wire clk_tmds;
