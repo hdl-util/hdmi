@@ -9,11 +9,11 @@ module packet_picker (
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
-// Based on selected packet type, sends packet_enable to the correct packet generator and sends its output back to the HDMI module.
+// Based on selected packet type, use a mux to send packet_enable to the correct packet generator.
 genvar i;
 generate
     for (i = 0; i < 128; i++) begin: fanout
-        assign packet_enable_fanout[i] = i == packet_type ? packet_enable : 1'b0;
+        assign packet_enable_fanout[i] = i == packet_type && packet_enable;
     end
 endgenerate
 
