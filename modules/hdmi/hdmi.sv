@@ -40,8 +40,8 @@ module hdmi
     output logic tmds_clock_p,
     output logic [2:0] tmds_n,
     output logic tmds_clock_n,
-    output logic [BIT_WIDTH-1:0] cx = 0,
-    output logic [BIT_HEIGHT-1:0] cy = 0,
+    output logic [BIT_WIDTH-1:0] cx = BIT_WIDTH'(0),
+    output logic [BIT_HEIGHT-1:0] cy = BIT_HEIGHT'(0),
     output logic packet_enable
 );
 
@@ -110,45 +110,44 @@ generate
     assign screen_start_y = frame_height - screen_height;
 endgenerate
 
-logic hsync = 0;
-logic vsync = 0;
-always @(posedge clk_pixel)
-begin
+logic hsync;
+logic vsync;
+generate
 case (VIDEO_ID_CODE)
     1:
     begin
-        hsync <= ~(cx > 15 && cx <= 15 + 96);
-        vsync <= ~(cy < 2);
+        assign hsync = ~(cx > 15 && cx <= 15 + 96);
+        assign vsync = ~(cy < 2);
     end
     2, 3:
     begin
-        hsync <= ~(cx > 15 && cx <= 15 + 62);
-        vsync <= ~(cy > 5 && cy < 12);
+        assign hsync = ~(cx > 15 && cx <= 15 + 62);
+        assign vsync = ~(cy > 5 && cy < 12);
     end
     4:
     begin
-        hsync <= cx > 109 && cx <= 109 + 40;
-        vsync <= cy < 5;
+        assign hsync = cx > 109 && cx <= 109 + 40;
+        assign vsync = cy < 5;
     end
     16:
     begin
-        hsync <= cx > 87 && cx <= 87 + 44;
-        vsync <= cy < 5;
+        assign hsync = cx > 87 && cx <= 87 + 44;
+        assign vsync = cy < 5;
     end
     17, 18:
     begin
-        hsync <= ~(cx > 11 && cx <= 11 + 64);
-        vsync <= ~(cy < 5);
+        assign hsync = ~(cx > 11 && cx <= 11 + 64);
+        assign vsync = ~(cy < 5);
     end
     19:
     begin
-        hsync <= cx > 439 && cx <= 439 + 40;
-        vsync <= cy < 5;
+        assign hsync = cx > 439 && cx <= 439 + 40;
+        assign vsync = cy < 5;
     end
 endcase
-end
+endgenerate
 
-// Wrap-around pixel position counters
+// Wrap-around pixel position counters. Indicate the pixel to be generated in the NEXT pixel clock.
 always @(posedge clk_pixel)
 begin
     cx <= cx == frame_width-1'b1 ? 1'b0 : cx + 1'b1;
@@ -161,12 +160,12 @@ wire video_guard = !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start
 wire video_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
 
 // See Section 5.2.3.1
+logic [4:0] num_packets;
 logic data_island_guard;
 logic data_island_preamble;
 logic data_island_period;
-logic [4:0] num_packets;
 
-assign num_packets = (((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32 > 18) ? 5'd18 : ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32; // See 5.2.3.2 -- limited to 18 or fewer.
+assign num_packets = (((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32 > 18) ? 5'd18 : 5'(((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32); // See 5.2.3.2 -- limited to 18 or fewer.
 assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets *32 + 2)) && cy < screen_start_y;
 assign data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
 assign data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
@@ -206,7 +205,7 @@ generate
     else if (AUDIO_BIT_WIDTH == 24)
         audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b1}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH < 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(24 - AUDIO_BIT_WIDTH) << 3, 1'b1}))   audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(24 - AUDIO_BIT_WIDTH) << 3, 1'b1})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
 endgenerate
 
 
