@@ -41,13 +41,16 @@ end
 
 always @(posedge clk_pixel)
 begin
-  assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted");
+  assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets);
   if (cx >= hdmi.screen_start_x && cy >= hdmi.screen_start_y)
   begin
-    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area");
+    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area, mode is actually %d", hdmi.mode);
   end
-  assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %z", hdmi.audio_clock_regeneration_packet.N);
+  assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.audio_clock_regeneration_packet.N);
   assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
+  assert ((hdmi.packet_type == 8'd2 ~^ hdmi.packet_enable_fanout[2] ~^ hdmi.packet_enable)) else $fatal("Packet enable does not reach audio packet when packet type is audio packet");
+  assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left[39:0]);
+  assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right[39:0]);
 end
 
 // Connect DUT to test bench
