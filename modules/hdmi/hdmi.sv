@@ -203,15 +203,15 @@ logic [23:0] audio_sample_word_padded [1:0];
 assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[0]}};
 generate
     if (AUDIO_BIT_WIDTH < 16 || AUDIO_BIT_WIDTH > 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH(-1))                                    audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH(-1))                                    audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH == 20)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b0}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b0}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH < 20)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(20 - AUDIO_BIT_WIDTH) << 3, 1'b0})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(20 - AUDIO_BIT_WIDTH) << 3, 1'b0})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH == 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b1}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b1}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH < 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(24 - AUDIO_BIT_WIDTH) << 3, 1'b1})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b11), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(24 - AUDIO_BIT_WIDTH) << 3, 1'b1})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
 endgenerate
 
 

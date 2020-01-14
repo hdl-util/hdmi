@@ -8,7 +8,5 @@ module sawtooth
 );
 
 always @(posedge clk_audio)
-begin
     level <= level + 1'd1;
-end
 endmodule
