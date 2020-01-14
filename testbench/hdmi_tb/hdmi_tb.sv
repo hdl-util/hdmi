@@ -71,7 +71,8 @@ begin
   assert (counter == hdmi.packet_assembler.counter) else $fatal("Packet counter does not match expected");
   if (counter == 5'd31)
   begin
-    assert (hdmi.packet_assembler.parity[4:1] == '{8'b11111101, 8'd0, 8'd0, 8'd0, 8'd0}) else $fatal("Parity unexpected for 4 to 1: %b, %b, %b, %b", hdmi.packet_assembler.parity[4], hdmi.packet_assembler.parity[3], hdmi.packet_assembler.parity[2], hdmi.packet_assembler.parity[1]);
+    assert (hdmi.packet_assembler.parity[4] == (num_packets != 0 ? 8'b01100101 : 8'b11010110)) else $fatal("Parity unexpected for 4: %b", hdmi.packet_assembler.parity[4]);
+    assert (hdmi.packet_assembler.parity[3:1] == '{8'd0, 8'd0, 8'd0, 8'd0}) else $fatal("Parity is nonzero for 3 to 1: %b, %b, %b, %b", hdmi.packet_assembler.parity[3], hdmi.packet_assembler.parity[2], hdmi.packet_assembler.parity[1]);
     assert (hdmi.packet_assembler.parity[0] != 8'd0) else $fatal("Parity is zero for 0: %b, with sub0 = %b", hdmi.packet_assembler.parity[0], hdmi.packet_assembler.sub[0]);
   end
 end

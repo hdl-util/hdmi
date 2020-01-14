@@ -7,6 +7,12 @@ module packet_assembler (
     output logic packet_enable
 );
 
+// 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
+logic [4:0] counter = 5'd0;
+always @(posedge clk_pixel)
+    if (enable)
+        counter <= counter + 5'd1;
+
 // Initialize parity bits to 0
 logic [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
 
@@ -30,17 +36,14 @@ generate
     for(i = 0; i < 5; i++)
     begin: parity_calc
         if (i == 4)
-            assign parity_next[i] = next_ecc(parity[i], bch4[0]);
+            assign parity_next[i] = next_ecc(parity[i], bch4[counter]);
         else
         begin
-            assign parity_next[i] = next_ecc(parity[i], bch[i][0]);
-            assign parity_next_next[i] = next_ecc(parity_next[i], bch[i][1]);
+            assign parity_next[i] = next_ecc(parity[i], bch[i][counter_t2]);
+            assign parity_next_next[i] = next_ecc(parity_next[i], bch[i][counter_t2_p1]);
         end
     end
 endgenerate
-
-// 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
-logic [4:0] counter = 5'd0;
 
 always @(posedge clk_pixel)
 begin
@@ -67,11 +70,5 @@ wire [5:0] counter_t2_p1 = {counter, 1'b1};
 
 assign packet_enable = counter == 5'd0 && enable;
 assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
-
-always @(posedge clk_pixel)
-begin
-    if (enable)
-        counter <= counter + 5'd1;
-end
 
 endmodule
