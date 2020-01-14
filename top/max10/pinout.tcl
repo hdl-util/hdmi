@@ -52,4 +52,3 @@ set_instance_assignment -name IO_STANDARD LVDS -to tmds_clock_n
 # Commit assignments
 export_assignments
 project_close
-
