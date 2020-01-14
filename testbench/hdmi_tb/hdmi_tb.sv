@@ -20,7 +20,7 @@ wire [9:0] cy;
 wire packet_enable;
 
 `ifdef __ICARUS__
-defparam U_hdmi.cycles_per_second = 100;
+defparam hdmi.cycles_per_second = 100;
 `endif
 
 // Initialize all variables
@@ -38,8 +38,18 @@ always begin
   clk_tmds = ~clk_tmds; // Toggle every tick
 end
 
+
+always @(posedge clk_pixel)
+begin
+  assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted");
+  if (cx >= hdmi.screen_start_x && cy >= hdmi.screen_start_y)
+  begin
+    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area");
+  end
+end
+
 // Connect DUT to test bench
-hdmi U_hdmi (
+hdmi hdmi (
   clk_tmds,
   clk_pixel,
   rgb,
