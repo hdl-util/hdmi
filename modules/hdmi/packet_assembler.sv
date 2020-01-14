@@ -19,11 +19,25 @@ begin
 end
 endfunction
 
-wire [7:0] parity_next [4:0] = '{next_ecc(parity[4], bch4[0]), next_ecc(parity[3], bch[3][0]), next_ecc(parity[2], bch[2][0]), next_ecc(parity[1], bch[1][0]), next_ecc(parity[0], bch[0][0])};
+logic [7:0] parity_next [4:0];
 
 // The parity needs to be calculated 2 bits at a time for blocks 0 to 3.
 // There's 56 bits being sent 2 bits at a time over TMDS channels 1 & 2, so the parity bits wouldn't be ready in time otherwise.
-wire [7:0] parity_next_next [3:0] = '{next_ecc(parity_next[3], bch[3][1]), next_ecc(parity_next[2], bch[2][1]), next_ecc(parity_next[1], bch[1][1]), next_ecc(parity_next[0], bch[0][1])};
+logic [7:0] parity_next_next [3:0];
+
+genvar i;
+generate
+    for(i = 0; i < 5; i++)
+    begin: parity_calc
+        if (i == 4)
+            assign parity_next[i] = next_ecc(parity[i], bch4[0]);
+        else
+        begin
+            assign parity_next[i] = next_ecc(parity[i], bch[i][0]);
+            assign parity_next_next[i] = next_ecc(parity_next[i], bch[i][1]);
+        end
+    end
+endgenerate
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
 logic [4:0] counter = 5'd0;
