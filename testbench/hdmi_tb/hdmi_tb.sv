@@ -46,10 +46,12 @@ begin
   begin
     assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area");
   end
+  assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %z", hdmi.audio_clock_regeneration_packet.N);
+  assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
 end
 
 // Connect DUT to test bench
-hdmi hdmi (
+hdmi #(.VIDEO_ID_CODE(3)) hdmi (
   clk_tmds,
   clk_pixel,
   rgb,

@@ -19,7 +19,7 @@ wire clk_tmds;
 wire clk_pixel;
 pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 
-localparam AUDIO_BIT_WIDTH = 20;
+localparam AUDIO_BIT_WIDTH = 16;
 wire [AUDIO_BIT_WIDTH-1:0] audio_in;
 wire [AUDIO_BIT_WIDTH-1:0] audio_out;
 sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));

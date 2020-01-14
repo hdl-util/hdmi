@@ -17,7 +17,7 @@ module audio_clock_regeneration_packet
 
 // See Section 7.2.3. Values taken from Tables 7-1, 7-2, 7-3.
 // Indexed by audio rate, video code, video rate, N/CTS
-logic [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
+const bit [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
 '{
     '{ // 32 kHz
         '{
@@ -84,7 +84,7 @@ logic [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
 logic [19:0] N, CTS;
 
 // Intentionally select an invalid index if none of the below were selected
-logic [2:0] audio_rate_index = AUDIO_RATE == 4'b0000 ? 3'd1 : AUDIO_RATE == 4'b0100 ? 3'd2 : AUDIO_RATE == 4'b1100 ? 3'd0 : 3'd3;
+logic [2:0] audio_rate_index = AUDIO_RATE == 4'b0000 ? 3'd1 : AUDIO_RATE == 4'b0010 ? 3'd2 : AUDIO_RATE == 4'b0011 ? 3'd0 : 3'd3;
 
 generate
     case (VIDEO_ID_CODE)
@@ -97,7 +97,7 @@ generate
         begin
             assign N = TABLE[audio_rate_index][1][VIDEO_RATE][0];
             assign CTS = TABLE[audio_rate_index][1][VIDEO_RATE][1];
-            end
+        end
         4, 5, 19:
         begin
             assign N = TABLE[audio_rate_index][3][VIDEO_RATE][0];
