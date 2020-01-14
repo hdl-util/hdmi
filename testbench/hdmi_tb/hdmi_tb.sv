@@ -38,6 +38,7 @@ always begin
   clk_tmds = ~clk_tmds; // Toggle every tick
 end
 
+logic [4:0] counter = 5'd0;
 
 always @(posedge clk_pixel)
 begin
@@ -51,6 +52,13 @@ begin
   assert ((hdmi.packet_type == 8'd2 ~^ hdmi.packet_enable_fanout[2] ~^ hdmi.packet_enable)) else $fatal("Packet enable does not reach audio packet when packet type is audio packet");
   assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left[39:0]);
   assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right[39:0]);
+  if (packet_enable)
+    counter <=  1'd1;
+  if (counter != 0)
+    counter <= counter + 1'd1;
+  if (counter < 5'd24)
+    assert (hdmi.packet_data == {hdmi.sub[3][2*counter+1], hdmi.sub[2][2*counter+1], hdmi.sub[1][2*counter+1], hdmi.sub[0][2*counter+1], hdmi.sub[3][2*counter], hdmi.sub[2][2*counter], hdmi.sub[1][2*counter], hdmi.sub[0][2*counter], hdmi.header[counter]}) else $fatal("Packet assembler not outputting correct data");
+  assert (counter == hdmi.packet_assembler.counter) else $fatal("Packet counter does not match expected");
 end
 
 // Connect DUT to test bench
