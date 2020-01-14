@@ -14,13 +14,12 @@ module max10_top (
 );
 assign CLK_50MHZ_ENABLE = 1'b1;
 assign CLK_32KHZ_ENABLE = 1'b1;
-assign LED = 8'd0;
 
 wire clk_tmds;
 wire clk_pixel;
 pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 
-localparam AUDIO_BIT_WIDTH = 16;
+localparam AUDIO_BIT_WIDTH = 20;
 wire [AUDIO_BIT_WIDTH-1:0] audio_in;
 wire [AUDIO_BIT_WIDTH-1:0] audio_out;
 sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
@@ -29,15 +28,30 @@ logic [7:0] remaining;
 buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
 
 logic [7:0] packet_type;
-assign packet_type = !audio_clock_regeneration_sent ? 8'd1 : remaining > 0 ? 8'd2 : 8'd0;
-
 logic audio_clock_regeneration_sent = 1'b0;
+logic audio_info_frame_sent = 1'b0;
+
 always @(posedge clk_pixel)
 begin
-    if (cx == 0 && cy == 0)
+    if (cx == 0 && cy == 0) // RESET
+    begin
         audio_clock_regeneration_sent <= 1'b0;
-    else if (packet_type == 8'd1 && packet_enable)
+        audio_info_frame_sent <= 1'b0;
+    end
+    else if (packet_enable && !audio_clock_regeneration_sent)
+    begin
+        packet_type <= 8'd1;
         audio_clock_regeneration_sent <= 1'b1;
+    end
+    else if (packet_enable && !audio_info_frame_sent)
+    begin
+        packet_type <= 8'h84;
+        audio_info_frame_sent <= 1'b1;
+    end
+    else if (packet_enable && remaining > 0)
+        packet_type <= 8'd2;
+    else
+        packet_type <= 8'd0;
 end
 
 wire [23:0] rgb;

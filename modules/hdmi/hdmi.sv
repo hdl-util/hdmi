@@ -176,17 +176,12 @@ assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < scr
 assign data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
 assign data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
 
-logic [2:0] mode = 3'd0;
-logic [23:0] video_data = 24'd0;
-logic [11:0] data_island_data = 12'd0;
-logic [5:0] control_data = 6'd0;
-
 
 logic [8:0] packet_data;
-logic packet_enable_fanout [127:0];
+logic packet_enable_fanout [255:0];
 
-logic [23:0] headers [127:0];
-logic [55:0] subs [127:0] [3:0];
+logic [23:0] headers [255:0];
+logic [55:0] subs [255:0] [3:0];
 
 logic [23:0] header;
 logic [55:0] sub [3:0];
@@ -214,10 +209,17 @@ generate
         audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'(24 - AUDIO_BIT_WIDTH) << 3, 1'b1})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
 endgenerate
 
+audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
-packet_picker packet_picker (.packet_enable(packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
 packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));
+packet_picker packet_picker (.packet_enable(packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
+
+
+logic [2:0] mode = 3'd0;
+logic [23:0] video_data = 24'd0;
+logic [11:0] data_island_data = 12'd0;
+logic [5:0] control_data = 6'd0;
 
 always @(posedge clk_pixel)
 begin

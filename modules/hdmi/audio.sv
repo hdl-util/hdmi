@@ -187,7 +187,13 @@ wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {152'd0, ORIGINAL_SAMPLI
 
 logic [7:0] frame_counter = 8'd0;
 
-wire [1:0] parity_bit = {^{audio_sample_word[1], valid_bit[1], user_data_bit[1], channel_status_right[frame_counter]}, ^{audio_sample_word[0], valid_bit[0], user_data_bit[0], channel_status_left[frame_counter]}};
+logic [1:0] parity_bit;
+genvar i;
+generate
+    for (i = 0; i < 2; i++) begin: parity_loop
+        assign parity_bit[i] = ^{channel_status_right[frame_counter], user_data_bit[i], valid_bit[i], audio_sample_word[i]};
+    end
+endgenerate
 
 always @(posedge clk_pixel)
 begin
@@ -201,4 +207,47 @@ assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0
 assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
 assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
 
+endmodule
+
+// See CEA861-D 6.6
+module audio_info_frame
+#(
+    parameter AUDIO_CODING_TYPE = 4'd1, // IEC 60958 L-PCM.
+    parameter AUDIO_CHANNEL_COUNT = 3'd1, // 2 channels.
+    parameter SAMPLING_FREQUENCY = 3'd0, // Refer to stream header.
+    parameter SAMPLE_SIZE = 2'd0, // Refer to stream header.
+    parameter CHANNEL_ALLOCATION = 8'h00, // Channel 0 = Front Left, Channel 1 = Front Right (0-indexed)
+    parameter DOWN_MIX_INHIBITED = 1'b0, // Permitted or no information about any assertion of this.
+    parameter LEVEL_SHIFT_VALUE = 4'd0 // 4-bit unsigned number from 0dB up to 15dB
+)
+(
+    output logic [23:0] header,
+    output logic [55:0] sub [3:0]
+);
+
+localparam LENGTH = 5'd10;
+localparam VERSION = 8'd0;
+localparam TYPE = 7'd4;
+
+assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
+
+// PB0-PB6 = sub0
+// PB7-13 =  sub1
+// PB14-20 = sub2
+// PB21-27 = sub3
+logic [7:0] pb [27:0];
+
+assign pb[0] = ~ (header[23:16] + header[15:8] + header[7:0] + pb[4] + pb[3] + pb[2] + pb[1]); // TODO: is this checksum right?
+assign pb[1] = {AUDIO_CODING_TYPE, 1'b0, AUDIO_CHANNEL_COUNT};
+assign pb[2] = {3'd0, SAMPLING_FREQUENCY, SAMPLE_SIZE};
+assign pb[3] = CHANNEL_ALLOCATION;
+assign pb[4] = {DOWN_MIX_INHIBITED, LEVEL_SHIFT_VALUE, 3'd0};
+
+genvar i;
+generate
+    for (i = 0; i < 4; i++)
+    begin: pb_to_sub
+        assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
+    end
+endgenerate
 endmodule
