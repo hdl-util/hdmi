@@ -134,23 +134,23 @@ module audio_sample_packet
     // 0 = asserted, 1 = not asserted
     parameter COPYRIGHT_NOT_ASSERTED = 1'b1,
 
-    // 000 = no pre-emphasis, 100 = 50μs/15μs pre-emphasis
+    // 000 = no pre-emphasis, 001 = 50μs/15μs pre-emphasis
     parameter PRE_EMPHASIS = 3'b000,
 
     // Only one valid value
     parameter MODE = 2'b00,
 
     // Set to all 0s for general device.
-    parameter CATEGORY_CODE = 8'b00000000,
+    parameter CATEGORY_CODE = 8'd0,
 
     // TODO: not really sure what this is...
-    // 0000 = "Do no take into account"
-    parameter SOURCE_NUMBER = 4'b0000,
+    // 0 = "Do no take into account"
+    parameter SOURCE_NUMBER = 4'd0,
 
     // 0000 = 44.1 kHz
     parameter SAMPLING_FREQUENCY = 4'b0000,
 
-    // Normal accuracy: +/- 1000 * 10E-6 (00), High accuracy +/- 50 * 10E-6 (10)
+    // Normal accuracy: +/- 1000 * 10E-6 (00), High accuracy +/- 50 * 10E-6 (01)
     parameter CLOCK_ACCURACY = 2'b00,
 
     // 3-bit representation of the number of bits to subtract (except 101 is actually subtract 0) with LSB first, followed by maxmium length of 20 bits (0) or 24 bits (1)
@@ -176,13 +176,13 @@ module audio_sample_packet
 );
 
 // Left/right channel for stereo audio
-logic [3:0] CHANNEL_LEFT = 4'b0001;
-logic [3:0] CHANNEL_RIGHT = 4'b0010;
+logic [3:0] CHANNEL_LEFT = 4'd1;
+logic [3:0] CHANNEL_RIGHT = 4'd2;
 
 localparam CHANNEL_STATUS_LENGTH = 8'd192;
 // See IEC 60958-1 5.1, Table 2
-wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_NOT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_LEFT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
-wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {GRADE, SAMPLE_WORD_TYPE, COPYRIGHT_NOT_ASSERTED, PRE_EMPHASIS, MODE, CATEGORY_CODE, SOURCE_NUMBER, CHANNEL_RIGHT, SAMPLING_FREQUENCY, CLOCK_ACCURACY, 2'b00, WORD_LENGTH, ORIGINAL_SAMPLING_FREQUENCY, 152'd0};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_LEFT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
+wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_RIGHT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
 
 
 logic [7:0] frame_counter = 8'd0;
