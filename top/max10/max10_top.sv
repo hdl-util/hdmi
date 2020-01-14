@@ -20,12 +20,13 @@ wire clk_tmds;
 wire clk_pixel;
 pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 
-wire [15:0] audio_in;
-wire [15:0] audio_out;
-sawtooth sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
+localparam AUDIO_BIT_WIDTH = 16;
+wire [AUDIO_BIT_WIDTH-1:0] audio_in;
+wire [AUDIO_BIT_WIDTH-1:0] audio_out;
+sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
 
 logic [7:0] remaining;
-buffer #(.CHANNELS(1)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
 
 logic [7:0] packet_type;
 assign packet_type = !audio_clock_regeneration_sent ? 8'd1 : remaining > 0 ? 8'd2 : 8'd0;
@@ -42,7 +43,7 @@ end
 wire [23:0] rgb;
 wire [9:0] cx, cy;
 wire packet_enable;
-hdmi #(.VIDEO_ID_CODE(3)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_out, audio_out}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_out, audio_out}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
 logic [7:0] character = 8'h30;
 logic [5:0] prevcy = 6'd0;
