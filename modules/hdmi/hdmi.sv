@@ -215,10 +215,7 @@ generate
     end
 endgenerate
 
-audio_info_frame #(
-    .SAMPLING_FREQUENCY(AUDIO_RATE == 4'd0 ? 3'b010 : AUDIO_RATE == 4'b0011 ? 3'b001 : AUDIO_RATE == 4'b0010 ? 3'b011 : AUDIO_RATE == 4'b1000 ? 3'b100 : AUDIO_RATE == 4'b1010 ? 3'b101 : AUDIO_RATE == 4'b1100 ? 3'b110 : AUDIO_RATE == 4'b1110 ? 3'b111 : 3'd0),
-    .SAMPLE_SIZE(AUDIO_BIT_WIDTH == 24 ? 2'b11 : AUDIO_BIT_WIDTH == 20 ? 2'b10 : AUDIO_BIT_WIDTH == 16 ? 2'b01 : 2'b00)
-) audio_info_frame(.header(headers[132]), .sub(subs[132]));
+audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
 packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));
