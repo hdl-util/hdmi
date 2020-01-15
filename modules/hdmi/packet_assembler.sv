@@ -13,15 +13,22 @@ always @(posedge clk_pixel)
     if (enable)
         counter <= counter + 5'd1;
 
+// BCH packets 0 to 3 are transferred two bits at a time, see Section 5.2.3.4 for further information.
+wire [5:0] counter_t2 = {counter, 1'b0};
+wire [5:0] counter_t2_p1 = {counter, 1'b1};
+
 // Initialize parity bits to 0
 logic [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
+
+wire [63:0] bch [3:0] = '{{parity[3], sub[3]}, {parity[2], sub[2]}, {parity[1], sub[1]}, {parity[0], sub[0]}};
+wire [31:0] bch4 = {parity[4], header};
 
 // See Figure 5-5 Error Correction Code generator. Generalization of a CRC with binary BCH.
 // See https://en.wikipedia.org/wiki/BCH_code#Systematic_encoding:_The_message_as_a_prefix for further information.
 function automatic [7:0] next_ecc;
 input [7:0] ecc, next_bch_bit;
 begin
-    next_ecc = (ecc >> 1) ^ ((ecc[0] ^ next_bch_bit) ? 8'b10000011 : 8'd0);
+    next_ecc = (ecc[0] ^ next_bch_bit) ? (ecc >> 1) ^ 8'b10000011 : (ecc >> 1);
 end
 endfunction
 
@@ -49,24 +56,16 @@ always @(posedge clk_pixel)
 begin
     if (enable)
     begin
-        if (counter < 5'd24) // Compute ECC only on subpacket data, not on itself
-        begin
+        if (counter < 5'd28) // Compute ECC only on subpacket data, not on itself
             parity[3:0] <= parity_next_next;
+        if (counter < 5'd24)
             parity[4] <= parity_next[4];
-        end
         else if (counter == 5'd31) // Reset ECC for next packet
         begin
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
         end
     end
 end
-
-wire [63:0] bch [3:0] = '{{parity[3], sub[3]}, {parity[2], sub[2]}, {parity[1], sub[1]}, {parity[0], sub[0]}};
-wire [31:0] bch4 = {parity[4], header};
-
-// BCH packets 0 to 3 are transferred two bits at a time, see Section 5.2.3.4 for further information.
-wire [5:0] counter_t2 = {counter, 1'b0};
-wire [5:0] counter_t2_p1 = {counter, 1'b1};
 
 assign packet_enable = counter == 5'd0 && enable;
 assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};

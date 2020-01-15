@@ -29,7 +29,7 @@ initial begin
   $dumpvars(0, hdmi_tb);
   // $display ("time\t clock clear count Q");	
   // $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
-  #240000 $finish;      // Terminate simulation
+  #750000 $finish;      // Terminate simulation
 end
 
 // Clock generator
@@ -44,9 +44,9 @@ logic [4:0] counter = 5'd0;
 always @(posedge clk_pixel)
 begin
   assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets);
-  if (cx >= hdmi.screen_start_x && cy >= hdmi.screen_start_y)
+  if (cx > hdmi.screen_start_x && cy > hdmi.screen_start_y)
   begin
-    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area, mode is actually %d", hdmi.mode);
+    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area, mode is actually %d at (%d, %d) with guard %b", hdmi.mode, cx, cy, hdmi.video_guard);
   end
   assert (hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[1] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[2] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[3]) else $fatal("Not all clock regen packets are the same");
   assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.audio_clock_regeneration_packet.N);
@@ -73,7 +73,7 @@ begin
   begin
     assert (hdmi.packet_assembler.parity[4] == (num_packets != 0 ? 8'b01100101 : 8'b11010110)) else $fatal("Parity unexpected for 4: %b", hdmi.packet_assembler.parity[4]);
     assert (hdmi.packet_assembler.parity[3:1] == '{8'd0, 8'd0, 8'd0, 8'd0}) else $fatal("Parity is nonzero for 3 to 1: %b, %b, %b, %b", hdmi.packet_assembler.parity[3], hdmi.packet_assembler.parity[2], hdmi.packet_assembler.parity[1]);
-    assert (hdmi.packet_assembler.parity[0] != 8'd0) else $fatal("Parity is zero for 0: %b, with sub0 = %b", hdmi.packet_assembler.parity[0], hdmi.packet_assembler.sub[0]);
+    assert (hdmi.packet_assembler.parity[0] == 8'b00010001 || hdmi.packet_assembler.parity[0] == 8'b11100111 || hdmi.packet_assembler.parity[0] == 8'b01111100 || hdmi.packet_assembler.parity[0] == 8'b10001010) else $fatal("Parity is zero for 0: %b, with sub0 = %b", hdmi.packet_assembler.parity[0], hdmi.packet_assembler.sub[0]);
   end
 end
 
