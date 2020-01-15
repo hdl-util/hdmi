@@ -5,5 +5,6 @@ files = [
     "packet_picker.sv",
     "audio.sv",
     "OBUFDS.v",
-    "altera_gpio_lite.sv"
+    "altera_gpio_lite.sv",
+    "video.sv"
 ]

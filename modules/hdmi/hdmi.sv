@@ -215,6 +215,7 @@ generate
     end
 endgenerate
 
+auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
