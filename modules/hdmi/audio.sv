@@ -245,7 +245,7 @@ assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 // PB21-27 = sub3
 logic [7:0] pb [27:0];
 
-assign pb[0] = ~(header[23:16] + header[15:8] + header[7:0] + pb[4] + pb[3] + pb[2] + pb[1]); // TODO: is this checksum right?
+assign pb[0] = ~(header[23:16] + header[15:8] + header[7:0] + pb[5] + pb[4] + pb[3] + pb[2] + pb[1]); // TODO: is this checksum right?
 assign pb[1] = {AUDIO_CODING_TYPE, 1'b0, AUDIO_CHANNEL_COUNT};
 assign pb[2] = {3'd0, SAMPLING_FREQUENCY, SAMPLE_SIZE};
 assign pb[3] = 8'd0;
