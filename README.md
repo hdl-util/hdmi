@@ -1,6 +1,6 @@
 # verilog-hdmi
 
-FPGA cores for HDMI video/audio output and VGA-compatible text mode written in Verilog/SystemVerilog.
+FPGA cores for HDMI 1.4a video/audio output and VGA-compatible text mode written in Verilog/SystemVerilog.
 
 ## Why?
 
@@ -49,6 +49,8 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 	- [x] Audio clock regeneration
 	- [x] L-PCM audio
 	- [ ] 1-bit audio
+	- [x] Audio InfoFrame
+	- [x] Auxiliary Video Information InfoFrame
 - [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
 - [x] VGA-compatible text mode
 	- [x] IBM 8x16 font
