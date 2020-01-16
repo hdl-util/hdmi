@@ -24,7 +24,6 @@ defparam hdmi.cycles_per_second = 100;
 `endif
 
 initial begin   
-  $dumpfile("hdmi_tb.vcd");
   $dumpvars(0, hdmi_tb);
   #2400000 $finish;      // Terminate simulation
 end

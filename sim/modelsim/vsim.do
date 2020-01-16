@@ -1,4 +1,4 @@
-vcd file hdmi_tb.vcd;
+vcd file tb.vcd;
 vcd add -r /*;
 add wave *
 run 1000ms;

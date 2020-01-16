@@ -2,7 +2,6 @@
 module packet_assembler_tb();
 
 initial begin   
-  $dumpfile("packet_assembler_tb.vcd");
   $dumpvars(0, packet_assembler_tb);
   #1280 $finish;
 end

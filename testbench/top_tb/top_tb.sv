@@ -3,7 +3,6 @@
 module top_tb();
 
 initial begin
-  $dumpfile("top_tb.vcd");
   $dumpvars(0, top_tb);
   #50ms $finish; // Terminate simulation after ~3 frames are generated
 end
