@@ -200,14 +200,14 @@ packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_pe
 packet_picker packet_picker (.packet_enable(packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
 
 
-logic [2:0] mode = 3'd0;
+logic [2:0] mode;
+assign mode = data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
 logic [23:0] video_data = 24'd0;
 logic [11:0] data_island_data = 12'd0;
 logic [5:0] control_data = 6'd0;
 
 always @(posedge clk_pixel)
 begin
-    mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
     video_data <= rgb;
     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
     data_island_data[11:4] <= packet_data[8:1];
