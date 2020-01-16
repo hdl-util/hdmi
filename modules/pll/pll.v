@@ -46,8 +46,8 @@ module pll (
 );
 
 always begin
-	#37037.03703703703703703704 c0 = ~c0; // 27 MHz
-	#3703.70370370370370370370 c1 = ~c1; // 270 MHz
+	#40000 c0 = ~c0; // Faked as 25 MHz
+	#4000 c1 = ~c1; // Faked as 250 MHz
 end
 
 endmodule

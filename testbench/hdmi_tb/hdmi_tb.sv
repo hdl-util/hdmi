@@ -19,10 +19,6 @@ wire [9:0] cx;
 wire [9:0] cy;
 wire packet_enable;
 
-`ifdef __ICARUS__
-defparam hdmi.cycles_per_second = 100;
-`endif
-
 initial begin   
   $dumpvars(0, hdmi_tb);
   #9009000 $finish;      // Terminate simulation
