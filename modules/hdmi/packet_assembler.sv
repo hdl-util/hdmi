@@ -10,7 +10,7 @@ module packet_assembler (
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
 logic [4:0] counter = 5'd0;
 always @(posedge clk_pixel)
-    if (enable)
+    if (data_island_period)
         counter <= counter + 5'd1;
 
 // BCH packets 0 to 3 are transferred two bits at a time, see Section 5.2.3.4 for further information.

@@ -7,4 +7,3 @@ sim_post_cmd = "vsim -novopt -do ../vsim.do -i hdmi_tb"
 modules = {
   "local" : [ "../../../testbench/hdmi_tb" ],
 }
-

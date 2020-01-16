@@ -4,7 +4,7 @@ module sawtooth
 )
 (
     input logic clk_audio,
-    output logic [BIT_WIDTH:0] level = BIT_WIDTH'(0)
+    output logic [BIT_WIDTH-1:0] level = BIT_WIDTH'(0)
 );
 
 always @(posedge clk_audio)

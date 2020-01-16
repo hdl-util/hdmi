@@ -37,6 +37,21 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
+
+`ifdef MODEL_TECH
+module pll (
+	input wire inclk0,
+	output reg c0 = 0,
+	output reg c1 = 0
+);
+
+always begin
+	#37037.03703703703703703704 c0 = ~c0; // 27 MHz
+	#3703.70370370370370370370 c1 = ~c1; // 270 MHz
+end
+
+endmodule
+`else
 module pll (
 	inclk0,
 	c0,
@@ -155,6 +170,7 @@ module pll (
 
 
 endmodule
+`endif
 
 // ============================================================
 // CNX file retrieval info

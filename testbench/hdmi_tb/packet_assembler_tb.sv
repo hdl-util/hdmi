@@ -15,9 +15,10 @@ logic [55:0] sub [3:0];
 logic [8:0] packet_data;
 logic packet_enable;
 
+// Clock generator
 always begin
-  #1 clk_pixel = $time % 10 == 1 ? ~clk_pixel : clk_pixel; // Toggle every 10 ticks
-  clk_tmds = ~clk_tmds; // Toggle every tick
+  #10 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
+  #1 clk_tmds = ~clk_tmds; // Toggle every tick
 end
 
 logic [5:0] counter = 0;

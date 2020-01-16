@@ -23,19 +23,16 @@ wire packet_enable;
 defparam hdmi.cycles_per_second = 100;
 `endif
 
-// Initialize all variables
 initial begin   
   $dumpfile("hdmi_tb.vcd");
   $dumpvars(0, hdmi_tb);
-  // $display ("time\t clock clear count Q");	
-  // $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
   #2400000 $finish;      // Terminate simulation
 end
 
 // Clock generator
 always begin
-  #1 clk_pixel = $time % 10 == 1 ? ~clk_pixel : clk_pixel; // Toggle every 10 ticks
-  clk_tmds = ~clk_tmds; // Toggle every tick
+  #10 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
+  #1 clk_tmds = ~clk_tmds; // Toggle every tick
 end
 
 logic [7:0] num_packets = 8'd0;
