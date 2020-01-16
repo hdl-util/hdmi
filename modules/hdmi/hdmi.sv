@@ -64,6 +64,8 @@ logic [BIT_WIDTH-1:0] screen_width;
 logic [BIT_HEIGHT-1:0] screen_height;
 logic [BIT_WIDTH-1:0] screen_start_x;
 logic [BIT_HEIGHT-1:0] screen_start_y;
+logic hsync;
+logic vsync;
 
 generate
     case (VIDEO_ID_CODE)
@@ -73,6 +75,8 @@ generate
             assign frame_height = 525;
             assign screen_width = 640;
             assign screen_height = 480;
+            assign hsync = ~(cx > 15 && cx <= 15 + 96);
+            assign vsync = ~(cy < 2);
             end
         2, 3:
         begin
@@ -80,6 +84,8 @@ generate
             assign frame_height = 525;
             assign screen_width = 720;
             assign screen_height = 480;
+            assign hsync = ~(cx > 15 && cx <= 15 + 62);
+            assign vsync = ~(cy > 5 && cy < 12);
             end
         4:
         begin
@@ -87,6 +93,8 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
+            assign hsync = cx > 109 && cx <= 109 + 40;
+            assign vsync = cy < 5;
         end
         16:
         begin
@@ -94,6 +102,8 @@ generate
             assign frame_height = 1125;
             assign screen_width = 1920;
             assign screen_height = 1080;
+            assign hsync = cx > 87 && cx <= 87 + 44;
+            assign vsync = cy < 5;
         end
         17, 18:
         begin
@@ -101,6 +111,8 @@ generate
             assign frame_height = 625;
             assign screen_width = 720;
             assign screen_height = 576;
+            assign hsync = ~(cx > 11 && cx <= 11 + 64);
+            assign vsync = ~(cy < 5);
         end
         19:
         begin
@@ -108,47 +120,12 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
+            assign hsync = cx > 439 && cx <= 439 + 40;
+            assign vsync = cy < 5;
         end
     endcase
     assign screen_start_x = frame_width - screen_width;
     assign screen_start_y = frame_height - screen_height;
-endgenerate
-
-logic hsync;
-logic vsync;
-generate
-case (VIDEO_ID_CODE)
-    1:
-    begin
-        assign hsync = ~(cx > 15 && cx <= 15 + 96);
-        assign vsync = ~(cy < 2);
-    end
-    2, 3:
-    begin
-        assign hsync = ~(cx > 15 && cx <= 15 + 62);
-        assign vsync = ~(cy > 5 && cy < 12);
-    end
-    4:
-    begin
-        assign hsync = cx > 109 && cx <= 109 + 40;
-        assign vsync = cy < 5;
-    end
-    16:
-    begin
-        assign hsync = cx > 87 && cx <= 87 + 44;
-        assign vsync = cy < 5;
-    end
-    17, 18:
-    begin
-        assign hsync = ~(cx > 11 && cx <= 11 + 64);
-        assign vsync = ~(cy < 5);
-    end
-    19:
-    begin
-        assign hsync = cx > 439 && cx <= 439 + 40;
-        assign vsync = cy < 5;
-    end
-endcase
 endgenerate
 
 // Wrap-around pixel position counters indicating the pixel to be generated in the NEXT pixel clock.
