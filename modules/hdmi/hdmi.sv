@@ -136,23 +136,29 @@ begin
 end
 
 // See Section 5.2
-wire video_data_period = cx >= screen_start_x && cy >= screen_start_y;
-wire video_guard = !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
-wire video_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
+logic video_data_period = 1;
+logic video_guard = 0;
+logic video_preamble = 0;
 
 // See Section 5.2.3.1
 integer max_num_packets;
 logic [4:0] num_packets;
-logic data_island_guard;
-logic data_island_preamble;
-logic data_island_period;
-
 assign max_num_packets = ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32;
 assign num_packets = max_num_packets > 18 ? 5'd18 : 5'(max_num_packets);
-assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y;
-assign data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
-assign data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
 
+logic data_island_guard = 0;
+logic data_island_preamble = 0;
+logic data_island_period = 0;
+
+always @(posedge clk_pixel)
+begin
+    video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
+    video_guard <= !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
+    video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
+    data_island_guard <= !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y;
+    data_island_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
+    data_island_period <= !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
+end
 
 logic [8:0] packet_data;
 logic packet_enable_fanout [255:0];
@@ -200,14 +206,14 @@ packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_pe
 packet_picker packet_picker (.packet_enable(packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
 
 
-logic [2:0] mode;
-assign mode = data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
+logic [2:0] mode = 3'd1;
 logic [23:0] video_data = 24'd0;
 logic [11:0] data_island_data = 12'd0;
 logic [5:0] control_data = 6'd0;
 
 always @(posedge clk_pixel)
 begin
+    mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
     video_data <= rgb;
     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
     data_island_data[11:4] <= packet_data[8:1];

@@ -57,11 +57,13 @@ begin
     end
 end
 
-wire [23:0] rgb;
+logic [23:0] rgb;
 wire [9:0] cx, cy;
 wire packet_enable;
 hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_out, audio_out}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
+// always @(posedge clk_pixel)
+    // rgb <= {cx == 138 ? ~8'd0 : 8'd0, cy == 45 ? ~8'd0 : 8'd0, cx == 857 || cy == 524 ? ~8'd0 : 8'd0};
 logic [7:0] character = 8'h30;
 logic [5:0] prevcy = 6'd0;
 always @(posedge clk_pixel)
