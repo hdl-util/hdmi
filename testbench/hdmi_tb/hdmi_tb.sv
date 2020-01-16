@@ -29,7 +29,7 @@ initial begin
   $dumpvars(0, hdmi_tb);
   // $display ("time\t clock clear count Q");	
   // $monitor ("%g\t%b\t%b\t%b", $time, tmds_p, cx, cy);
-  #750000 $finish;      // Terminate simulation
+  #2400000 $finish;      // Terminate simulation
 end
 
 // Clock generator
@@ -44,10 +44,6 @@ logic [4:0] counter = 5'd0;
 always @(posedge clk_pixel)
 begin
   assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets);
-  if (cx > hdmi.screen_start_x && cy > hdmi.screen_start_y)
-  begin
-    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area, mode is actually %d at (%d, %d) with guard %b", hdmi.mode, cx, cy, hdmi.video_guard);
-  end
   assert (hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[1] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[2] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[3]) else $fatal("Not all clock regen packets are the same");
   assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.audio_clock_regeneration_packet.N);
   assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
@@ -55,6 +51,9 @@ begin
   assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left[39:0]);
   assert (hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right[39:0]);
   assert (hdmi.audio_bit_width_block.audio_sample_packet.valid_bit == 2'b00) else $fatal("Audio invalid");
+
+  if (cx > hdmi.screen_start_x && cy > hdmi.screen_start_y)
+    assert(hdmi.mode == 3'd1) else $fatal("Video mode not active in screen area, mode is actually %d at (%d, %d) with guard %b", hdmi.mode, cx, cy, hdmi.video_guard);
   if (packet_enable)
   begin
     counter <=  1'd1;

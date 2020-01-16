@@ -7,7 +7,7 @@ module hdmi
     // See CEA-861-D for enumeration of video id codes.
     // Formats 1, 2, 3, 4, 16, 17, 18, and 19 are supported.
     // Pixel repetition, interlaced scans and other special output modes are not implemented.
-    parameter VIDEO_ID_CODE = 1,
+    parameter VIDEO_ID_CODE = 7'd1,
 
     // 59.94 Hz = 0, 60Hz = 1
     parameter VIDEO_RATE = 0,
@@ -172,7 +172,7 @@ logic data_island_period;
 
 assign max_num_packets = ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32;
 assign num_packets = max_num_packets > 18 ? 5'd18 : 5'(max_num_packets);
-assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets *32 + 2)) && cy < screen_start_y;
+assign data_island_guard = !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y;
 assign data_island_preamble = !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
 assign data_island_period = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
 

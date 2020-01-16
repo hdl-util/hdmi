@@ -38,20 +38,23 @@ begin
         audio_clock_regeneration_sent <= 1'b0;
         audio_info_frame_sent <= 1'b0;
     end
-    else if (packet_enable && !audio_clock_regeneration_sent)
+    if (packet_enable)
     begin
-        packet_type <= 8'd1;
-        audio_clock_regeneration_sent <= 1'b1;
+        if (!audio_clock_regeneration_sent)
+        begin
+            packet_type <= 8'd1;
+            audio_clock_regeneration_sent <= 1'b1;
+        end
+        else if (!audio_info_frame_sent)
+        begin
+            packet_type <= 8'h84;
+            audio_info_frame_sent <= 1'b1;
+        end
+        else if (remaining > 0)
+            packet_type <= 8'd2;
+        else
+            packet_type <= 8'd0;
     end
-    else if (packet_enable && !audio_info_frame_sent)
-    begin
-        packet_type <= 8'h84;
-        audio_info_frame_sent <= 1'b1;
-    end
-    else if (packet_enable && remaining > 0)
-        packet_type <= 8'd2;
-    else
-        packet_type <= 8'd0;
 end
 
 wire [23:0] rgb;
