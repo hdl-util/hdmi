@@ -202,9 +202,11 @@ auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxi
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .enable(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));
-packet_picker packet_picker (.packet_enable(packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
+assign packet_enable = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y && ((cx - screen_start_x) % 32 == 0); // Based on instantaneous data island period
 
+logic prev_packet_enable; // One clock behind the user-facing packet_enable
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(prev_packet_enable));
+packet_picker packet_picker (.packet_enable(prev_packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;
 logic [23:0] video_data = 24'd0;
@@ -244,11 +246,9 @@ begin
     end
     else
     begin
-        for (j = 0; j < NUM_CHANNELS; j++)
-        begin
-            tmds_shift[j] <= {1'b0, tmds_shift[j][9:1]};
-        end
         tmds_counter <= tmds_counter + 4'd1;
+        for (j = 0; j < NUM_CHANNELS; j++)
+            tmds_shift[j] <= {1'bX, tmds_shift[j][9:1]};
     end
 end
 

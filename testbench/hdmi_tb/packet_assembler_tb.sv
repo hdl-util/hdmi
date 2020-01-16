@@ -9,7 +9,7 @@ end
 
 logic clk_tmds = 0;
 logic clk_pixel = 0;
-logic enable;
+logic data_island_period;
 logic [23:0] header;
 logic [55:0] sub [3:0];
 logic [8:0] packet_data;
@@ -22,7 +22,7 @@ end
 
 logic [5:0] counter = 0;
 
-assign enable = counter < 32;
+assign data_island_period = counter < 32;
 assign header = 24'h0D0282;
 assign sub = '{56'd0, 56'd0, 56'd0, {8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'b01000000, 8'b00101111}};
 
@@ -40,6 +40,6 @@ begin
     end
 end
 
-packet_assembler packet_assembler(.clk_pixel(clk_pixel), .enable(enable), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));
+packet_assembler packet_assembler(.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));
 
 endmodule

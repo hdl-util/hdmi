@@ -1,6 +1,6 @@
 module packet_assembler (
     input clk_pixel,
-    input enable,
+    input data_island_period,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
     output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
@@ -54,20 +54,18 @@ endgenerate
 
 always @(posedge clk_pixel)
 begin
-    if (enable)
+    if (data_island_period)
     begin
         if (counter < 5'd28) // Compute ECC only on subpacket data, not on itself
             parity[3:0] <= parity_next_next;
         if (counter < 5'd24)
             parity[4] <= parity_next[4];
-        else if (counter == 5'd31) // Reset ECC for next packet
-        begin
+        if (counter == 5'd31) // Reset ECC for next packet
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
-        end
     end
 end
 
-assign packet_enable = counter == 5'd0 && enable;
+assign packet_enable = counter == 5'd0 && data_island_period;
 assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 
 endmodule
