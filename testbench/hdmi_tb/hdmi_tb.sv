@@ -25,7 +25,7 @@ defparam hdmi.cycles_per_second = 100;
 
 initial begin   
   $dumpvars(0, hdmi_tb);
-  #2400000 $finish;      // Terminate simulation
+  #9009000 $finish;      // Terminate simulation
 end
 
 // Clock generator
