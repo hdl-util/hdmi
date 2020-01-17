@@ -33,11 +33,10 @@ begin
     assert (counter == packet_assembler.counter || counter > 31) else $fatal("counters do not match: %d vs %d", counter, packet_assembler.counter);
     if (counter == 0)
         assert (packet_enable) else $fatal("packet enable not on when counter is 0");
-    if (counter == 31)
-    begin
+    if (counter == 24)
         assert (packet_assembler.parity[4] == 8'b11100100) else $fatal("parity incorrect for header: %b", packet_assembler.parity[4]);
+    if (counter == 28)
         assert (packet_assembler.parity[0] == 8'b01110001) else $fatal("parity incorrect for sub0: %b", packet_assembler.parity[0]);
-    end
 end
 
 packet_assembler packet_assembler(.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(packet_enable));

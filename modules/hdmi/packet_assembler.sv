@@ -43,11 +43,11 @@ generate
     for(i = 0; i < 5; i++)
     begin: parity_calc
         if (i == 4)
-            assign parity_next[i] = next_ecc(parity[i], bch4[counter]);
+            assign parity_next[i] = next_ecc(parity[i], header[counter]);
         else
         begin
-            assign parity_next[i] = next_ecc(parity[i], bch[i][counter_t2]);
-            assign parity_next_next[i] = next_ecc(parity_next[i], bch[i][counter_t2_p1]);
+            assign parity_next[i] = next_ecc(parity[i], sub[i][counter_t2]);
+            assign parity_next_next[i] = next_ecc(parity_next[i], sub[i][counter_t2_p1]);
         end
     end
 endgenerate
@@ -56,11 +56,12 @@ always @(posedge clk_pixel)
 begin
     if (data_island_period)
     begin
-        if (counter < 5'd28) // Compute ECC only on subpacket data, not on itself
+        if (counter_t2_p1 < 56) // Compute ECC only on subpacket data, not on itself
             parity[3:0] <= parity_next_next;
+
         if (counter < 5'd24)
             parity[4] <= parity_next[4];
-        if (counter == 5'd31) // Reset ECC for next packet
+        else if (counter == 5'd31) // Reset ECC for next packet
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
     end
 end

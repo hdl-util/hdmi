@@ -20,14 +20,14 @@ wire clk_pixel;
 pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 
 localparam AUDIO_BIT_WIDTH = 16;
-wire [AUDIO_BIT_WIDTH-1:0] audio_in;
-wire [AUDIO_BIT_WIDTH-1:0] audio_out;
+logic [AUDIO_BIT_WIDTH-1:0] audio_in;
+logic [AUDIO_BIT_WIDTH-1:0] audio_out;
 sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
 
 logic [6:0] remaining;
-wire packet_enable;
+logic packet_enable;
 logic [7:0] packet_type;
-buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+// buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
 
 logic audio_clock_regeneration_sent = 1'b0;
 logic audio_info_frame_sent = 1'b0;
@@ -56,7 +56,10 @@ begin
             audio_info_frame_sent <= 1'b1;
         end
         else if (remaining > 0)
+        begin
             packet_type <= 8'd2;
+            audio_out <= audio_in;
+        end
         else
             packet_type <= 8'd0;
     end

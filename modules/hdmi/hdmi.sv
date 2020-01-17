@@ -234,7 +234,7 @@ generate
     end
 endgenerate
 // See Section 5.4.1
-logic [3:0] tmds_counter = 4'd0;
+logic [3:0] tmds_counter = 4'd1;
 
 integer j;
 always @(posedge clk_tmds)
