@@ -234,15 +234,15 @@ generate
     end
 endgenerate
 // See Section 5.4.1
-logic [3:0] tmds_counter = 4'd1;
+logic [3:0] tmds_counter = 4'd0;
 
 integer j;
 always @(posedge clk_tmds)
 begin
-    if (tmds_counter == 4'd10)
+    if (tmds_counter == 4'd9)
     begin
         tmds_shift <= tmds;
-        tmds_counter <= 4'd1;
+        tmds_counter <= 4'd0;
     end
     else
     begin

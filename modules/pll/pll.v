@@ -35,7 +35,7 @@
 
 
 // synopsys translate_off
-`timescale 1 ps / 1 ps
+`timescale 1 ns / 100 ps
 // synopsys translate_on
 
 `ifdef MODEL_TECH
@@ -45,10 +45,8 @@ module pll (
 	output reg c1 = 0
 );
 
-always begin
-	#40000 c0 = ~c0; // Faked as 25 MHz
-	#4000 c1 = ~c1; // Faked as 250 MHz
-end
+always #1 c0 = ~c0; // Faked as 250 MHz
+always #20 c1 = ~c1; // Faked as 25 MHz
 
 endmodule
 `else
