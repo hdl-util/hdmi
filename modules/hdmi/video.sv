@@ -41,7 +41,6 @@ assign pb[3] = {IT_CONTENT, EXTENDED_COLORIMETRY, RGB_QUANTIZATION_RANGE, NON_UN
 assign pb[4] = {1'b0, VIDEO_ID_CODE};
 assign pb[5] = {YCC_QUANTIZATION_RANGE, CONTENT_TYPE, PIXEL_REPETITION};
 
-genvar i;
 generate
     if (BAR_INFO != 2'b00) // Assign values to bars if BAR_INFO says they are valid.
         assign pb[13:6] = '{8'd0, 8'd0, ~8'd0, ~8'd0, 8'd0, 8'd0, ~8'd0, ~8'd0};
