@@ -254,6 +254,10 @@ assign pb[5] = {DOWN_MIX_INHIBITED, LEVEL_SHIFT_VALUE, 1'b0, LOW_FREQUENCY_EFFEC
 
 genvar i;
 generate
+    for (i = 6; i < 28; i++)
+    begin: pb_reserved
+        assign pb[i] = 8'd0;
+    end
     for (i = 0; i < 4; i++)
     begin: pb_to_sub
         assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};

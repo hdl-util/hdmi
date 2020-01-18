@@ -40,6 +40,8 @@ assign pb[2] = {COLORIMETRY, PICTURE_ASPECT_RATIO, ACTIVE_FORMAT_ASPECT_RATIO};
 assign pb[3] = {IT_CONTENT, EXTENDED_COLORIMETRY, RGB_QUANTIZATION_RANGE, NON_UNIFORM_PICTURE_SCALING};
 assign pb[4] = {1'b0, VIDEO_ID_CODE};
 assign pb[5] = {YCC_QUANTIZATION_RANGE, CONTENT_TYPE, PIXEL_REPETITION};
+
+genvar i;
 generate
     if (BAR_INFO != 2'b00) // Assign values to bars if BAR_INFO says they are valid.
         assign pb[13:6] = '{8'd0, 8'd0, ~8'd0, ~8'd0, 8'd0, 8'd0, ~8'd0, ~8'd0};
@@ -47,6 +49,10 @@ endgenerate
 
 genvar i;
 generate
+    for (i = 14; i < 28; i++)
+    begin: pb_reserved
+        assign pb[i] = 8'd0;
+    end
     for (i = 0; i < 4; i++)
     begin: pb_to_sub
         assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
