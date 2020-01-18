@@ -5,7 +5,7 @@ module console (
            input wire [9:0] cx,
            input wire [9:0] cy,
 
-           output reg [23:0] rgb
+           output reg [23:0] rgb = 24'd0
        );
 
 wire [127:0] characterraster;
