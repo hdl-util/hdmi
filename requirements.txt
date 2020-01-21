@@ -1,2 +1,2 @@
-hdlmake==3.2
-six==1.12.0
+hdlmake==3.3
+six==1.14.0
