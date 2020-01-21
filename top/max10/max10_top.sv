@@ -13,16 +13,17 @@ module max10_top (
     output wire tmds_clock_n
 );
 assign CLK_50MHZ_ENABLE = 1'b1;
-assign CLK_32KHZ_ENABLE = 1'b1;
+assign CLK_32KHZ_ENABLE = 1'b0;
 
 wire clk_tmds;
 wire clk_pixel;
-pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
+wire clk_audio;
+pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel), .c2(clk_audio));
 
 localparam AUDIO_BIT_WIDTH = 16;
 logic [AUDIO_BIT_WIDTH-1:0] audio_in;
 logic [AUDIO_BIT_WIDTH-1:0] audio_out;
-// sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
+sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(clk_audio), .level(audio_in));
 
 logic audio_clock_regeneration_sent = 1'b0;
 logic audio_info_frame_sent = 1'b0;
@@ -30,13 +31,13 @@ logic audio_info_frame_sent = 1'b0;
 logic [6:0] remaining = 1;
 logic packet_enable;
 logic [7:0] packet_type = 0;
-// buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(1024)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 0 && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(128)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 0 && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
 
 
 logic [23:0] rgb;
-logic [AUDIO_BIT_WIDTH-1:0] audio_buffer = 0;
+logic [AUDIO_BIT_WIDTH-1:0] audio_buffer;
 wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(4'b0010), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
 always @(posedge clk_pixel)
 begin
@@ -60,7 +61,7 @@ begin
         else if (remaining > 0)
         begin
             packet_type <= 8'd2;
-            audio_buffer <= ~audio_buffer;
+            audio_buffer <= audio_out;
         end
         else
             packet_type <= 8'd0;

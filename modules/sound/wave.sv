@@ -4,9 +4,9 @@ module sawtooth
 )
 (
     input logic clk_audio,
-    output logic [BIT_WIDTH-1:0] level = BIT_WIDTH'(0)
+    output logic signed [BIT_WIDTH-1:0] level = $signed(0)
 );
 
 always @(posedge clk_audio)
-    level <= level + 1'd1;
+    level <= level + $signed(BIT_WIDTH'(1));
 endmodule

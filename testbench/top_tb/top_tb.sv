@@ -160,7 +160,7 @@ begin
             assert(CTS == max10_top.hdmi.audio_clock_regeneration_packet.CTS) else $fatal("Incorrect CTS: %d should be %d", CTS, max10_top.hdmi.audio_clock_regeneration_packet.CTS);
           end
           8'h02: begin
-            // $display("Audio Sample packet #%d", frame_counter + 1);
+            // $display("Audio Sample packet #%d with value %d", frame_counter + 1, $signed(L));
             assert(sub[3:1] == '{64'd0, 64'd0, 64'd0}) else $fatal("Sample subpackets 1 through 3 are not empty");
             assert(header[12] == 1'b0) else $fatal("Sample layout is not 2 channel");
             assert(header[11:8] == 4'b0001) else $fatal("Sample present flag values unexpected: %b", header[11:8]);
