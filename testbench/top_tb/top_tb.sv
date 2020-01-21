@@ -20,7 +20,7 @@ logic [2:0] tmds_n;
 logic tmds_clock_n;
 
 // Clock generator
-always #1000ns CLK_32KHZ = ~CLK_32KHZ;
+// always #1000ns CLK_32KHZ = ~CLK_32KHZ;
 always #10ns CLK_50MHZ = ~CLK_50MHZ;
 
 max10_top max10_top (
@@ -153,14 +153,14 @@ begin
         case(header[7:0])
           8'h00: $display("NULL packet");
           8'h01: begin
-            // $display("Audio Clock Regen packet");
+            $display("Audio Clock Regen packet");
             assert(header[23:8] === 16'dX) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
             assert(N == max10_top.hdmi.audio_clock_regeneration_packet.N) else $fatal("Incorrect N: %d should be %d", N, max10_top.hdmi.audio_clock_regeneration_packet.N);
             assert(CTS == max10_top.hdmi.audio_clock_regeneration_packet.CTS) else $fatal("Incorrect CTS: %d should be %d", CTS, max10_top.hdmi.audio_clock_regeneration_packet.CTS);
           end
           8'h02: begin
-            // $display("Audio Sample packet #%d with value %d", frame_counter + 1, $signed(L));
+            $display("Audio Sample packet #%d", frame_counter + 1);
             assert(sub[3:1] == '{64'd0, 64'd0, 64'd0}) else $fatal("Sample subpackets 1 through 3 are not empty");
             assert(header[12] == 1'b0) else $fatal("Sample layout is not 2 channel");
             assert(header[11:8] == 4'b0001) else $fatal("Sample present flag values unexpected: %b", header[11:8]);
@@ -170,8 +170,8 @@ begin
               assert(header[23:20] == 4'b0001) else $fatal("Sample B values unexpected: %b", header[23:0]);
               if (channel_status != '{192'dX, 192'dX})
               begin
-                assert(channel_status[0] == max10_top.hdmi.audio_bit_width_block.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
-                assert(channel_status[1] == max10_top.hdmi.audio_bit_width_block.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
+                assert(channel_status[0] == max10_top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
+                assert(channel_status[1] == max10_top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
               end
             end
             else
