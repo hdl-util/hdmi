@@ -1,3 +1,5 @@
+// Implementation of HDMI audio-related packets
+// By Sameer Puri https://github.com/sameer
 
 // See HDMI 1.4a Section 5.3.3.
 module audio_clock_regeneration_packet
@@ -5,7 +7,7 @@ module audio_clock_regeneration_packet
     parameter VIDEO_ID_CODE = 1,
     // 59.94 Hz = 0, 60 Hz = 1
     parameter VIDEO_RATE = 0,
-    // 0000 = 44.1 kHz, 0010 = 48 kHz, 0011 = 32 kHz
+    // See Table 7-4 or README.md
     parameter AUDIO_RATE = 4'b0000
 )
 (
@@ -80,11 +82,14 @@ const bit [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
 };
 
 logic [19:0] N, CTS;
-
-// Intentionally select an invalid index if none of the below were selected
-logic [2:0] audio_rate_index = AUDIO_RATE == 4'b0000 ? 3'd1 : AUDIO_RATE == 4'b0010 ? 3'd2 : AUDIO_RATE == 4'b0011 ? 3'd0 : 3'd3;
-
+logic [2:0] audio_rate_index;
 generate
+    case (AUDIO_RATE)
+        4'b0000: assign audio_rate_index = 3'd1;
+        4'b0010: assign audio_rate_index = 3'd2;
+        4'b0011: assign audio_rate_index = 3'd0;
+        default: assign audio_rate_index = 3'd7; // Intentionally select an invalid index if no rate in the table was selected
+    endcase
     case (VIDEO_ID_CODE)
         1:
         begin
@@ -110,7 +115,8 @@ generate
 endgenerate
 
 
-wire [55:0] single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
+logic [55:0] single_sub;
+assign single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Audio Clock Regeneration Packet header."
 assign header = {8'dX, 8'dX, 8'd1};
 // "The four Subpackets each contain the same Audio Clock regeneration Subpacket."
@@ -200,22 +206,17 @@ module audio_info_frame
     parameter AUDIO_CHANNEL_COUNT = 3'd1, // 2 channels. See CEA-861-D table 17 for details.
     parameter CHANNEL_ALLOCATION = 8'h00, // Channel 0 = Front Left, Channel 1 = Front Right (0-indexed)
     parameter DOWN_MIX_INHIBITED = 1'b0, // Permitted or no information about any assertion of this. The DM_INH field is to be set only for DVD-Audio applications.
-    parameter LEVEL_SHIFT_VALUE = 4'd0, // 4-bit unsigned number from 0dB up to 15dB, used for downmixing
-    parameter LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL = 2'b00 // No information, LFE = bass-only info < 120Hz, used in Dolby Surround
+    parameter LEVEL_SHIFT_VALUE = 4'd0, // 4-bit unsigned number from 0dB up to 15dB, used for downmixing.
+    parameter LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL = 2'b00 // No information, LFE = bass-only info < 120Hz, used in Dolby Surround.
 )
 (
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
 
-// NOTE—HDMI requires the CT, SS and SF fields to be set to 0 ("Refer to Stream Header") as these items are carried in the audio stream
-localparam AUDIO_CODING_TYPE = 4'd0; // IEC 60958 L-PCM.
-
-// For L-PCM and IEC 61937 compressed audio streams, the SF bits shall always be set to a value of 0 (“Refer to Stream Header”).
-// For One Bit Audio and DST streams, the value indicated by the SF bits shall equal the ACR fS value (see sections 7.2.5 and 7.2.6).
-// For Super Audio CD, the SF bits are typically set to 0, 1, 0, to indicate a Sample Frequency of 2.8224MSamples/s (i.e. 64*44.1kHz).
+// NOTE—HDMI requires the coding type, sample size and sample frequency fields to be set to 0 ("Refer to Stream Header") as these items are carried in the audio stream
+localparam AUDIO_CODING_TYPE = 4'd0; // Refer to stream header.
 localparam SAMPLING_FREQUENCY = 3'd0; // Refer to stream header.
-
 localparam SAMPLE_SIZE = 2'd0; // Refer to stream header.
 
 localparam LENGTH = 5'd10;

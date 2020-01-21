@@ -1,4 +1,5 @@
 // Circular buffer for audio samples, clears when full.
+// By Sameer Puri https://github.com/sameer
 // If the buffer is cleared, either a larger buffer is needed or output is slower than input.
 
 // Operating principles:

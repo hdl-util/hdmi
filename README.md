@@ -20,12 +20,31 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 
 You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below:
 
-* 640x480 (1) @ 60Hz: 25.2MHz, @ 59.94Hz: 25.175MHz
-* 720x480 (2,3) @ 60Hz: 27.027MHz, @ 59.94Hz: 27MHz
-* 1280x720 (4) @ 60Hz: 74.25MHz, @ 59.94Hz: 74.176MHz
-* 1920x1080 (16) @ 60Hz: 148.5MHz, @59.94Hz: 148.352MHz
-* 720x576 (17, 18) @ 50Hz: 27MHz
-* 1280x720 (19) @ 50Hz: 74.25MHz
+|Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
+|640x480|1|60Hz|25.2MHz|
+|640x480|1|59.94Hz|25.175MHz|
+|720x480|2,3|60Hz|27.027MHz|
+|720x480|2,3|59.94Hz|27MHz|
+|1280x720|4|60Hz|74.25MHz|
+|1280x720|4|59.94Hz|74.176MHz|
+|1920x1080|16|60Hz|148.5MHz|
+|1920x1080|16|59.94Hz|148.352MHz|
+|720x576|17, 18|50Hz|27MHz|
+|1280x720|19|50Hz|74.25MHz|
+
+## L-PCM Audio Bitrate / Sampling Frequency
+
+Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a mapping of sample frequency to the appropriate 4-bit parameter, taken from Table 7-4:
+
+|Sampling Frequency|4-bit value for AUDIO_RATE|
+|32 kHz|0011|
+|44.1 kHz|0000|
+|88.2 kHz|1000|
+|176.4 kHz|1100|
+|48 kHz|0010|
+|96 kHz|1010|
+|192 kHz|1110|
+
 
 The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
 

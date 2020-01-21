@@ -1,16 +1,13 @@
-// Implementation of HDMI Spec v1.4a Section 5.1: Overview, Section 5.2: Operating Modes, Section 5.3.1: Packet Header, Section 5.3.2: Null Packet, Section 5.4.1: Serialization
+// Implementation of HDMI Spec v1.4a
 // By Sameer Puri https://github.com/sameer
 
 module hdmi 
 #(
     // Defaults to 640x480 which should be supported by almost if not all HDMI sinks.
-    // See CEA-861-D for enumeration of video id codes.
-    // Formats 1, 2, 3, 4, 16, 17, 18, and 19 are supported.
-    // Pixel repetition, interlaced scans and other special output modes are not implemented.
+    // See README.md or CEA-861-D for enumeration of video id codes.
+    // README.md lists supported codes.
+    // Pixel repetition, interlaced scans and other special output modes are not implemented (yet).
     parameter VIDEO_ID_CODE = 7'd1,
-
-    // 59.94 Hz = 0, 60Hz = 1
-    parameter VIDEO_RATE = 0,
 
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
@@ -22,10 +19,13 @@ module hdmi
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
     parameter DVI_OUTPUT = 1'b0,
 
-    // All parameters below matter ONLY IF you plan on sending auxiliary data
+    // **All parameters below matter ONLY IF you plan on sending auxiliary data (DVI_OUTPUT == 1'b0)**
+
+    // 59.94 Hz = 0, 60Hz = 1
+    parameter VIDEO_RATE = 0,
 
     // As noted in Section 7.3, the minimal audio requirements are met: 16-bit to 24-bit L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
-    // 0000 = 44.1 kHz, 0010 = 48 kHz, 0011 = 32 kHz (same as those in IEC 60958-3)
+    // See Table 7-4 or README.md
     parameter AUDIO_RATE = 4'b0011,
 
     // Defaults to 16-bit audio. Can be anywhere from 16-bit to 24-bit.
@@ -218,6 +218,7 @@ generate
         tmds_channel #(.CN(i)) tmds_channel (.clk_pixel(clk_pixel), .video_data(video_data[i*8+7:i*8]), .data_island_data(data_island_data[i*4+3:i*4]), .control_data(control_data[i*2+1:i*2]), .mode(mode), .tmds(tmds[i]));
     end
 endgenerate
+
 // See Section 5.4.1
 logic [3:0] tmds_counter = 4'd0;
 

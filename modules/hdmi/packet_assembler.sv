@@ -1,3 +1,6 @@
+// Implementation of HDMI packet ECC calculation and IEC 60958 frame counter
+// By Sameer Puri https://github.com/sameer
+
 module packet_assembler (
     input clk_pixel,
     input [7:0] packet_type,
@@ -26,6 +29,7 @@ wire [31:0] bch4 = {parity[4], header};
 assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 
 // See Figure 5-5 Error Correction Code generator. Generalization of a CRC with binary BCH.
+// See https://web.archive.org/web/20190520020602/http://hamsterworks.co.nz/mediawiki/index.php/Minimal_HDMI#Computing_the_ECC for an explanation of the implementation.
 // See https://en.wikipedia.org/wiki/BCH_code#Systematic_encoding:_The_message_as_a_prefix for further information.
 function automatic [7:0] next_ecc;
 input [7:0] ecc, next_bch_bit;
@@ -58,11 +62,12 @@ always @(posedge clk_pixel)
 begin
     if (data_island_period)
     begin
-        if (counter_t2_p1 < 56) // Compute ECC only on subpacket data, not on itself
+        if (counter < 5'd28) // Compute ECC only on subpacket data, not on itself
+        begin
             parity[3:0] <= parity_next_next;
-
-        if (counter < 5'd24)
-            parity[4] <= parity_next[4];
+            if (counter < 5'd24) // Header only has 24 bits, whereas subpackets have 56 and 56 / 2 = 28.
+                parity[4] <= parity_next[4];
+        end
         else if (counter == 5'd31)
         begin
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
