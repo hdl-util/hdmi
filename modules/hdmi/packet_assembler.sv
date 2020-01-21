@@ -5,7 +5,7 @@ module packet_assembler (
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
     output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
-    output logic [7:0] frame_counter = 0
+    output logic [7:0] frame_counter = 8'd0
 );
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
@@ -67,7 +67,7 @@ begin
         begin
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
             if (packet_type == 8'h02) // Keep track of current IEC 60958 frame
-                frame_counter <= frame_counter == 191 ? 0 : frame_counter + 1;
+                frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1;
         end
     end
 end
