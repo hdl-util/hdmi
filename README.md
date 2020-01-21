@@ -1,6 +1,6 @@
 # verilog-hdmi
 
-FPGA cores for HDMI 1.4a video/audio output and VGA-compatible text mode written in Verilog/SystemVerilog.
+SystemVerilog code for FPGA HDMI 1.4a video/audio output, along with utility code like VGA-compatible text mode.
 
 ## Why?
 
