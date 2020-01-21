@@ -21,6 +21,7 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below:
 
 |Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
+|---|---|---|---|
 |640x480|1|60Hz|25.2MHz|
 |640x480|1|59.94Hz|25.175MHz|
 |720x480|2,3|60Hz|27.027MHz|
@@ -37,6 +38,7 @@ You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for e
 Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a mapping of sample frequency to the appropriate 4-bit parameter, taken from Table 7-4:
 
 |Sampling Frequency|4-bit value for AUDIO_RATE|
+|---|---|
 |32 kHz|0011|
 |44.1 kHz|0000|
 |88.2 kHz|1000|
