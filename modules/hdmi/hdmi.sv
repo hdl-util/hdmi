@@ -161,7 +161,7 @@ begin
 end
 
 logic [8:0] packet_data;
-logic packet_enable_fanout [255:0];
+logic [7:0] frame_counter;
 
 logic [23:0] headers [255:0];
 logic [55:0] subs [255:0] [3:0];
@@ -172,29 +172,30 @@ logic [55:0] sub [3:0];
 // See Section 5.3
 
 // NULL packet
-assign headers[0] = 24'd0; assign subs[0] = '{56'd0, 56'd0, 56'd0, 56'd0};
+// "An HDMI Sink shall ignore bytes HB1 and HB2 of the Null Packet Header and all bytes of the Null Packet Body."
+assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
 
-audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[1]), .header(headers[1]), .sub(subs[1]));
+audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
 
 logic [23:0] audio_sample_word_padded [1:0];
 
 assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[0]}};
 generate
     if (AUDIO_BIT_WIDTH < 16 || AUDIO_BIT_WIDTH > 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH(-1))                                    audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH(-1))                                    audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH == 20)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b0}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b0}))                        audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH < 20)
     begin : audio_bit_width_block
         localparam word_length = 3'(20 - AUDIO_BIT_WIDTH);
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({{word_length[0], word_length[1], word_length[2]}, 1'b0})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({{word_length[0], word_length[1], word_length[2]}, 1'b0})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     end
     else if (AUDIO_BIT_WIDTH == 24)
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b1}))                        audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({3'b101, 1'b1}))                        audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     else if (AUDIO_BIT_WIDTH < 24)
     begin
         localparam word_length = 3'(24 - AUDIO_BIT_WIDTH);
-        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({{word_length[0], word_length[1], word_length[2]}, 1'b1})) audio_sample_packet (.clk_pixel(clk_pixel), .packet_enable(packet_enable_fanout[2]), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
+        audio_sample_packet #(.SAMPLING_FREQUENCY(AUDIO_RATE), .WORD_LENGTH({{word_length[0], word_length[1], word_length[2]}, 1'b1})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
     end
 endgenerate
 
@@ -204,9 +205,8 @@ audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 // See Section 5.2.3.4
 assign packet_enable = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y && ((cx - screen_start_x) % 32 == 0); // Based on instantaneous data island period
 
-logic prev_packet_enable; // One clock behind the user-facing packet_enable
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .packet_enable(prev_packet_enable));
-packet_picker packet_picker (.packet_enable(prev_packet_enable), .packet_type(packet_type), .headers(headers), .subs(subs), .packet_enable_fanout(packet_enable_fanout), .header(header), .sub(sub));
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .packet_type(packet_type), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .frame_counter(frame_counter));
+packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;
 logic [23:0] video_data = 24'd0;

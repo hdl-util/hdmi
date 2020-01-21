@@ -9,8 +9,6 @@ module audio_clock_regeneration_packet
     parameter AUDIO_RATE = 4'b0000
 )
 (
-    input logic clk_pixel,
-    input logic packet_enable,
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
@@ -113,7 +111,8 @@ endgenerate
 
 
 wire [55:0] single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
-assign header = {8'd0, 8'd0, 8'd1};
+// "An HDMI Sink shall ignore bytes HB1 and HB2 of the Audio Clock Regeneration Packet header."
+assign header = {8'dX, 8'dX, 8'd1};
 // "The four Subpackets each contain the same Audio Clock regeneration Subpacket."
 assign sub = '{single_sub, single_sub, single_sub, single_sub};
 
@@ -164,8 +163,7 @@ module audio_sample_packet
 
 )
 (
-    input logic clk_pixel,
-    input logic packet_enable,
+    input logic [7:0] frame_counter,
     // See IEC 60958-1 4.4 and Annex A. 0 indicates the signal is suitable for decoding to an analog audio signal.
     input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
@@ -184,22 +182,9 @@ localparam CHANNEL_STATUS_LENGTH = 8'd192;
 wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_LEFT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
 wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_RIGHT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
 
-
-logic [7:0] frame_counter = 8'd0;
-
 logic [1:0] parity_bit;
-genvar i;
-generate
-    for (i = 0; i < 2; i++) begin: parity_loop
-        assign parity_bit[i] = ^{channel_status_right[frame_counter], user_data_bit[i], valid_bit[i], audio_sample_word[i]};
-    end
-endgenerate
-
-always @(posedge clk_pixel)
-begin
-    if (packet_enable)
-        frame_counter <= frame_counter == (CHANNEL_STATUS_LENGTH-1) ? 8'd0 : frame_counter + 8'd1;
-end
+assign parity_bit[0] = ^{channel_status_left[frame_counter], user_data_bit[0], valid_bit[0], audio_sample_word[0]};
+assign parity_bit[1] = ^{channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], audio_sample_word[1]};
 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
 assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'd2};

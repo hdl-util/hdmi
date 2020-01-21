@@ -1,10 +1,11 @@
 module packet_assembler (
     input clk_pixel,
+    input [7:0] packet_type,
     input data_island_period,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
     output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
-    output logic packet_enable
+    output logic [7:0] frame_counter = 0
 );
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
@@ -22,6 +23,7 @@ logic [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
 
 wire [63:0] bch [3:0] = '{{parity[3], sub[3]}, {parity[2], sub[2]}, {parity[1], sub[1]}, {parity[0], sub[0]}};
 wire [31:0] bch4 = {parity[4], header};
+assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 
 // See Figure 5-5 Error Correction Code generator. Generalization of a CRC with binary BCH.
 // See https://en.wikipedia.org/wiki/BCH_code#Systematic_encoding:_The_message_as_a_prefix for further information.
@@ -61,12 +63,13 @@ begin
 
         if (counter < 5'd24)
             parity[4] <= parity_next[4];
-        else if (counter == 5'd31) // Reset ECC for next packet
-            parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
+        else if (counter == 5'd31)
+        begin
+            parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
+            if (packet_type == 8'h02) // Keep track of current IEC 60958 frame
+                frame_counter <= frame_counter == 191 ? 0 : frame_counter + 1;
+        end
     end
 end
-
-assign packet_enable = counter == 5'd0 && data_island_period;
-assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 
 endmodule

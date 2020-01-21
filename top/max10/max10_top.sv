@@ -22,19 +22,21 @@ pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel));
 localparam AUDIO_BIT_WIDTH = 16;
 logic [AUDIO_BIT_WIDTH-1:0] audio_in;
 logic [AUDIO_BIT_WIDTH-1:0] audio_out;
-sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
-
-logic [6:0] remaining;
-logic packet_enable;
-logic [7:0] packet_type = 0;
-buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && packet_type == 8'd2), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+// sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH)) sawtooth (.clk_audio(CLK_32KHZ), .level(audio_in));
 
 logic audio_clock_regeneration_sent = 1'b0;
 logic audio_info_frame_sent = 1'b0;
 
+logic [6:0] remaining = 1;
+logic packet_enable;
+logic [7:0] packet_type = 0;
+// buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(1024)) buffer (.clk_audio(CLK_32KHZ), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 0 && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+
+
 logic [23:0] rgb;
+logic [AUDIO_BIT_WIDTH-1:0] audio_buffer = 0;
 wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_out, audio_out}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
 always @(posedge clk_pixel)
 begin
@@ -58,16 +60,17 @@ begin
         else if (remaining > 0)
         begin
             packet_type <= 8'd2;
-            audio_out <= audio_in;
+            audio_buffer <= ~audio_buffer;
         end
         else
             packet_type <= 8'd0;
     end
 end
 
-
+// Overscan / border test (left = red, top = green, right = blue, bottom = blue, fill = black)
 // always @(posedge clk_pixel)
     // rgb <= {cx == 138 ? ~8'd0 : 8'd0, cy == 45 ? ~8'd0 : 8'd0, cx == 857 || cy == 524 ? ~8'd0 : 8'd0};
+
 logic [7:0] character = 8'h30;
 logic [5:0] prevcy = 6'd0;
 always @(posedge clk_pixel)
