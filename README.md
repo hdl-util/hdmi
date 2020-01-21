@@ -18,14 +18,14 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 
 ### Pixel/TMDS Clock
 
-You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each format is shown below:
+You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each supported format is shown below:
 
 |Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
 |---|---|---|---|
 |640x480|1|60Hz|25.2MHz|
 |640x480|1|59.94Hz|25.175MHz|
-|720x480|2,3|60Hz|27.027MHz|
-|720x480|2,3|59.94Hz|27MHz|
+|720x480|2, 3|60Hz|27.027MHz|
+|720x480|2, 3|59.94Hz|27MHz|
 |1280x720|4|60Hz|74.25MHz|
 |1280x720|4|59.94Hz|74.176MHz|
 |1920x1080|16|60Hz|148.5MHz|
@@ -56,6 +56,8 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 * LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
     * Needs further investigation
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
+* Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
+* EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
 
 ### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
 
@@ -68,6 +70,8 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 	- [x] ECC with BCH systematic encoding GF(2^8)
 	- [x] Audio clock regeneration
 	- [x] L-PCM audio
+		- [x] 2-channel
+		- [ ] 3-channel to 8-channel
 	- [ ] 1-bit audio
 	- [x] Audio InfoFrame
 	- [x] Auxiliary Video Information InfoFrame
