@@ -33,6 +33,8 @@ You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for e
 |720x576|17, 18|50Hz|27MHz|
 |1280x720|19|50Hz|74.25MHz|
 
+The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
+
 ## L-PCM Audio Bitrate / Sampling Frequency
 
 Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a mapping of sample frequency to the appropriate 4-bit parameter, taken from Table 7-4:
@@ -46,9 +48,6 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 |48 kHz|0010|
 |96 kHz|1010|
 |192 kHz|1110|
-
-
-The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
 
 ## Potential limitations
 
