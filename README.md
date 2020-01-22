@@ -40,7 +40,7 @@ The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 
 
 ## L-PCM Audio Bitrate / Sampling Frequency
 
-Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a mapping of sample frequency to the appropriate 4-bit parameter, taken from Table 7-4:
+Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
 
 |Sampling Frequency|AUDIO_RATE value|
 |---|---|
