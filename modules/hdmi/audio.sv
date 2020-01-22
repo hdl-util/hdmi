@@ -17,7 +17,7 @@ module audio_clock_regeneration_packet
 
 // See Section 7.2.3. Values taken from Tables 7-1, 7-2, 7-3.
 // Indexed by audio rate, video code, video rate, N/CTS
-const bit [19:0] TABLE [0:2] [0:5] [0:1] [0:1] =
+const bit [19:0] TABLE [0:6] [0:5] [0:1] [0:1] =
 '{
     '{ // 32 kHz
         '{
