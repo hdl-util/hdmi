@@ -72,7 +72,7 @@ begin
         begin
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
             if (packet_type == 8'h02) // Keep track of current IEC 60958 frame
-                frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1;
+                frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1'b1;
         end
     end
 end
