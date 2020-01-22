@@ -37,7 +37,7 @@ buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(128)) buffer (.
 logic [23:0] rgb;
 logic [AUDIO_BIT_WIDTH-1:0] audio_buffer;
 wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(4'b0010), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(48), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
 always @(posedge clk_pixel)
 begin

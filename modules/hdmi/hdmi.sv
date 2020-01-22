@@ -26,7 +26,7 @@ module hdmi
 
     // As noted in Section 7.3, the minimal audio requirements are met: 16-bit to 24-bit L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
     // See Table 7-4 or README.md
-    parameter AUDIO_RATE = 4'b0011,
+    parameter AUDIO_RATE = 32.0,
 
     // Defaults to 16-bit audio. Can be anywhere from 16-bit to 24-bit.
     parameter AUDIO_BIT_WIDTH = 16
@@ -175,7 +175,16 @@ logic [55:0] sub [3:0];
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Null Packet Header and all bytes of the Null Packet Body."
 assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
 
-audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
+localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32 ? 4'b0011
+    : AUDIO_RATE == 44.1 ? 4'b0000
+    : AUDIO_RATE == 88.2 ? 4'b1000
+    : AUDIO_RATE == 176.4 ? 4'b1100
+    : AUDIO_RATE == 48 ? 4'b0010
+    : AUDIO_RATE == 96 ? 4'b1010
+    : AUDIO_RATE == 192 ? 4'b1110
+    : 4'bXXXX;
+
+audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
 
 logic [23:0] audio_sample_word_padded [1:0];
 assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[0]}};

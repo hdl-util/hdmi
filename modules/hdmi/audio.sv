@@ -8,7 +8,7 @@ module audio_clock_regeneration_packet
     // 59.94 Hz = 0, 60 Hz = 1
     parameter VIDEO_RATE = 0,
     // See Table 7-4 or README.md
-    parameter AUDIO_RATE = 4'b0000
+    parameter SAMPLING_FREQUENCY = 4'b0000
 )
 (
     output logic [23:0] header,
@@ -162,38 +162,38 @@ const bit [19:0] TABLE [0:6] [0:5] [0:1] [0:1] =
 };
 
 logic [19:0] N, CTS;
-logic [2:0] audio_rate_index;
+logic [2:0] sampling_frequency_index;
 generate
-    case (AUDIO_RATE)
-        4'b0000: assign audio_rate_index = 3'd1;
-        4'b0010: assign audio_rate_index = 3'd2;
-        4'b0011: assign audio_rate_index = 3'd0;
-        4'b1000: assign audio_rate_index = 3'd3;
-        4'b1100: assign audio_rate_index = 3'd4;
-        4'b1010: assign audio_rate_index = 3'd5;
-        4'b1110: assign audio_rate_index = 3'd6;
-        default: assign audio_rate_index = 3'd7; // Intentionally select an invalid index if no rate in the table was selected
+    case (SAMPLING_FREQUENCY)
+        4'b0000: assign sampling_frequency_index = 3'd1;
+        4'b0010: assign sampling_frequency_index = 3'd2;
+        4'b0011: assign sampling_frequency_index = 3'd0;
+        4'b1000: assign sampling_frequency_index = 3'd3;
+        4'b1100: assign sampling_frequency_index = 3'd4;
+        4'b1010: assign sampling_frequency_index = 3'd5;
+        4'b1110: assign sampling_frequency_index = 3'd6;
+        default: assign sampling_frequency_index = 3'd7; // Intentionally select an invalid index if no rate in the table was selected
     endcase
     case (VIDEO_ID_CODE)
         1:
         begin
-            assign N = TABLE[audio_rate_index][0][VIDEO_RATE][0];
-            assign CTS = TABLE[audio_rate_index][0][VIDEO_RATE][1];
+            assign N = TABLE[sampling_frequency_index][0][VIDEO_RATE][0];
+            assign CTS = TABLE[sampling_frequency_index][0][VIDEO_RATE][1];
         end
         2, 3, 6, 7, 8, 9, 17, 18:
         begin
-            assign N = TABLE[audio_rate_index][1][VIDEO_RATE][0];
-            assign CTS = TABLE[audio_rate_index][1][VIDEO_RATE][1];
+            assign N = TABLE[sampling_frequency_index][1][VIDEO_RATE][0];
+            assign CTS = TABLE[sampling_frequency_index][1][VIDEO_RATE][1];
         end
         4, 5, 19:
         begin
-            assign N = TABLE[audio_rate_index][3][VIDEO_RATE][0];
-            assign CTS = TABLE[audio_rate_index][3][VIDEO_RATE][1];
+            assign N = TABLE[sampling_frequency_index][3][VIDEO_RATE][0];
+            assign CTS = TABLE[sampling_frequency_index][3][VIDEO_RATE][1];
         end
         16:
         begin
-            assign N = TABLE[audio_rate_index][4][VIDEO_RATE][0];
-            assign CTS = TABLE[audio_rate_index][4][VIDEO_RATE][1];
+            assign N = TABLE[sampling_frequency_index][4][VIDEO_RATE][0];
+            assign CTS = TABLE[sampling_frequency_index][4][VIDEO_RATE][1];
         end
     endcase
 endgenerate
