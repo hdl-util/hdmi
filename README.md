@@ -8,6 +8,9 @@ Most open source HDMI modules output a DVI signal, which HDMI sinks are backward
 
 To send audio and other auxiliary data, a true HDMI signal must be sent. The HDMI module in this repository lets you do that.
 
+### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
+
+![GIF showing VGA-compatible text mode on a monitor](demo.gif)
 
 ## Usage
 
@@ -58,10 +61,6 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
 * Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
-
-### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
-
-![GIF showing VGA-compatible text mode on a monitor](demo.gif)
 
 ### To-do List
 - [x] 24-bit color
