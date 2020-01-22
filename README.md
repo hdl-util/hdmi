@@ -44,13 +44,13 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 
 |Sampling Frequency|AUDIO_RATE value|
 |---|---|
-|32 kHz|32|
-|44.1 kHz|44.1|
-|88.2 kHz|88.2|
-|176.4 kHz|176.4|
-|48 kHz|48|
-|96 kHz|96|
-|192 kHz|192|
+|32 kHz|32000|
+|44.1 kHz|44100|
+|88.2 kHz|88200|
+|176.4 kHz|176400|
+|48 kHz|48000|
+|96 kHz|96000|
+|192 kHz|192000|
 
 ## Potential limitations
 

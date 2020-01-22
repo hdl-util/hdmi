@@ -176,12 +176,12 @@ logic [55:0] sub [3:0];
 assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
 
 localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32 ? 4'b0011
-    : AUDIO_RATE == 44.1 ? 4'b0000
-    : AUDIO_RATE == 88.2 ? 4'b1000
-    : AUDIO_RATE == 176.4 ? 4'b1100
-    : AUDIO_RATE == 48 ? 4'b0010
-    : AUDIO_RATE == 96 ? 4'b1010
-    : AUDIO_RATE == 192 ? 4'b1110
+    : AUDIO_RATE == 44100 ? 4'b0000
+    : AUDIO_RATE == 88200 ? 4'b1000
+    : AUDIO_RATE == 176400 ? 4'b1100
+    : AUDIO_RATE == 48000 ? 4'b0010
+    : AUDIO_RATE == 96000 ? 4'b1010
+    : AUDIO_RATE == 192000 ? 4'b1110
     : 4'bXXXX;
 
 audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
