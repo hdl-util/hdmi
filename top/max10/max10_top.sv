@@ -25,9 +25,9 @@ pll pll(.inclk0(CLK_50MHZ), .c0(clk_tmds), .c1(clk_pixel), .c2(clk_audio));
 localparam AUDIO_BIT_WIDTH = 16;
 localparam AUDIO_RATE = 48000;
 localparam WAVE_RATE = 480;
+localparam CHANNELS = 2;
 
 logic [AUDIO_BIT_WIDTH-1:0] audio_in;
-logic [AUDIO_BIT_WIDTH-1:0] audio_out;
 sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH), .SAMPLE_RATE(AUDIO_RATE), .WAVE_RATE(WAVE_RATE)) sawtooth (.clk_audio(clk_audio), .level(audio_in));
 
 logic [AUDIO_BIT_WIDTH:0] pwm_acc = 0;
@@ -41,13 +41,15 @@ logic audio_info_frame_sent = 1'b0;
 logic [6:0] remaining;
 logic packet_enable;
 logic [7:0] packet_type = 0;
-buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+logic [AUDIO_BIT_WIDTH-1:0] audio_out [3:0] [CHANNELS-1:0];
+buffer #(.CHANNELS(CHANNELS), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(255)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in, audio_in}), .audio_out(audio_out), .remaining(remaining));
 
 
 logic [23:0] rgb;
-logic [AUDIO_BIT_WIDTH-1:0] audio_buffer;
+logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [3:0] [1:0];
+logic audio_sample_word_present [3:0];
 wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word(audio_sample_word), .audio_sample_word_present(audio_sample_word_present), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
 
 always @(posedge clk_pixel)
 begin
@@ -71,7 +73,13 @@ begin
         else if (remaining > 0)
         begin
             packet_type <= 8'd2;
-            audio_buffer <= audio_out;
+            audio_sample_word[3] <= remaining >= 4 ? audio_out[3] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[2] <= remaining >= 3 ? audio_out[2] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[1] <= remaining >= 2 ? audio_out[1] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[0] <= remaining >= 1 ? audio_out[0] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word_present <= '{remaining >= 4, remaining >= 3, remaining >= 2, remaining >= 1};
+            if (remaining > 220)
+                $fatal("Remaining: %d", remaining);
         end
         else
             packet_type <= 8'd0;

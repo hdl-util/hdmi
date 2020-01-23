@@ -14,6 +14,6 @@ localparam INCREMENT = BIT_WIDTH'($signed(((WAVE_RATE * 2**BIT_WIDTH) / SAMPLE_R
 always @(posedge clk_audio)
 begin
     level <= level + INCREMENT;
-    $display("Level %d with increment %d", level, INCREMENT);
+    // $display("Level %d with increment %d", level, INCREMENT);
 end
 endmodule
