@@ -18,6 +18,7 @@ logic [2:0] tmds_p;
 logic tmds_clock_p;
 logic [2:0] tmds_n;
 logic tmds_clock_n;
+logic PWM_OUT;
 
 // Clock generator
 // always #1000ns CLK_32KHZ = ~CLK_32KHZ;
@@ -33,7 +34,8 @@ max10_top max10_top (
     .tmds_p(tmds_p),
     .tmds_clock_p(tmds_clock_p),
     .tmds_n(tmds_n),
-    .tmds_clock_n(tmds_clock_n)
+    .tmds_clock_n(tmds_clock_n),
+    .PWM_OUT(PWM_OUT)
 );
 
 logic [9:0] cx = 858 - 3;

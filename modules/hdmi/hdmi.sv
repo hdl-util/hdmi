@@ -150,6 +150,9 @@ logic data_island_guard = 0;
 logic data_island_preamble = 0;
 logic data_island_period = 0;
 
+logic data_island_period_instantaneous;
+assign data_island_period_instantaneous = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
+
 always @(posedge clk_pixel)
 begin
     video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
@@ -157,7 +160,7 @@ begin
     video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
     data_island_guard <= !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y;
     data_island_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
-    data_island_period <= !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
+    data_island_period <= data_island_period_instantaneous;
 end
 
 logic [8:0] packet_data;
@@ -197,7 +200,7 @@ auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxi
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
-assign packet_enable = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y && ((cx - screen_start_x) % 32 == 0); // Based on instantaneous data island period
+assign packet_enable = data_island_period_instantaneous && ((cx - screen_start_x) % 32 == 0); // Based on instantaneous data island period
 
 packet_assembler packet_assembler (.clk_pixel(clk_pixel), .packet_type(packet_type), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .frame_counter(frame_counter));
 packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));

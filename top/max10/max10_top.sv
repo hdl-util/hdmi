@@ -41,7 +41,7 @@ logic audio_info_frame_sent = 1'b0;
 logic [6:0] remaining;
 logic packet_enable;
 logic [7:0] packet_type = 0;
-buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(128)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 0 && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
+buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
 
 
 logic [23:0] rgb;
