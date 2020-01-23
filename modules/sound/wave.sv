@@ -9,11 +9,11 @@ module sawtooth
     output logic signed [BIT_WIDTH-1:0] level = 16'sd0
 );
 
-localparam INCREMENT = BIT_WIDTH'($signed($floor((WAVE_RATE * 2**BIT_WIDTH) / SAMPLE_RATE)));
+localparam INCREMENT = BIT_WIDTH'($signed(((WAVE_RATE * 2**BIT_WIDTH) / SAMPLE_RATE)));
 
 always @(posedge clk_audio)
 begin
     level <= level + INCREMENT;
-    $display("Level %d", level);
+    $display("Level %d with increment %d", level, INCREMENT);
 end
 endmodule
