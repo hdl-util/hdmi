@@ -10,7 +10,9 @@ module max10_top (
     output wire [2:0] tmds_p,
     output wire tmds_clock_p,
     output wire [2:0] tmds_n,
-    output wire tmds_clock_n
+    output wire tmds_clock_n,
+
+    output wire PWM_OUT
 );
 assign CLK_50MHZ_ENABLE = 1'b1;
 assign CLK_32KHZ_ENABLE = 1'b0;
@@ -27,6 +29,11 @@ localparam WAVE_RATE = 480;
 logic [AUDIO_BIT_WIDTH-1:0] audio_in;
 logic [AUDIO_BIT_WIDTH-1:0] audio_out;
 sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH), .SAMPLE_RATE(AUDIO_RATE), .WAVE_RATE(WAVE_RATE)) sawtooth (.clk_audio(clk_audio), .level(audio_in));
+
+logic [AUDIO_BIT_WIDTH:0] pwm_acc = 0;
+assign PWM_OUT = pwm_acc[AUDIO_BIT_WIDTH];
+always @(posedge clk_audio)
+    pwm_acc <= pwm_acc[AUDIO_BIT_WIDTH-1:0] + audio_in;
 
 logic audio_clock_regeneration_sent = 1'b0;
 logic audio_info_frame_sent = 1'b0;

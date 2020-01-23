@@ -29,6 +29,7 @@ set_location_assignment PIN_30 -to CLK_32KHZ_ENABLE
 set_location_assignment PIN_26 -to CLK_50MHZ
 set_location_assignment PIN_17 -to CLK_50MHZ_ENABLE
 
+set_location_assignment PIN_46 -to PWM_OUT
 set_location_assignment PIN_47 -to RST
 
 set_location_assignment PIN_56 -to tmds_p[2]
