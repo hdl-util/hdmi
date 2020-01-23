@@ -282,8 +282,8 @@ logic [7:0] aligned_frame_counter [3:0];
 genvar i;
 generate
     for (i = 0; i < 4; i++)
-    begin: samples_to_packet
-        assign aligned_frame_counter[i] = (frame_counter + i) % 8'd192;
+    begin
+        assign aligned_frame_counter[i] = (frame_counter + i) % 192;
         assign header[23 - (3-i)] = aligned_frame_counter[i] == 0 && audio_sample_word_present[i];
         assign header[11 - (3-i)] = audio_sample_word_present[i];
         assign parity_bit[i][0] = ^{channel_status_left[frame_counter], user_data_bit[i][0], valid_bit[i][0], audio_sample_word[i][0]};

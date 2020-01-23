@@ -38,7 +38,7 @@ always @(posedge clk_audio)
 logic audio_clock_regeneration_sent = 1'b0;
 logic audio_info_frame_sent = 1'b0;
 
-logic [7:0] remaining;
+logic [6:0] remaining;
 logic packet_enable;
 logic [7:0] packet_type = 0;
 logic [AUDIO_BIT_WIDTH-1:0] audio_out [3:0] [CHANNELS-1:0];
@@ -73,11 +73,10 @@ begin
         else if (remaining > 0)
         begin
             packet_type <= 8'd2;
-            audio_sample_word <= audio_out;
-            // audio_sample_word[3] <= remaining >= 8'd4 ? audio_out[3] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
-            // audio_sample_word[2] <= remaining >= 8'd3 ? audio_out[2] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
-            // audio_sample_word[1] <= remaining >= 8'd2 ? audio_out[1] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
-            // audio_sample_word[0] <= remaining >= 8'd1 ? audio_out[0] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[3] <= remaining >= 4 ? audio_out[3] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[2] <= remaining >= 3 ? audio_out[2] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[1] <= remaining >= 2 ? audio_out[1] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
+            audio_sample_word[0] <= remaining >= 1 ? audio_out[0] : '{AUDIO_BIT_WIDTH'(0), AUDIO_BIT_WIDTH'(0)};
             audio_sample_word_present <= '{remaining >= 4, remaining >= 3, remaining >= 2, remaining >= 1};
             if (remaining > 220)
                 $fatal("Remaining: %d", remaining);
