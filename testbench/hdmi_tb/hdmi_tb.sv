@@ -8,8 +8,7 @@ module hdmi_tb();
 reg clk_tmds = 0;
 reg clk_pixel = 0;
 reg [23:0] rgb = 0;
-reg [15:0] audio_sample_word [3:0] [1:0] = '{'{16'd0, 16'd0}, '{16'd0, 16'd0}, '{16'd0, 16'd0}, '{16'd0, ~16'd0}};
-reg audio_sample_word_present [3:0] = '{1'b0, 1'b0, 1'b0, 1'b1};
+reg [15:0] audio_sample_word [1:0] = '{16'd0, ~16'd0};
 reg [7:0] packet_type = 8'd2; // Audio
 
 wire [2:0] tmds_p;
@@ -51,7 +50,7 @@ begin
   assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
   assert (hdmi.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.audio_sample_packet.channel_status_left[39:0]);
   assert (hdmi.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.audio_sample_packet.channel_status_right[39:0]);
-  assert (hdmi.audio_sample_packet.valid_bit == '{2'b00, 2'b00, 2'b00, 2'b00}) else $fatal("Audio invalid");
+  assert (hdmi.audio_sample_packet.valid_bit == 2'b00) else $fatal("Audio invalid");
   assert (hdmi.WORD_LENGTH_LIMIT == 0);
   assert (hdmi.AUDIO_BIT_WIDTH_COMPARATOR == 20);
   assert (hdmi.WORD_LENGTH == 3'b100);
@@ -91,7 +90,6 @@ hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(16)) hdmi (
   clk_pixel,
   rgb,
   audio_sample_word,
-  audio_sample_word_present,
   packet_type,
   tmds_p,
   tmds_clock_p,

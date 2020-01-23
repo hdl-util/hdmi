@@ -255,11 +255,10 @@ module audio_sample_packet
 (
     input logic [7:0] frame_counter,
     // See IEC 60958-1 4.4 and Annex A. 0 indicates the signal is suitable for decoding to an analog audio signal.
-    input logic [1:0] valid_bit [3:0],
+    input logic [1:0] valid_bit,
     // See IEC 60958-3 Section 6. 0 indicates that no user data is being sent
-    input logic [1:0] user_data_bit [3:0],
-    input logic [23:0] audio_sample_word [3:0] [1:0],
-    input logic audio_sample_word_present [3:0],
+    input logic [1:0] user_data_bit,
+    input logic [23:0] audio_sample_word [1:0],
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
@@ -273,25 +272,15 @@ localparam CHANNEL_STATUS_LENGTH = 8'd192;
 wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_left = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_LEFT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
 wire [CHANNEL_STATUS_LENGTH-1:0] channel_status_right = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_RIGHT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};
 
+logic [1:0] parity_bit;
+assign parity_bit[0] = ^{channel_status_left[frame_counter], user_data_bit[0], valid_bit[0], audio_sample_word[0]};
+assign parity_bit[1] = ^{channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], audio_sample_word[1]};
 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
-assign header[19:12] = {4'b0000, {3'b000, LAYOUT}};
-assign header[7:0] = 8'd2;
-logic [1:0] parity_bit [3:0];
-logic [7:0] aligned_frame_counter [3:0];
-genvar i;
-generate
-    for (i = 0; i < 4; i++)
-    begin
-        assign aligned_frame_counter[i] = (frame_counter + i) % 192;
-        assign header[23 - (3-i)] = aligned_frame_counter[i] == 0 && audio_sample_word_present[i];
-        assign header[11 - (3-i)] = audio_sample_word_present[i];
-        assign parity_bit[i][0] = ^{channel_status_left[frame_counter], user_data_bit[i][0], valid_bit[i][0], audio_sample_word[i][0]};
-        assign parity_bit[i][1] = ^{channel_status_right[frame_counter], user_data_bit[i][1], valid_bit[i][1], audio_sample_word[i][1]};
-        // See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
-        assign sub[i] = !audio_sample_word_present[i] ? 56'd0 : {{parity_bit[i][1], channel_status_right[frame_counter], user_data_bit[i][1], valid_bit[i][1], parity_bit[i][0], channel_status_left[frame_counter], user_data_bit[i][0], valid_bit[i][0]}, audio_sample_word[i][1], audio_sample_word[i][0]};
-    end
-endgenerate
+assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'd2};
+// See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
+assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
+assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
 
 endmodule
 

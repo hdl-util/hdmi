@@ -35,8 +35,7 @@ module hdmi
     input logic clk_tmds,
     input logic clk_pixel,
     input logic [23:0] rgb,
-    input logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [3:0] [1:0],
-    input logic audio_sample_word_present [3:0],
+    input logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [1:0],
     input logic [7:0] packet_type,
 
     output logic [2:0] tmds_p,
@@ -147,35 +146,31 @@ logic [4:0] num_packets;
 assign max_num_packets = ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32;
 assign num_packets = max_num_packets > 18 ? 5'd18 : 5'(max_num_packets);
 
-integer max_num_packets_alongside;
-logic [4:0] num_packets_alongside;
-assign max_num_packets_alongside = (screen_start_x - 2 - 12 - 2 /* DI period */ - 2 - 8) / 32;
-assign num_packets_alongside = max_num_packets_alongside > 18 ? 5'd18 : 5'(max_num_packets_alongside);
-
 logic data_island_guard = 0;
 logic data_island_preamble = 0;
 logic data_island_period = 0;
 
 logic data_island_period_instantaneous;
-assign data_island_period_instantaneous = !DVI_OUTPUT && ((cx >= screen_start_x && cx < screen_start_x + num_packets * 32 && cy < screen_start_y)
-    || (num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && cy >= screen_start_y));
-assign packet_enable = !DVI_OUTPUT && ((cx >= screen_start_x && cx < screen_start_x + num_packets * 32 && (cx - screen_start_x) % 32 == 0 && cy < screen_start_y)
-    || (num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && (cx - 10) % 32 == 0 && cy >= screen_start_y));
+assign data_island_period_instantaneous = !DVI_OUTPUT && (cx >= screen_start_x && cx < screen_start_x + num_packets * 32) && cy < screen_start_y;
 
 always @(posedge clk_pixel)
 begin
     video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
     video_guard <= !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
     video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
-    data_island_guard <= !DVI_OUTPUT && ((((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y)
-        || ((num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2)) && cy >= screen_start_y));
-    data_island_preamble <= !DVI_OUTPUT && (((cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y)
-        || (num_packets_alongside > 0 && cx >= 0 && cx < 8 && cy >= screen_start_y));
+    data_island_guard <= !DVI_OUTPUT && ((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y;
+    data_island_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y;
     data_island_period <= data_island_period_instantaneous;
 end
 
+logic [8:0] packet_data;
+logic [7:0] frame_counter;
+
 logic [23:0] headers [255:0];
 logic [55:0] subs [255:0] [3:0];
+
+logic [23:0] header;
+logic [55:0] sub [3:0];
 
 // See Section 5.3
 
@@ -194,31 +189,20 @@ localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32 ? 4'b0011
 
 audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
 
-logic [23:0] audio_sample_word_padded [3:0] [1:0];
-genvar i;
-generate
-    for (i = 0; i < 4; i++)
-        assign audio_sample_word_padded[i] = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[i][1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[i][0]}};
-endgenerate
+logic [23:0] audio_sample_word_padded [1:0];
+assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[0]}};
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
-logic [7:0] frame_counter = 8'd0;
-always @(posedge clk_pixel)
-begin
-    if (packet_type == 8'h02 && packet_assembler.counter == 5'd31) // Keep track of current IEC 60958 frame
-        frame_counter <= (frame_counter + audio_sample_word_present[3] + audio_sample_word_present[2] + audio_sample_word_present[1] + audio_sample_word_present[0]) % 8'd192;
-end
-audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'd0, 2'd0, 2'd0, 2'd0}), .user_data_bit('{2'd0, 2'd0, 2'd0, 2'd0}), .audio_sample_word(audio_sample_word_padded), .audio_sample_word_present(audio_sample_word_present), .header(headers[2]), .sub(subs[2]));
+audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
 
 auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 // See Section 5.2.3.4
-logic [8:0] packet_data;
-logic [23:0] header;
-logic [55:0] sub [3:0];
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data));
+assign packet_enable = data_island_period_instantaneous && ((cx - screen_start_x) % 32 == 0); // Based on instantaneous data island period
+
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .packet_type(packet_type), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .frame_counter(frame_counter));
 packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;
@@ -239,6 +223,7 @@ begin
 end
 
 logic [9:0] tmds [NUM_CHANNELS-1:0];
+genvar i;
 generate
     for (i = 0; i < NUM_CHANNELS; i++)
     begin: tmds_gen
@@ -249,6 +234,7 @@ endgenerate
 // See Section 5.4.1
 logic [3:0] tmds_counter = 4'd0;
 
+integer j;
 always @(posedge clk_tmds)
 begin
     if (tmds_counter == 4'd9)
@@ -259,7 +245,7 @@ begin
     else
     begin
         tmds_counter <= tmds_counter + 4'd1;
-        foreach(tmds_shift[j])
+        for (j = 0; j < NUM_CHANNELS; j++)
             tmds_shift[j] <= {1'bX, tmds_shift[j][9:1]};
     end
 end
