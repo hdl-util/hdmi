@@ -6,11 +6,11 @@ module packet_assembler (
     input data_island_period,
     input [23:0] header, // See Table 5-8 Packet Types
     input [55:0] sub [3:0],
-    output logic [8:0] packet_data // See Figure 5-4 Data Island Packet and ECC Structure
+    output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
+    output logic [4:0] counter = 5'd0
 );
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
-logic [4:0] counter = 5'd0;
 always @(posedge clk_pixel)
     if (data_island_period)
         counter <= counter + 5'd1;

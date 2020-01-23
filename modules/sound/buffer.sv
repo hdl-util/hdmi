@@ -31,14 +31,16 @@ const bit [BUFFER_WIDTH-1:0] BUFFER_END = 2 ** BUFFER_WIDTH == BUFFER_SIZE ? ~(B
 logic [BUFFER_WIDTH-1:0] insert_position = 0;
 logic [BUFFER_WIDTH-1:0] remove_position = 0;
 
-assign remaining = (insert_position >= remove_position ? (insert_position - remove_position) : (BUFFER_END - remove_position + insert_position + 1)); // - (clk_audio && insert_position != remove_position ? 1'd1 : 1'd0);
+assign remaining = (insert_position >= remove_position ? (insert_position - remove_position) : (BUFFER_END - remove_position + insert_position + 1'd1)); // - (clk_audio && insert_position != remove_position ? 1'd1 : 1'd0);
 
 logic [19:0] audio_buffer [BUFFER_SIZE-1:0] [CHANNELS-1:0];
 
 genvar i;
 generate
     for (i = 0; i < 4; i++)
+    begin: audio_out_loop
         assign audio_out[i] = audio_buffer[(remove_position + i) % ((BUFFER_WIDTH+1)'(BUFFER_END)+1)];
+    end
 endgenerate
 
 always @(posedge clk_audio)
@@ -55,7 +57,7 @@ begin
     begin
         if (remaining > 1'd0) // Remove.
         begin
-            remove_position <= ((BUFFER_WIDTH+1)'(remove_position) + (remaining > 4 ? 3'd4 : 3'(remaining))) % ((BUFFER_WIDTH+1)'(BUFFER_END) + 1);
+            remove_position <= ((BUFFER_WIDTH+1)'(remove_position) + (remaining > BUFFER_WIDTH'(4) ? 3'd4 : 3'(remaining))) % ((BUFFER_WIDTH+1)'(BUFFER_END) + 1'd1);
             // $display("Removing from %d (%d): %p", remove_position, remaining > 4 ? 3'd4 : 3'(remaining), audio_out);
         end else
         begin

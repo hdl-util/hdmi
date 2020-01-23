@@ -150,7 +150,7 @@ assign num_packets = max_num_packets > 18 ? 5'd18 : 5'(max_num_packets);
 integer max_num_packets_alongside;
 logic [4:0] num_packets_alongside;
 assign max_num_packets_alongside = (screen_start_x - 2 - 12 - 2 /* DI period */ - 2 - 8) / 32;
-assign num_packets_alongside = max_num_packets_alongside > 18 ? 5'd18 : 5'(max_num_packets_alongside);
+assign num_packets_alongside = 0; // max_num_packets_alongside > 18 ? 5'd18 : 5'(max_num_packets_alongside);
 
 logic data_island_guard = 0;
 logic data_island_preamble = 0;
@@ -198,15 +198,18 @@ logic [23:0] audio_sample_word_padded [3:0] [1:0];
 genvar i;
 generate
     for (i = 0; i < 4; i++)
+    begin: audio_sample_pad
         assign audio_sample_word_padded[i] = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[i][1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[i][0]}};
+    end
 endgenerate
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
 logic [7:0] frame_counter = 8'd0;
+logic [4:0] pixel_counter;
 always @(posedge clk_pixel)
 begin
-    if (packet_type == 8'h02 && packet_assembler.counter == 5'd31) // Keep track of current IEC 60958 frame
+    if (packet_type == 8'h02 && pixel_counter == 5'd31) // Keep track of current IEC 60958 frame
         frame_counter <= (frame_counter + audio_sample_word_present[3] + audio_sample_word_present[2] + audio_sample_word_present[1] + audio_sample_word_present[0]) % 8'd192;
 end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'd0, 2'd0, 2'd0, 2'd0}), .user_data_bit('{2'd0, 2'd0, 2'd0, 2'd0}), .audio_sample_word(audio_sample_word_padded), .audio_sample_word_present(audio_sample_word_present), .header(headers[2]), .sub(subs[2]));
@@ -218,7 +221,7 @@ audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 logic [8:0] packet_data;
 logic [23:0] header;
 logic [55:0] sub [3:0];
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data));
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(pixel_counter));
 packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;
@@ -249,6 +252,7 @@ endgenerate
 // See Section 5.4.1
 logic [3:0] tmds_counter = 4'd0;
 
+integer j;
 always @(posedge clk_tmds)
 begin
     if (tmds_counter == 4'd9)
@@ -259,7 +263,7 @@ begin
     else
     begin
         tmds_counter <= tmds_counter + 4'd1;
-        foreach(tmds_shift[j])
+        for (j = 0; j < NUM_CHANNELS; j = j + 1)
             tmds_shift[j] <= {1'bX, tmds_shift[j][9:1]};
     end
 end
