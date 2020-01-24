@@ -30,7 +30,7 @@ const bit [BUFFER_WIDTH-1:0] BUFFER_END = 2 ** BUFFER_WIDTH == BUFFER_SIZE ? ~(B
 logic [BUFFER_WIDTH-1:0] insert_position = 0;
 logic [BUFFER_WIDTH-1:0] remove_position = 0;
 
-assign remaining = insert_position >= remove_position ? (insert_position - remove_position) : (BUFFER_END - remove_position + insert_position);
+assign remaining = insert_position >= remove_position ? (insert_position - remove_position) : (BUFFER_END - remove_position + insert_position + BUFFER_WIDTH'(1));
 
 logic [19:0] audio_buffer [BUFFER_SIZE-1:0] [CHANNELS-1:0];
 
@@ -40,6 +40,8 @@ always @(posedge clk_audio)
 begin
     // Insert
     audio_buffer[insert_position] <= audio_in;
+    if (remaining == BUFFER_END)
+        $fatal("Audio buffer overflow");
     insert_position <= insert_position == BUFFER_END ? BUFFER_WIDTH'(0) : insert_position + 1'd1;
 end
 
