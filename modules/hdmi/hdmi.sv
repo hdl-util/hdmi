@@ -141,11 +141,6 @@ logic video_guard = 0;
 logic video_preamble = 0;
 
 // See Section 5.2.3.1
-integer max_num_packets;
-logic [4:0] num_packets;
-assign max_num_packets = ((frame_width - screen_start_x - 2) - ((frame_width - screen_start_x - 2) % 32)) / 32;
-assign num_packets = max_num_packets > 18 ? 5'd18 : 5'(max_num_packets);
-
 integer max_num_packets_alongside;
 logic [4:0] num_packets_alongside;
 assign max_num_packets_alongside = (screen_start_x /* VD period */ - 2 /* V guard */ - 8 /* V preamble */ - 12 /* 12px control period */ - 2 /* DI guard */ - 2 /* DI start guard */ - 8 /* DI premable */) / 32;
@@ -156,20 +151,16 @@ logic data_island_preamble = 0;
 logic data_island_period = 0;
 
 logic data_island_period_instantaneous;
-assign data_island_period_instantaneous = !DVI_OUTPUT && ((cx >= screen_start_x && cx < screen_start_x + num_packets * 32 && cy < screen_start_y)
-    || (num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && cy >= screen_start_y));
-assign packet_enable = !DVI_OUTPUT && ((cx >= screen_start_x && cx < screen_start_x + num_packets * 32 && (cx - screen_start_x) % 32 == 0 && cy < screen_start_y)
-    || (num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && (cx - 10) % 32 == 0 && cy >= screen_start_y));
+assign data_island_period_instantaneous = !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && cy >= screen_start_y;
+assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
 
 always @(posedge clk_pixel)
 begin
     video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
     video_guard <= !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
     video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
-    data_island_guard <= !DVI_OUTPUT && ((((cx >= screen_start_x - 2 && cx < screen_start_x) || (cx >= screen_start_x + num_packets * 32 && cx < screen_start_x + num_packets * 32 + 2)) && cy < screen_start_y)
-        || ((num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2)) && cy >= screen_start_y));
-    data_island_preamble <= !DVI_OUTPUT && (((cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy < screen_start_y)
-        || (num_packets_alongside > 0 && cx >= 0 && cx < 8 && cy >= screen_start_y));
+    data_island_guard <= !DVI_OUTPUT && num_packets_alongside > 0 && ((cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2));
+    data_island_preamble <= !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 0 && cx < 8 && cy >= screen_start_y;
     data_island_period <= data_island_period_instantaneous;
 end
 
