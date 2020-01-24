@@ -279,7 +279,12 @@ assign parity_bit[1] = ^{channel_status_right[frame_counter], user_data_bit[1], 
 // See HDMI 1.4a Table 5-12: Audio Sample Packet Header.
 assign header = {{3'b000, frame_counter == 8'd0, 4'b0000}, {3'b000, LAYOUT, 4'b0001}, 8'd2};
 // See HDMI 1.4a Table 5-13: Audio Sample Subpacket.
-assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
+`ifdef MODEL_TECH
+    assign sub[3:1] = '{56'd0, 56'd0, 56'd0};
+`else
+    // "The fields within a Subpacket with a corresponding sample_flat bit set or a sample_present bit clear, are not defined and can be any value."
+    assign sub[3:1] = '{56'dX, 56'dX, 56'dX};
+`endif
 assign sub[0] = {{parity_bit[1], channel_status_right[frame_counter], user_data_bit[1], valid_bit[1], parity_bit[0], channel_status_left[frame_counter], user_data_bit[0], valid_bit[0]}, audio_sample_word[1], audio_sample_word[0]};
 
 endmodule
