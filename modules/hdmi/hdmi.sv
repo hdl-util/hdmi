@@ -26,7 +26,7 @@ module hdmi
 
     // As noted in Section 7.3, the minimal audio requirements are met: 16-bit to 24-bit L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
     // See Table 7-4 or README.md
-    parameter AUDIO_RATE = 32.0,
+    parameter AUDIO_RATE = 32000,
 
     // Defaults to 16-bit audio. Can be anywhere from 16-bit to 24-bit.
     parameter AUDIO_BIT_WIDTH = 16
@@ -181,7 +181,7 @@ logic [55:0] subs [255:0] [3:0];
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Null Packet Header and all bytes of the Null Packet Body."
 assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
 
-localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32 ? 4'b0011
+localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 44100 ? 4'b0000
     : AUDIO_RATE == 88200 ? 4'b1000
     : AUDIO_RATE == 176400 ? 4'b1100
