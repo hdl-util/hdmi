@@ -197,7 +197,11 @@ assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
+logic [4:0] packet_pixel_counter;
 logic [7:0] frame_counter;
+always @(posedge clk_pixel)
+    if (data_island_period && packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
+        frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1'b1;
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
 
 auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
@@ -207,7 +211,7 @@ audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 logic [23:0] header;
 logic [55:0] sub [3:0];
 logic [8:0] packet_data;
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .packet_type(packet_type), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .frame_counter(frame_counter));
+packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
 packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;

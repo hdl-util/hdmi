@@ -2,17 +2,15 @@
 // By Sameer Puri https://github.com/sameer
 
 module packet_assembler (
-    input clk_pixel,
-    input [7:0] packet_type,
-    input data_island_period,
-    input [23:0] header, // See Table 5-8 Packet Types
-    input [55:0] sub [3:0],
+    input logic clk_pixel,
+    input logic data_island_period,
+    input logic [23:0] header, // See Table 5-8 Packet Types
+    input logic [55:0] sub [3:0],
     output logic [8:0] packet_data, // See Figure 5-4 Data Island Packet and ECC Structure
-    output logic [7:0] frame_counter = 8'd0
+    output logic [4:0] counter = 5'd0
 );
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
-logic [4:0] counter = 5'd0;
 always @(posedge clk_pixel)
     if (data_island_period)
         counter <= counter + 5'd1;
@@ -69,11 +67,7 @@ begin
                 parity[4] <= parity_next[4];
         end
         else if (counter == 5'd31)
-        begin
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
-            if (packet_type == 8'h02) // Keep track of current IEC 60958 frame
-                frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1'b1;
-        end
     end
 end
 
