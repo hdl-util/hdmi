@@ -132,14 +132,14 @@ begin
   //   $display("Packet assembler receiving sub %b %d at (%d, %d) with frame counter %d", max10_top.hdmi.packet_assembler.sub[0], max10_top.hdmi.packet_assembler.header[7:0], max10_top.hdmi.cx - 1, max10_top.hdmi.cy, max10_top.hdmi.frame_counter);
   // end
 
-  if (cx >= max10_top.hdmi.screen_start_x - 2 && cx < max10_top.hdmi.screen_start_x && cy < max10_top.hdmi.screen_start_y)
-  begin
+   if ((cx >= max10_top.hdmi.screen_start_x - 2 && cx < max10_top.hdmi.screen_start_x && cy < max10_top.hdmi.screen_start_y) || ((max10_top.hdmi.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + max10_top.hdmi.num_packets_alongside * 32 && cx < 10 + max10_top.hdmi.num_packets_alongside * 32 + 2)) && cy >= max10_top.hdmi.screen_start_y))
+   begin
     assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect");
     assert(tmds_values[1] == 10'b0100110011) else $fatal("Channel 1 DI GB incorrect");
     assert(tmds_values[0] == 10'b1010001110 || tmds_values[0] == 10'b1001110001 || tmds_values[0] == 10'b0101100011 || tmds_values[0] == 10'b1011000011) else $fatal("Channel 0 DI GB incorrect");
   end
-  else if (cx >= max10_top.hdmi.screen_start_x && cx < max10_top.hdmi.screen_start_x + max10_top.hdmi.num_packets * 32 && cy < max10_top.hdmi.screen_start_y)
-  begin
+   else if ((cx >= max10_top.hdmi.screen_start_x && cx < max10_top.hdmi.screen_start_x + max10_top.hdmi.num_packets * 32 && cy < max10_top.hdmi.screen_start_y) || (max10_top.hdmi.num_packets_alongside > 0 && cx >= 10 && cx < 10 + max10_top.hdmi.num_packets_alongside * 32 && cy >= max10_top.hdmi.screen_start_y))
+   begin
     data_counter <= data_counter + 1'd1;
     if (data_counter == 0)
     begin
@@ -153,7 +153,9 @@ begin
         first_packet <= 0;
         // $display("Received packet for (%d, %d)", cx - 32, cy);
         case(header[7:0])
-          8'h00: $display("NULL packet");
+          8'h00: begin
+            // $display("NULL packet");
+          end
           8'h01: begin
             $display("Audio Clock Regen packet");
             assert(header[23:8] === 16'dX) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
