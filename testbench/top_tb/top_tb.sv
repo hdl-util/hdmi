@@ -157,11 +157,11 @@ begin
             // $display("NULL packet");
           end
           8'h01: begin
-            $display("Audio Clock Regen packet N = %d, CTS = %d", N, CTS);
+            $display("Audio Clock Regen packet N = %d, CTS = %d, Fs = %d", N, CTS, 250000000/CTS*N/128);
             assert(header[23:8] === 16'dX) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
             assert(N == max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N) else $fatal("Incorrect N: %d should be %d", N, max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N);
-            // assert(CTS == max10_top.hdmi.packet_picker.audio_clock_regeneration_packet.CTS) else $fatal("Incorrect CTS: %d should be %d", CTS, max10_top.hdmi.audio_clock_regeneration_packet.CTS);
+            assert(250000000/CTS*N/128 > 49000 && 250000000/CTS*N/128 < 51000) else $fatal("CTS calculation outside of 50000 +/- 1000: %d", CTS);
           end
           8'h02: begin
             $display("Audio Sample packet #%d", frame_counter + 1);
