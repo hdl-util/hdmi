@@ -194,7 +194,7 @@ always @(posedge clk_audio)
 
 logic [19:0] cts_counter = 20'd0, cts = 20'd0;
 always @(posedge clk_pixel)
-    cts_counter <= regen_counter == REGEN_WIDTH'(0) ? 20'd0 : cts + 1'd1;
+    cts_counter <= regen_counter == REGEN_WIDTH'(0) ? 20'd0 : cts_counter + 1'd1;
 
 logic [7:0] packet_type = 8'd0;
 logic [23:0] audio_sample_word_padded [1:0];
