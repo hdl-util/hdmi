@@ -150,7 +150,7 @@ logic data_island_preamble = 0;
 logic data_island_period = 0;
 
 logic data_island_period_instantaneous;
-assign data_island_period_instantaneous = !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && cy >= screen_start_y;
+assign data_island_period_instantaneous = !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
 logic packet_enable;
 assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
 
@@ -160,7 +160,7 @@ begin
     video_guard <= !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
     video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
     data_island_guard <= !DVI_OUTPUT && num_packets_alongside > 0 && ((cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2));
-    data_island_preamble <= !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 0 && cx < 8 && cy >= screen_start_y;
+    data_island_preamble <= !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 0 && cx < 8;
     data_island_period <= data_island_period_instantaneous;
 end
 
@@ -224,7 +224,7 @@ localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WI
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
 logic [4:0] packet_pixel_counter;
-logic [7:0] frame_counter;
+logic [7:0] frame_counter = 8'd0;
 always @(posedge clk_pixel)
     if (data_island_period && packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
         frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1'b1;

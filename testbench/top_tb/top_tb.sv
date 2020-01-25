@@ -74,7 +74,7 @@ generate
     : tmds_values[j] == 10'b1001110001 ? 4'b1101
     : tmds_values[j] == 10'b0101100011 ? 4'b1110
     : tmds_values[j] == 10'b1011000011 ? 4'b1111
-    : 4'bXXXX;
+    : 4'bZZZZ;
   end
 endgenerate
 
@@ -165,7 +165,7 @@ begin
           end
           8'h02: begin
             $display("Audio Sample packet #%d", frame_counter + 1);
-            assert(sub[3:1] == '{64'd0, 64'd0, 64'd0}) else $fatal("Sample subpackets 1 through 3 are not empty");
+            assert(sub[3:1] == '{64'd0, 64'd0, 64'd0}) else $fatal("Sample subpackets 1 through 3 are not empty: %p", sub[3:1]);
             assert(header[12] == 1'b0) else $fatal("Sample layout is not 2 channel");
             assert(header[11:8] == 4'b0001) else $fatal("Sample present flag values unexpected: %b", header[11:8]);
             assert(header[19:16] == 4'd0) else $fatal("Sample flat values nonzero: %b", header[19:16]);
