@@ -11,6 +11,7 @@ module audio_clock_regeneration_packet
     parameter SAMPLING_FREQUENCY = 4'b0000
 )
 (
+    input logic [19:0] cts,
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
@@ -162,6 +163,7 @@ const bit [19:0] TABLE [0:6] [0:5] [0:1] [0:1] =
 };
 
 logic [19:0] N, CTS;
+assign CTS = cts;
 logic [2:0] sampling_frequency_index;
 generate
     case (SAMPLING_FREQUENCY)
@@ -178,22 +180,22 @@ generate
         1:
         begin
             assign N = TABLE[sampling_frequency_index][0][VIDEO_RATE][0];
-            assign CTS = TABLE[sampling_frequency_index][0][VIDEO_RATE][1];
+            // assign CTS = TABLE[sampling_frequency_index][0][VIDEO_RATE][1];
         end
         2, 3, 6, 7, 8, 9, 17, 18:
         begin
             assign N = TABLE[sampling_frequency_index][1][VIDEO_RATE][0];
-            assign CTS = TABLE[sampling_frequency_index][1][VIDEO_RATE][1];
+            // assign CTS = TABLE[sampling_frequency_index][1][VIDEO_RATE][1];
         end
         4, 5, 19:
         begin
             assign N = TABLE[sampling_frequency_index][3][VIDEO_RATE][0];
-            assign CTS = TABLE[sampling_frequency_index][3][VIDEO_RATE][1];
+            // assign CTS = TABLE[sampling_frequency_index][3][VIDEO_RATE][1];
         end
         16:
         begin
             assign N = TABLE[sampling_frequency_index][4][VIDEO_RATE][0];
-            assign CTS = TABLE[sampling_frequency_index][4][VIDEO_RATE][1];
+            // assign CTS = TABLE[sampling_frequency_index][4][VIDEO_RATE][1];
         end
     endcase
 endgenerate

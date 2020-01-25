@@ -187,14 +187,25 @@ logic [3:0] remaining;
 logic [AUDIO_BIT_WIDTH-1:0] audio_out [1:0];
 audio_buffer #(.CHANNELS(2), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) audio_buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 3'd0), .audio_in(audio_sample_word), .audio_out(audio_out), .remaining(remaining));
 
+localparam REGEN_WIDTH = $clog2(SAMPLING_FREQUENCY/100);
+logic [REGEN_WIDTH-1:0] regen_counter = 0;
+always @(posedge clk_audio)
+    regen_counter <= regen_counter == REGEN_WIDTH'(SAMPLING_FREQUENCY/100 - 1) ? 1'd0 : regen_counter + 1'd1;
+
+logic [19:0] cts_counter = 20'd0, cts = 20'd0;
+always @(posedge clk_pixel)
+    cts_counter <= regen_counter == REGEN_WIDTH'(0) ? 20'd0 : cts + 1'd1;
+
 logic [7:0] packet_type = 8'd0;
 logic [23:0] audio_sample_word_padded [1:0];
 always @(posedge clk_pixel)
 begin
     if (cx == 0 && cy == 0) // RESET
+        audio_info_frame_sent <= 1'b0;
+    if (regen_counter == REGEN_WIDTH'(0))
     begin
         audio_clock_regeneration_sent <= 1'b0;
-        audio_info_frame_sent <= 1'b0;
+        cts <= cts_counter;
     end
     if (packet_enable)
     begin
@@ -218,7 +229,7 @@ begin
     end
 end
 
-audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
+audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.cts(cts), .header(headers[1]), .sub(subs[1]));
 
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
