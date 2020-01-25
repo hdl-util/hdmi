@@ -6,7 +6,7 @@ module sawtooth
 )
 (
     input logic clk_audio,
-    output logic signed [BIT_WIDTH-1:0] level = 16'sd0
+    output logic signed [BIT_WIDTH-1:0] level = BIT_WIDTH'(0)
 );
 
 localparam INCREMENT = BIT_WIDTH'($signed(((WAVE_RATE * 2**BIT_WIDTH) / SAMPLE_RATE)));

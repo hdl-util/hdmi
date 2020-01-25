@@ -8,7 +8,7 @@
 // * remaining is the distance between insert and remove
 //     * insert is always ahead of remove -- if remove > insert, a position has wrapped around from BUFFER_END and an alternate calculation is used
 // * if the buffer is completely filled, insert_position and remove_position become equal and the buffer is cleared (remaining = 0)
-module buffer 
+module audio_buffer
 #(
     parameter BUFFER_SIZE = 16,
     parameter BIT_WIDTH = 16,

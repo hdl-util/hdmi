@@ -6,5 +6,6 @@ files = [
     "audio.sv",
     "OBUFDS.v",
     "altera_gpio_lite.sv",
-    "video.sv"
+    "video.sv",
+    "audio_buffer.sv"
 ]

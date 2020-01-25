@@ -7,9 +7,9 @@ module hdmi_tb();
 // Declare inputs as regs and outputs as wires
 reg clk_tmds = 0;
 reg clk_pixel = 0;
+reg clk_audio = 0;
 reg [23:0] rgb = 0;
 reg [15:0] audio_sample_word [1:0] = '{16'd0, ~16'd0};
-reg [7:0] packet_type = 8'd2; // Audio
 
 wire [2:0] tmds_p;
 wire tmds_clock_p;
@@ -17,7 +17,6 @@ wire [2:0] tmds_n;
 wire tmds_clock_n;
 wire [9:0] cx;
 wire [9:0] cy;
-wire packet_enable;
 
 initial begin   
   $dumpvars(0, hdmi_tb);
@@ -25,10 +24,9 @@ initial begin
 end
 
 // Clock generator
-always begin
-  #10 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
-  #1 clk_tmds = ~clk_tmds; // Toggle every tick
-end
+always #10 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
+always #1 clk_tmds = ~clk_tmds; // Toggle every tick
+always #100 clk_audio = ~clk_audio; 
 
 logic [7:0] num_packets = 8'd0;
 logic [4:0] counter = 5'd0;
@@ -38,13 +36,13 @@ logic [9:0] prevcy = 524;
 
 logic prev_packet_enable;
 always @(posedge clk_pixel)
-  prev_packet_enable <= packet_enable;
+  prev_packet_enable <= hdmi.packet_enable;
 
 always @(posedge clk_pixel)
 begin
-  prevcx <= hdmi.cx;
-  prevcy <= hdmi.cy;
-  assert(hdmi.num_packets <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets);
+  prevcx <= cx;
+  prevcy <= cy;
+  assert(hdmi.num_packets_alongside <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets_alongside);
   assert (hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[1] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[2] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[3]) else $fatal("Not all clock regen packets are the same");
   assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.audio_clock_regeneration_packet.N);
   assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
@@ -55,7 +53,7 @@ begin
   assert (hdmi.AUDIO_BIT_WIDTH_COMPARATOR == 20);
   assert (hdmi.WORD_LENGTH == 3'b100);
 
-  if ((cx - hdmi.screen_start_x) % 32 == 0 && cx < hdmi.screen_start_x + hdmi.num_packets * 32 && cx >= hdmi.screen_start_x && cy < hdmi.screen_start_y)
+  if (hdmi.num_packets_alongside > 0 && cx >= 10 && cx < 10 + hdmi.num_packets_alongside * 32 && cy >= hdmi.screen_start_y)
     assert (hdmi.packet_enable) else $fatal("Packet enable does not occur when expected");
   else
     assert (!hdmi.packet_enable) else $fatal("Packet enable occurs at unexpected time");
@@ -85,19 +83,6 @@ begin
 end
 
 // Connect DUT to test bench
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(16)) hdmi (
-  clk_tmds,
-  clk_pixel,
-  rgb,
-  audio_sample_word,
-  packet_type,
-  tmds_p,
-  tmds_clock_p,
-  tmds_n,
-  tmds_clock_n,
-  cx,
-  cy,
-  packet_enable
-);
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_BIT_WIDTH(16)) hdmi(clk_tmds, clk_pixel, clk_audio, rgb, audio_sample_word, tmds_p, tmds_clock_p, tmds_n, tmds_clock_n, cx, cy);
 
 endmodule

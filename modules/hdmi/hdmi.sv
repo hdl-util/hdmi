@@ -34,17 +34,16 @@ module hdmi
 (
     input logic clk_tmds,
     input logic clk_pixel,
+    input logic clk_audio,
     input logic [23:0] rgb,
     input logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [1:0],
-    input logic [7:0] packet_type,
 
     output logic [2:0] tmds_p,
     output logic tmds_clock_p,
     output logic [2:0] tmds_n,
     output logic tmds_clock_n,
     output logic [BIT_WIDTH-1:0] cx = BIT_WIDTH'(0),
-    output logic [BIT_HEIGHT-1:0] cy = BIT_HEIGHT'(0),
-    output logic packet_enable
+    output logic [BIT_HEIGHT-1:0] cy = BIT_HEIGHT'(0)
 );
 
 localparam NUM_CHANNELS = 3;
@@ -152,6 +151,7 @@ logic data_island_period = 0;
 
 logic data_island_period_instantaneous;
 assign data_island_period_instantaneous = !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32 && cy >= screen_start_y;
+logic packet_enable;
 assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
 
 always @(posedge clk_pixel)
@@ -181,10 +181,45 @@ localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 192000 ? 4'b1110
     : 4'bXXXX;
 
+logic audio_clock_regeneration_sent = 1'b0;
+logic audio_info_frame_sent = 1'b0;
+logic [3:0] remaining;
+logic [AUDIO_BIT_WIDTH-1:0] audio_out [1:0];
+audio_buffer #(.CHANNELS(2), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) audio_buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 3'd0), .audio_in(audio_sample_word), .audio_out(audio_out), .remaining(remaining));
+
+logic [7:0] packet_type = 8'd0;
+logic [23:0] audio_sample_word_padded [1:0];
+always @(posedge clk_pixel)
+begin
+    if (cx == 0 && cy == 0) // RESET
+    begin
+        audio_clock_regeneration_sent <= 1'b0;
+        audio_info_frame_sent <= 1'b0;
+    end
+    if (packet_enable)
+    begin
+        if (remaining > 0)
+        begin
+            packet_type <= 8'd2;
+            audio_sample_word_padded <= '{{(24-AUDIO_BIT_WIDTH)'(0), audio_out[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_out[0]}};
+        end
+        else if (!audio_clock_regeneration_sent)
+        begin
+            packet_type <= 8'd1;
+            audio_clock_regeneration_sent <= 1'b1;
+        end
+        else if (!audio_info_frame_sent)
+        begin
+            packet_type <= 8'h84;
+            audio_info_frame_sent <= 1'b1;
+        end
+        else
+            packet_type <= 8'd0;
+    end
+end
+
 audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.header(headers[1]), .sub(subs[1]));
 
-logic [23:0] audio_sample_word_padded [1:0];
-assign audio_sample_word_padded = '{{(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word[0]}};
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;

@@ -26,57 +26,18 @@ localparam AUDIO_BIT_WIDTH = 16;
 localparam AUDIO_RATE = 48000;
 localparam WAVE_RATE = 480;
 
-logic [AUDIO_BIT_WIDTH-1:0] audio_in;
-logic [AUDIO_BIT_WIDTH-1:0] audio_out;
-sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH), .SAMPLE_RATE(AUDIO_RATE), .WAVE_RATE(WAVE_RATE)) sawtooth (.clk_audio(clk_audio), .level(audio_in));
+logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word;
+sawtooth #(.BIT_WIDTH(AUDIO_BIT_WIDTH), .SAMPLE_RATE(AUDIO_RATE), .WAVE_RATE(WAVE_RATE)) sawtooth (.clk_audio(clk_audio), .level(audio_sample_word));
 
 logic [AUDIO_BIT_WIDTH:0] pwm_acc = 0;
 assign PWM_OUT = pwm_acc[AUDIO_BIT_WIDTH];
 always @(posedge clk_audio)
-    pwm_acc <= pwm_acc[AUDIO_BIT_WIDTH-1:0] + audio_in;
-
-logic audio_clock_regeneration_sent = 1'b0;
-logic audio_info_frame_sent = 1'b0;
-
-logic [3:0] remaining;
-logic packet_enable;
-logic [7:0] packet_type = 0;
-buffer #(.CHANNELS(1), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && audio_clock_regeneration_sent && audio_info_frame_sent), .audio_in('{audio_in}), .audio_out('{audio_out}), .remaining(remaining));
-
+    pwm_acc <= pwm_acc[AUDIO_BIT_WIDTH-1:0] + audio_sample_word;
 
 logic [23:0] rgb;
 logic [AUDIO_BIT_WIDTH-1:0] audio_buffer;
-wire [9:0] cx, cy;
-hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .rgb(rgb), .audio_sample_word('{audio_buffer, audio_buffer}), .packet_type(packet_type), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy), .packet_enable(packet_enable));
-
-always @(posedge clk_pixel)
-begin
-    if (cx == 0 && cy == 0) // RESET
-    begin
-        audio_clock_regeneration_sent <= 1'b0;
-        audio_info_frame_sent <= 1'b0;
-    end
-    if (packet_enable)
-    begin
-        if (!audio_clock_regeneration_sent)
-        begin
-            packet_type <= 8'd1;
-            audio_clock_regeneration_sent <= 1'b1;
-        end
-        else if (!audio_info_frame_sent)
-        begin
-            packet_type <= 8'h84;
-            audio_info_frame_sent <= 1'b1;
-        end
-        else if (remaining > 0)
-        begin
-            packet_type <= 8'd2;
-            audio_buffer <= audio_out;
-        end
-        else
-            packet_type <= 8'd0;
-    end
-end
+logic [9:0] cx, cy;
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .clk_audio(clk_audio), .rgb(rgb), .audio_sample_word('{audio_sample_word, audio_sample_word}), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
 
 // Overscan / border test (left = red, top = green, right = blue, bottom = blue, fill = black)
 // always @(posedge clk_pixel)
