@@ -132,13 +132,13 @@ begin
   //   $display("Packet assembler receiving sub %b %d at (%d, %d) with frame counter %d", max10_top.hdmi.packet_assembler.sub[0], max10_top.hdmi.packet_assembler.header[7:0], max10_top.hdmi.cx - 1, max10_top.hdmi.cy, max10_top.hdmi.frame_counter);
   // end
 
-  if (max10_top.hdmi.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + max10_top.hdmi.num_packets_alongside * 32 && cx < 10 + max10_top.hdmi.num_packets_alongside * 32 + 2))
+  if (max10_top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
   begin
-    assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect");
+    assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect: %b", tmds_values[2]);
     assert(tmds_values[1] == 10'b0100110011) else $fatal("Channel 1 DI GB incorrect");
     assert(tmds_values[0] == 10'b1010001110 || tmds_values[0] == 10'b1001110001 || tmds_values[0] == 10'b0101100011 || tmds_values[0] == 10'b1011000011) else $fatal("Channel 0 DI GB incorrect");
   end
-  else if (max10_top.hdmi.num_packets_alongside > 0 && cx >= 10 && cx < 10 + max10_top.hdmi.num_packets_alongside * 32)
+  else if (max10_top.hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= 10 && cx < 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32)
   begin
     data_counter <= data_counter + 1'd1;
     if (data_counter == 0)
@@ -157,11 +157,11 @@ begin
             // $display("NULL packet");
           end
           8'h01: begin
-            $display("Audio Clock Regen packet");
+            $display("Audio Clock Regen packet N = %d, CTS = %d", N, CTS);
             assert(header[23:8] === 16'dX) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
-            assert(N == max10_top.hdmi.audio_clock_regeneration_packet.N) else $fatal("Incorrect N: %d should be %d", N, max10_top.hdmi.audio_clock_regeneration_packet.N);
-            assert(CTS == max10_top.hdmi.audio_clock_regeneration_packet.CTS) else $fatal("Incorrect CTS: %d should be %d", CTS, max10_top.hdmi.audio_clock_regeneration_packet.CTS);
+            assert(N == max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N) else $fatal("Incorrect N: %d should be %d", N, max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N);
+            // assert(CTS == max10_top.hdmi.packet_picker.audio_clock_regeneration_packet.CTS) else $fatal("Incorrect CTS: %d should be %d", CTS, max10_top.hdmi.audio_clock_regeneration_packet.CTS);
           end
           8'h02: begin
             $display("Audio Sample packet #%d", frame_counter + 1);
@@ -174,8 +174,8 @@ begin
               assert(header[23:20] == 4'b0001) else $fatal("Sample B values unexpected: %b", header[23:0]);
               if (channel_status != '{192'dX, 192'dX})
               begin
-                assert(channel_status[0] == max10_top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
-                assert(channel_status[1] == max10_top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
+                assert(channel_status[0] == max10_top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
+                assert(channel_status[1] == max10_top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
               end
             end
             else

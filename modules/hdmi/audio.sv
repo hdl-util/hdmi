@@ -4,12 +4,7 @@
 // See HDMI 1.4a Section 5.3.3.
 module audio_clock_regeneration_packet
 #(
-    parameter VIDEO_ID_CODE = 1,
-    // 59.94 Hz = 0, 60 Hz = 1
-    parameter VIDEO_RATE = 0,
-    parameter AUDIO_RATE = 32000,
-    // See Table 7-4 or README.md
-    parameter SAMPLING_FREQUENCY = 4'b0000
+    parameter AUDIO_RATE = 32000
 )
 (
     input logic [19:0] cts,
@@ -22,12 +17,16 @@ logic [19:0] N, CTS;
 assign N = 20'(128 * AUDIO_RATE / 1000);
 assign CTS = cts;
 
-logic [55:0] single_sub;
-assign single_sub = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Audio Clock Regeneration Packet header."
 assign header = {8'dX, 8'dX, 8'd1};
 // "The four Subpackets each contain the same Audio Clock regeneration Subpacket."
-assign sub = '{single_sub, single_sub, single_sub, single_sub};
+genvar i;
+generate
+    for (i = 0; i < 4; i++)
+    begin: same_packet
+        assign sub[i] = {N[7:0], N[15:8], {4'd0, N[19:16]}, CTS[7:0], CTS[15:8], {4'd0, CTS[19:16]}, 8'd0};
+    end
+endgenerate
 
 endmodule
 

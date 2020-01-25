@@ -136,137 +136,100 @@ end
 
 // See Section 5.2
 logic video_data_period = 1;
-logic video_guard = 0;
-logic video_preamble = 0;
-
-// See Section 5.2.3.1
-integer max_num_packets_alongside;
-logic [4:0] num_packets_alongside;
-assign max_num_packets_alongside = (screen_start_x /* VD period */ - 2 /* V guard */ - 8 /* V preamble */ - 12 /* 12px control period */ - 2 /* DI guard */ - 2 /* DI start guard */ - 8 /* DI premable */) / 32;
-assign num_packets_alongside = max_num_packets_alongside > 18 ? 5'd18 : 5'(max_num_packets_alongside);
-
-logic data_island_guard = 0;
-logic data_island_preamble = 0;
-logic data_island_period = 0;
-
-logic data_island_period_instantaneous;
-assign data_island_period_instantaneous = !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
-logic packet_enable;
-assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
-
 always @(posedge clk_pixel)
-begin
     video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
-    video_guard <= !DVI_OUTPUT && (cx >= screen_start_x - 2 && cx < screen_start_x) && cy >= screen_start_y;
-    video_preamble <= !DVI_OUTPUT && (cx >= screen_start_x - 10 && cx < screen_start_x - 2) && cy >= screen_start_y;
-    data_island_guard <= !DVI_OUTPUT && num_packets_alongside > 0 && ((cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2));
-    data_island_preamble <= !DVI_OUTPUT && num_packets_alongside > 0 && cx >= 0 && cx < 8;
-    data_island_period <= data_island_period_instantaneous;
-end
-
-// See Section 5.3
-logic [23:0] headers [255:0];
-logic [55:0] subs [255:0] [3:0];
-
-// NULL packet
-// "An HDMI Sink shall ignore bytes HB1 and HB2 of the Null Packet Header and all bytes of the Null Packet Body."
-assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
-
-localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
-    : AUDIO_RATE == 44100 ? 4'b0000
-    : AUDIO_RATE == 88200 ? 4'b1000
-    : AUDIO_RATE == 176400 ? 4'b1100
-    : AUDIO_RATE == 48000 ? 4'b0010
-    : AUDIO_RATE == 96000 ? 4'b1010
-    : AUDIO_RATE == 192000 ? 4'b1110
-    : 4'bXXXX;
-
-logic audio_clock_regeneration_sent = 1'b0;
-logic audio_info_frame_sent = 1'b0;
-logic [3:0] remaining;
-logic [AUDIO_BIT_WIDTH-1:0] audio_out [1:0];
-audio_buffer #(.CHANNELS(2), .BIT_WIDTH(AUDIO_BIT_WIDTH), .BUFFER_SIZE(16)) audio_buffer (.clk_audio(clk_audio), .clk_pixel(clk_pixel), .packet_enable(packet_enable && remaining > 3'd0), .audio_in(audio_sample_word), .audio_out(audio_out), .remaining(remaining));
-
-localparam REGEN_WIDTH = $clog2(SAMPLING_FREQUENCY/100);
-logic [REGEN_WIDTH-1:0] regen_counter = 0;
-always @(posedge clk_audio)
-    regen_counter <= regen_counter == REGEN_WIDTH'(SAMPLING_FREQUENCY/100 - 1) ? 1'd0 : regen_counter + 1'd1;
-
-logic [19:0] cts_counter = 20'd0, cts = 20'd0;
-always @(posedge clk_pixel)
-    cts_counter <= regen_counter == REGEN_WIDTH'(0) ? 20'd0 : cts_counter + 1'd1;
-
-logic [7:0] packet_type = 8'd0;
-logic [23:0] audio_sample_word_padded [1:0];
-always @(posedge clk_pixel)
-begin
-    if (cx == 0 && cy == 0) // RESET
-        audio_info_frame_sent <= 1'b0;
-    if (regen_counter == REGEN_WIDTH'(0))
-    begin
-        audio_clock_regeneration_sent <= 1'b0;
-        cts <= cts_counter;
-    end
-    if (packet_enable)
-    begin
-        if (remaining > 0)
-        begin
-            packet_type <= 8'd2;
-            audio_sample_word_padded <= '{{(24-AUDIO_BIT_WIDTH)'(0), audio_out[1]}, {(24-AUDIO_BIT_WIDTH)'(0), audio_out[0]}};
-        end
-        else if (!audio_clock_regeneration_sent)
-        begin
-            packet_type <= 8'd1;
-            audio_clock_regeneration_sent <= 1'b1;
-        end
-        else if (!audio_info_frame_sent)
-        begin
-            packet_type <= 8'h84;
-            audio_info_frame_sent <= 1'b1;
-        end
-        else
-            packet_type <= 8'd0;
-    end
-end
-
-audio_clock_regeneration_packet #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE), .SAMPLING_FREQUENCY(SAMPLING_FREQUENCY)) audio_clock_regeneration_packet (.cts(cts), .header(headers[1]), .sub(subs[1]));
-
-localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
-localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
-localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
-logic [4:0] packet_pixel_counter;
-logic [7:0] frame_counter = 8'd0;
-always @(posedge clk_pixel)
-    if (data_island_period && packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
-        frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 1'b1;
-audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit(2'b00), .user_data_bit(2'b00), .audio_sample_word(audio_sample_word_padded), .header(headers[2]), .sub(subs[2]));
-
-auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
-audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
-
-// See Section 5.2.3.4
-logic [23:0] header;
-logic [55:0] sub [3:0];
-logic [8:0] packet_data;
-packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
-packet_picker packet_picker (.packet_type(packet_type), .headers(headers), .subs(subs), .header(header), .sub(sub));
 
 logic [2:0] mode = 3'd1;
 logic [23:0] video_data = 24'd0;
-logic [11:0] data_island_data = 12'd0;
 logic [5:0] control_data = 6'd0;
+logic [11:0] data_island_data = 12'd0;
 
-always @(posedge clk_pixel)
-begin
-    mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
-    video_data <= rgb;
-    // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
-    data_island_data[11:4] <= packet_data[8:1];
-    data_island_data[3] <= cx != screen_start_x;
-    data_island_data[2] <= packet_data[0];
-    data_island_data[1:0] <= {vsync, hsync};
-    control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
-end
+generate
+    if (!DVI_OUTPUT)
+    begin: true_hdmi_output
+        logic video_guard = 0;
+        logic video_preamble = 0;
+        always @(posedge clk_pixel)
+        begin
+            video_guard <= cx >= screen_start_x - 2 && cx < screen_start_x && cy >= screen_start_y;
+            video_preamble <= cx >= screen_start_x - 10 && cx < screen_start_x - 2 && cy >= screen_start_y;
+        end
+
+        // See Section 5.2.3.1
+        integer max_num_packets_alongside;
+        logic [4:0] num_packets_alongside;
+        assign max_num_packets_alongside = (screen_start_x /* VD period */ - 2 /* V guard */ - 8 /* V preamble */ - 12 /* 12px control period */ - 2 /* DI guard */ - 2 /* DI start guard */ - 8 /* DI premable */) / 32;
+        assign num_packets_alongside = max_num_packets_alongside > 18 ? 5'd18 : 5'(max_num_packets_alongside);
+
+        logic data_island_period_instantaneous;
+        assign data_island_period_instantaneous = num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
+        logic packet_enable;
+        assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
+
+        logic data_island_guard = 0;
+        logic data_island_preamble = 0;
+        logic data_island_period = 0;
+        always @(posedge clk_pixel)
+        begin
+            data_island_guard <= num_packets_alongside > 0 && ((cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2));
+            data_island_preamble <= num_packets_alongside > 0 && cx >= 0 && cx < 8;
+            data_island_period <= data_island_period_instantaneous;
+        end
+
+        // See Section 5.2.3.4
+        logic [23:0] header;
+        logic [55:0] sub [3:0];
+        logic [4:0] packet_pixel_counter;
+        packet_picker #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .BIT_WIDTH(BIT_WIDTH), .BIT_HEIGHT(BIT_HEIGHT), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .packet_enable(packet_enable), .data_island_period(data_island_period), .packet_pixel_counter(packet_pixel_counter), .cx(cx), .cy(cy), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
+        logic [8:0] packet_data;
+        packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
+
+
+        always @(posedge clk_pixel)
+        begin
+            casex ({data_island_guard, data_island_period, video_guard, video_data_period})
+                4'b1???: begin // DI guard
+                    mode <= 3'd4;
+                end
+                4'b01??: begin // DI period
+                    mode <= 3'd3;
+                    // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
+                    data_island_data[11:4] <= packet_data[8:1];
+                    data_island_data[3] <= cx != screen_start_x;
+                    data_island_data[2] <= packet_data[0];
+                    data_island_data[1:0] <= {vsync, hsync};
+                end
+                4'b001?: begin // VD guard
+                    mode <= 3'd2;
+                end
+                4'b0001: begin // VD period
+                    mode <= 3'd1;
+                    video_data <= rgb;
+                end
+                default: begin // Control period
+                    mode <= 3'd0;
+                    control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
+                end
+            endcase
+        end
+    end
+    else // DVI_OUTPUT = 1
+    begin
+        always @(posedge clk_pixel)
+        begin
+            if (video_data_period)
+            begin
+                mode <= 3'd1;
+                video_data <= rgb;
+            end
+            else
+            begin
+                mode <= 3'd0;
+                control_data <= {4'b0000, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
+            end
+        end
+    end
+endgenerate
 
 logic [9:0] tmds [NUM_CHANNELS-1:0];
 genvar i;
