@@ -67,14 +67,25 @@ wire [9:0] terc4_coding =
     : 10'b1011000011;
 
 // See Section 5.2.2.1
-wire [9:0] video_guard_band = (CN == 2'd0 || CN == 2'd2) ? 10'b1011001100 : 10'b0100110011;
+logic [9:0] video_guard_band;
+generate
+    if (CN == 0 || CN == 2)
+        assign video_guard_band = 10'b1011001100;
+    else
+        assign video_guard_band = 10'b0100110011;
+endgenerate
 
 // See Section 5.2.3.3
-wire [9:0] data_guard_band = (CN == 2'd1 || CN == 2'd2) ? 10'b0100110011
-    : control_data == 2'b00 ? 10'b1010001110
-    : control_data == 2'b01 ? 10'b1001110001
-    : control_data == 2'b10 ? 10'b0101100011
-    : 10'b1011000011;
+logic [9:0] data_guard_band;
+generate
+    if (CN == 1 || CN == 2)
+        assign data_guard_band = 10'b0100110011;
+    else
+        assign data_guard_band = control_data == 2'b00 ? 10'b1010001110
+            : control_data == 2'b01 ? 10'b1001110001
+            : control_data == 2'b10 ? 10'b0101100011
+            : 10'b1011000011;
+endgenerate
 
 // Apply selected mode.
 always @(posedge clk_pixel)

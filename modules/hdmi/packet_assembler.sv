@@ -32,7 +32,7 @@ assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][count
 function automatic [7:0] next_ecc;
 input [7:0] ecc, next_bch_bit;
 begin
-    next_ecc = (ecc[0] ^ next_bch_bit) ? (ecc >> 1) ^ 8'b10000011 : (ecc >> 1);
+    next_ecc = (ecc >> 1) ^ ((ecc[0] ^ next_bch_bit) ? 8'b10000011 : 8'd0);
 end
 endfunction
 

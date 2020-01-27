@@ -24,9 +24,9 @@ initial begin
 end
 
 // Clock generator
-always #10 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
+always #20 clk_pixel = ~clk_pixel; // Toggle every 10 ticks
 always #1 clk_tmds = ~clk_tmds; // Toggle every tick
-always #100 clk_audio = ~clk_audio; 
+always #10000 clk_audio = ~clk_audio; 
 
 logic [7:0] num_packets = 8'd0;
 logic [4:0] counter = 5'd0;
@@ -34,52 +34,40 @@ logic [4:0] counter = 5'd0;
 logic [9:0] prevcx = 857;
 logic [9:0] prevcy = 524;
 
-logic prev_packet_enable;
-always @(posedge clk_pixel)
-  prev_packet_enable <= hdmi.packet_enable;
-
+logic prev_packet_enable = 0;
 always @(posedge clk_pixel)
 begin
+  prev_packet_enable <= hdmi.true_hdmi_output.packet_picker.packet_enable;
   prevcx <= cx;
   prevcy <= cy;
-  assert(hdmi.num_packets_alongside <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.num_packets_alongside);
-  assert (hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[1] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[2] && hdmi.audio_clock_regeneration_packet.sub[0] == hdmi.audio_clock_regeneration_packet.sub[3]) else $fatal("Not all clock regen packets are the same");
-  assert (hdmi.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.audio_clock_regeneration_packet.N);
-  assert (hdmi.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.audio_clock_regeneration_packet.CTS);
-  assert (hdmi.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.audio_sample_packet.channel_status_left[39:0]);
-  assert (hdmi.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.audio_sample_packet.channel_status_right[39:0]);
-  assert (hdmi.audio_sample_packet.valid_bit == 2'b00) else $fatal("Audio invalid");
-  assert (hdmi.WORD_LENGTH_LIMIT == 0);
-  assert (hdmi.AUDIO_BIT_WIDTH_COMPARATOR == 20);
-  assert (hdmi.WORD_LENGTH == 3'b100);
+  assert(hdmi.true_hdmi_output.num_packets_alongside <= 18) else $fatal("More packets than allowed per data island period will be transmitted: %d", hdmi.true_hdmi_output.num_packets_alongside);
+  assert (hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[0] == hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[1] && hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[0] == hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[2] && hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[0] == hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.sub[3]) else $fatal("Not all clock regen packets are the same");
+  assert (hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N == 4096) else $fatal("Clock regen table gives incorrect N: %d", hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N);
+  assert (hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.CTS == 27000) else $fatal("Clock regen table gives incorrect CTS: %d", hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.CTS);
+  assert (hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd1, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status left doesn't match expected: %b", hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left[39:0]);
+  assert (hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right == {152'd0, 4'd0, 4'b0010, 2'd0, 2'd0, 4'b0011, 4'd2, 4'd0, 8'd0, 2'd0, 3'd0, 1'b1, 1'b0, 1'b0}) else $fatal("Channel status right doesn't match expected: %b", hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right[39:0]);
+  assert (hdmi.true_hdmi_output.packet_picker.audio_sample_packet.valid_bit == '{2'b00, 2'b00, 2'b00, 2'b00}) else $fatal("Audio invalid");
+  assert (hdmi.true_hdmi_output.packet_picker.WORD_LENGTH_LIMIT == 0);
+  assert (hdmi.true_hdmi_output.packet_picker.AUDIO_BIT_WIDTH_COMPARATOR == 20);
+  assert (hdmi.true_hdmi_output.packet_picker.WORD_LENGTH == 3'b100);
 
-  if (hdmi.num_packets_alongside > 0 && cx >= 10 && cx < 10 + hdmi.num_packets_alongside * 32 && cy >= hdmi.screen_start_y)
-    assert (hdmi.packet_enable) else $fatal("Packet enable does not occur when expected");
+  if (hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= 10 && cx < 10 + hdmi.true_hdmi_output.num_packets_alongside * 32 && (cx - 10) % 32 == 0)
+    assert (hdmi.true_hdmi_output.packet_picker.packet_enable) else $fatal("Packet enable does not occur when expected");
   else
-    assert (!hdmi.packet_enable) else $fatal("Packet enable occurs at unexpected time");
+    assert (!hdmi.true_hdmi_output.packet_picker.packet_enable) else $fatal("Packet enable occurs at unexpected time");
   if (prevcx >= hdmi.screen_start_x && prevcy >= hdmi.screen_start_y)
-    assert(hdmi.video_data_period == 3'd1) else $fatal("Video mode not active in screen area at (%d, %d) with guard %b", prevcx, prevcy, hdmi.video_guard);
+    assert(hdmi.video_data_period == 3'd1) else $fatal("Video mode not active in screen area at (%d, %d) with guard %b", prevcx, prevcy, hdmi.true_hdmi_output.video_guard);
   else
     assert(hdmi.video_data_period != 3'd1) else $fatal("Video mode active in non-screen area at (%d, %d)", prevcx, prevcy);
   if (prev_packet_enable)
     counter <=  1'd1;
-  if (hdmi.data_island_period && hdmi.packet_assembler.counter == 31)
-    num_packets <= num_packets == 191 ? 0 : num_packets + 1'd1;
+  if (hdmi.true_hdmi_output.data_island_period && hdmi.true_hdmi_output.packet_assembler.counter == 31)
+    num_packets <= num_packets + 1'd1;
   if (counter != 0)
     counter <= counter + 1'd1;
   if (counter < 5'd24)
-    assert (hdmi.packet_data == {hdmi.sub[3][2*counter+1], hdmi.sub[2][2*counter+1], hdmi.sub[1][2*counter+1], hdmi.sub[0][2*counter+1], hdmi.sub[3][2*counter], hdmi.sub[2][2*counter], hdmi.sub[1][2*counter], hdmi.sub[0][2*counter], hdmi.header[counter]}) else $fatal("Packet assembler not outputting correct data");
-  if (hdmi.packet_assembler.counter == 0 && num_packets == 0)
-    assert (hdmi.packet_assembler.header[20] == 1'b1) else $fatal("Did not indicate first frame in channel status block");
-  assert (num_packets == hdmi.audio_sample_packet.frame_counter) else $fatal("Frame counter does not match number of packets sent: %d vs %d", hdmi.audio_sample_packet.frame_counter, num_packets);
-
-  assert (counter == hdmi.packet_assembler.counter) else $fatal("Packet counter does not match expected");
-  if (counter == 5'd31)
-  begin
-    assert (hdmi.packet_assembler.parity[4] == (num_packets != 0 ? 8'b01100101 : 8'b11010110)) else $fatal("Parity unexpected for 4: %b", hdmi.packet_assembler.parity[4]);
-    assert (hdmi.packet_assembler.parity[3:1] == '{8'd0, 8'd0, 8'd0, 8'd0}) else $fatal("Parity is nonzero for 3 to 1: %b, %b, %b, %b", hdmi.packet_assembler.parity[3], hdmi.packet_assembler.parity[2], hdmi.packet_assembler.parity[1]);
-    assert (hdmi.packet_assembler.parity[0] == 8'b10100110 || hdmi.packet_assembler.parity[0] == 8'b00010001 || hdmi.packet_assembler.parity[0] == 8'b11100111 || hdmi.packet_assembler.parity[0] == 8'b01010000) else $fatal("Parity incorrect for 0: %b, with sub0 = %b, counter = %d", hdmi.packet_assembler.parity[0], hdmi.packet_assembler.sub[0], num_packets);
-  end
+    assert (hdmi.true_hdmi_output.packet_data == {hdmi.true_hdmi_output.sub[3][2*counter+1], hdmi.true_hdmi_output.sub[2][2*counter+1], hdmi.true_hdmi_output.sub[1][2*counter+1], hdmi.true_hdmi_output.sub[0][2*counter+1], hdmi.true_hdmi_output.sub[3][2*counter], hdmi.true_hdmi_output.sub[2][2*counter], hdmi.true_hdmi_output.sub[1][2*counter], hdmi.true_hdmi_output.sub[0][2*counter], hdmi.true_hdmi_output.header[counter]}) else $fatal("Packet assembler not outputting correct data: %p", hdmi.true_hdmi_output.packet_data);
+  assert (counter == hdmi.true_hdmi_output.packet_assembler.counter) else $fatal("Packet counter does not match expected");
 end
 
 // Connect DUT to test bench

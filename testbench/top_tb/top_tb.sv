@@ -22,7 +22,7 @@ logic PWM_OUT;
 
 // Clock generator
 // always #1000ns CLK_32KHZ = ~CLK_32KHZ;
-always #10ns CLK_50MHZ = ~CLK_50MHZ;
+// always #10ns CLK_50MHZ = ~CLK_50MHZ;
 
 max10_top max10_top (
     .CLK_50MHZ(CLK_50MHZ),
@@ -38,7 +38,7 @@ max10_top max10_top (
     .PWM_OUT(PWM_OUT)
 );
 
-logic [9:0] cx = 858 - 3;
+logic [9:0] cx = 858 - 4;
 logic [9:0] cy = 524;
 
 logic [9:0] tmds_values [2:0] = '{10'dx, 10'dx, 10'dx};
@@ -110,19 +110,27 @@ assign N = {sub[0][35:32], sub[0][47:40], sub[0][55:48]};
 logic [19:0] CTS;
 assign CTS = {sub[0][11:8], sub[0][23:16], sub[0][31:24]};
 
-logic [23:0] L;
-assign L = sub[0][23:0];
-logic [23:0] R;
-assign R = sub[0][47:24];
-logic [3:0] PCUVr;
-assign PCUVr = sub[0][55:52];
-logic [3:0] PCUVl;
-assign PCUVl = sub[0][51:48];
+logic [23:0] L [3:0];
+logic [23:0] R [3:0];
+logic [3:0] PCUVr [3:0];
+logic [3:0] PCUVl [3:0];
+generate
+  for (i = 0; i< 4; i++)
+  begin
+    assign R[i] = sub[i][47:24];
+    assign L[i] = sub[i][23:0];
+    assign PCUVr[i] = sub[i][55:52];
+    assign PCUVl[i] = sub[i][51:48];
+  end
+endgenerate
+logic [2:0] num_samples_present;
+assign num_samples_present = 3'(header[11]) + header[10] + header[9] + header[8];
 logic [$clog2(192)-1:0] frame_counter = 0;
 logic [191:0] channel_status [1:0] = '{192'dX, 192'dX};
 
 logic first_packet = 1;
 
+integer k;
 always @(posedge max10_top.clk_pixel)
 begin
   cx <= cx == max10_top.hdmi.frame_width - 1 ? 0 : cx + 1;
@@ -154,39 +162,44 @@ begin
         // $display("Received packet for (%d, %d)", cx - 32, cy);
         case(header[7:0])
           8'h00: begin
-            // $display("NULL packet");
+            $display("NULL packet");
           end
           8'h01: begin
-            $display("Audio Clock Regen packet N = %d, CTS = %d, Fs = %d", N, CTS, 250000000/CTS*N/128);
-            assert(header[23:8] === 16'dX) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
+            $display("Audio Clock Regen packet N = %d, CTS = %d", N, CTS);
+            assert(header[23:8] === 16'd0) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
-            assert(N == max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N) else $fatal("Incorrect N: %d should be %d", N, max10_top.hdmi.true_hdmi_output.packet_picker.audio_clock_regeneration_packet.N);
-            assert(250000000/CTS*N/128 > 49000 && 250000000/CTS*N/128 < 51000) else $fatal("CTS calculation outside of 50000 +/- 1000: %d", CTS);
+            assert(N == 128*48000/1000) else $fatal("Incorrect N: %d should be %d", N, 128*48000/1000);
+            assert(CTS > 25738 - 1000 && CTS < 25738 + 1000) else $fatal("Incorrect CTS: %d out of bounds", CTS);
           end
           8'h02: begin
-            $display("Audio Sample packet #%d", frame_counter + 1);
-            assert(sub[3:1] == '{64'd0, 64'd0, 64'd0}) else $fatal("Sample subpackets 1 through 3 are not empty: %p", sub[3:1]);
+            $display("Audio Sample packet #%d - %d", frame_counter + 1, frame_counter + num_samples_present);
             assert(header[12] == 1'b0) else $fatal("Sample layout is not 2 channel");
-            assert(header[11:8] == 4'b0001) else $fatal("Sample present flag values unexpected: %b", header[11:8]);
+            assert(header[11:8] == 4'd15 || header[11:8] == 4'd7 || header[11:8] == 4'd3 || header[11:8] == 4'd1) else $fatal("Sample present flag values unexpected: %b", header[11:8]);
             assert(header[19:16] == 4'd0) else $fatal("Sample flat values nonzero: %b", header[19:16]);
-            if (frame_counter == 0)
+            for (k = 0; k < 4; k++)
             begin
-              assert(header[23:20] == 4'b0001) else $fatal("Sample B values unexpected: %b", header[23:0]);
-              if (channel_status != '{192'dX, 192'dX})
+              if (!header[8 + k]) // Sample not present
+                continue;
+
+              if ((frame_counter + k) % 192 == 0) // Last frame was end of IEC60958 frame, this sample starts a new frame
               begin
-                assert(channel_status[0] == max10_top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
-                assert(channel_status[1] == max10_top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
+                assert(header[20 + k] == 1'b1) else $fatal("Sample B value low for sample %d with counter %d", k, frame_counter);
+                // if (channel_status != '{192'dX, 192'dX})
+                // begin
+                //   assert(channel_status[0] == max10_top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
+                //   assert(channel_status[1] == max10_top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
+                // end
               end
+              else
+                assert(header[20 + k] == 1'b0) else $fatal("Sample B value high for sample %d with counter %d", k, frame_counter);
+              assert(PCUVr[k][1] == 1'b0 && PCUVl[k][1] == 1'b0) else $fatal("Sample user data bits nonzero");
+              assert(PCUVr[k][0] == 1'b0 && PCUVl[k][0] == 1'b0) else $fatal("Sample validity bits nonzero");
+              assert(^{PCUVr[k][2:0], R[k]} == PCUVr[k][3]) else $fatal("Sample right parity not even: %b", {PCUVr[k], R[k]});
+              assert(^{PCUVl[k][2:0], L[k]} == PCUVl[k][3]) else $fatal("Sample left parity not even: %b", {PCUVl[k], L[k]});
+              channel_status[1][frame_counter + k] <= PCUVr[k][2];
+              channel_status[0][frame_counter + k] <= PCUVl[k][2];
             end
-            else
-              assert(header[23:20] == 4'd0) else $fatal("Sample B values nonzero: %b", header[23:20]);
-            assert(PCUVr[1] == 1'b0 && PCUVl[1] == 1'b0) else $fatal("Sample user data bits nonzero");
-            assert(PCUVr[0] == 1'b0 && PCUVl[0] == 1'b0) else $fatal("Sample validity bits nonzero");
-            assert(^{PCUVr[2:0], R} == PCUVr[3]) else $fatal("Sample right parity not even: %b", {PCUVr, R});
-            assert(^{PCUVl[2:0], L} == PCUVl[3]) else $fatal("Sample left parity not even: %b", {PCUVl, L});
-            channel_status[1][frame_counter] <= PCUVr[2];
-            channel_status[0][frame_counter] <= PCUVl[2];
-            frame_counter <= frame_counter == 191 ? 0 : frame_counter + 1;
+            frame_counter <= (frame_counter + num_samples_present) % 192;
           end
           8'h84: begin
             $display("Audio InfoFrame");

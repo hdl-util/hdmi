@@ -164,7 +164,7 @@ generate
         logic data_island_period_instantaneous;
         assign data_island_period_instantaneous = num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
         logic packet_enable;
-        assign packet_enable = data_island_period_instantaneous && (cx - 10) % 32 == 0;
+        assign packet_enable = data_island_period_instantaneous && 5'(cx - 10) == 5'd0;
 
         logic data_island_guard = 0;
         logic data_island_preamble = 0;
@@ -180,7 +180,7 @@ generate
         logic [23:0] header;
         logic [55:0] sub [3:0];
         logic [4:0] packet_pixel_counter;
-        packet_picker #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .BIT_WIDTH(BIT_WIDTH), .BIT_HEIGHT(BIT_HEIGHT), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .packet_enable(packet_enable), .data_island_period(data_island_period), .packet_pixel_counter(packet_pixel_counter), .cx(cx), .cy(cy), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
+        packet_picker #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .BIT_WIDTH(BIT_WIDTH), .BIT_HEIGHT(BIT_HEIGHT), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .packet_enable(packet_enable), .data_island_period(data_island_period), .packet_pixel_counter(packet_pixel_counter), .cx(cx), .cy(cy), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
         logic [8:0] packet_data;
         packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
 

@@ -42,13 +42,13 @@
 module pll (
 	input wire inclk0,
 	output reg c0 = 0,
-	output reg c1 = 0,
+	output reg c1 = 1,
 	output reg c2 = 0
 );
 
-always #1 c0 = ~c0; // Faked as 250 MHz
+always #2 c0 = ~c0; // Faked as 250 MHz
 always #20 c1 = ~c1; // Faked as 25 MHz
-always #10000 c2 = ~c2;
+always #10417 c2 = ~c2;
 
 endmodule
 `else
