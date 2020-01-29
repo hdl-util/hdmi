@@ -14,9 +14,35 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 
 ## Usage
 
-* Take HDMI modules from `modules/hdmi` and add them to your own project.
+* Take files from `modules/hdmi` and add them to your own project.
 * Other helpful modules for displaying text / generating sound are also available in `modules/`.
-* Consult `top/max10/max10_top.v` for an example of usage.
+* Consult the usage example below:
+```systemverilog
+module yourfpga_top (
+  output logic [2:0] tmds_p,
+  output logic tmds_clock_p,
+  output logic [2:0] tmds_n,
+  output logic tmds_clock_n,
+);
+
+logic clk_original;
+logic clk_pixel;
+logic clk_tmds;
+logic clk_audio;
+pll pll(.clk_original(clk_original), .clk_pixel(clk_pixel), .clk_tmds(clk_tmds), .clk_audio(clk_audio));
+
+logic signed [15:0] audio_sample_word = 16'sd0; // Since the L-PCM audio is 2-channel by default, this is mono audio.
+@always (posedge clk_audio) // Sawtooth wave generator
+  audio_sample_word <= audio_sample_word + 16'sd638;
+
+logic [23:0] rgb = 24'd0; // black video
+logic [9:0] cx, cy;
+hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .clk_audio(clk_audio), .rgb(rgb), .audio_sample_word('{audio_sample_word, audio_sample_word}), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
+
+endmodule
+```
+
+* See `top/max10/max10_top.v` for code that runs the demo
 * Please create an issue if you run into any problems
 
 ### Pixel/TMDS Clock
