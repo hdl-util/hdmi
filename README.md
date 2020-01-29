@@ -19,13 +19,13 @@ To send audio and other auxiliary data, a true HDMI signal must be sent. The HDM
 * Consult the usage example below:
 ```systemverilog
 module yourfpga_top (
+  input logic clk_original,
   output logic [2:0] tmds_p,
   output logic tmds_clock_p,
   output logic [2:0] tmds_n,
   output logic tmds_clock_n,
 );
 
-logic clk_original;
 logic clk_pixel;
 logic clk_tmds;
 logic clk_audio;
