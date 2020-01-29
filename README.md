@@ -85,12 +85,17 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 ## Potential limitations
 
 * Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
-	* Workaround: use DDR/other special I/O features
+	* Workaround: use DDR/other special I/O features like I/O serializers
 * LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
     * Needs further investigation
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
 * Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
+
+### Platform Support
+
+- [x] Altera
+- [ ] Xilinx (untested but should work)
 
 ### To-do List (upon request)
 - [x] 24-bit color
