@@ -1,20 +1,16 @@
 module packet_picker
 #(
-    parameter VIDEO_ID_CODE = 1,
-    parameter VIDEO_RATE = 0,
-    parameter BIT_WIDTH = 12,
-    parameter BIT_HEIGHT = 11,
-    parameter AUDIO_BIT_WIDTH = 16,
-    parameter AUDIO_RATE = 32000
+    parameter VIDEO_ID_CODE,
+    parameter VIDEO_RATE,
+    parameter AUDIO_BIT_WIDTH,
+    parameter AUDIO_RATE
 )
 (
     input logic clk_pixel,
     input logic clk_audio,
+    input logic video_field_end,
     input logic packet_enable,
-    input logic data_island_period,
     input logic [4:0] packet_pixel_counter,
-    input logic [BIT_WIDTH-1:0] cx,
-    input logic [BIT_HEIGHT-1:0] cy,
     input logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word [1:0],
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
@@ -44,10 +40,12 @@ localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 192000 ? 4'b1110
     : 4'bXXXX;
 
-// See Section 7.2.3. Values taken from "Other" row in Tables 7-1, 7-2, 7-3.
+// See Section 7.2.3. Values derived from "Other" row in Tables 7-1, 7-2, 7-3.
 localparam n = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
-logic [19:0] cts;
-audio_clock_regeneration_packet audio_clock_regeneration_packet (.n(n), .cts(cts), .header(headers[1]), .sub(subs[1]));
+localparam CTS_IDEAL = 20'(VIDEO_RATE*n/128/AUDIO_RATE);
+localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
+logic [CTS_WIDTH-1:0] cts = CTS_IDEAL;
+audio_clock_regeneration_packet audio_clock_regeneration_packet (.n(n), .cts({(20-CTS_WIDTH)'(0), cts}), .header(headers[1]), .sub(subs[1]));
 
 // Audio Sample packet
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
@@ -96,7 +94,7 @@ logic [3:0] audio_sample_word_present_packet;
 logic [7:0] frame_counter = 8'd0;
 always @(posedge clk_pixel)
 begin
-    if (data_island_period && packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
+    if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin
         if (audio_sample_word_present_packet == 4'b0001)
             frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 3'd1;
@@ -115,7 +113,6 @@ auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxi
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 logic audio_info_frame_sent = 1'b0;
-logic audio_clock_regeneration_sent = 1'b1;
 
 localparam SLOWCLK_WIDTH = $clog2(n / 128);
 localparam SLOWCLK_END = SLOWCLK_WIDTH'(n / 128);
@@ -124,18 +121,22 @@ logic wrap = 1'b0;
 logic last_wrap = 1'b0;
 always @(posedge clk_audio)
 begin
-    slowclk_counter <= slowclk_counter == SLOWCLK_END ? SLOWCLK_WIDTH'(0) : slowclk_counter + SLOWCLK_WIDTH'(1);
     if (slowclk_counter == SLOWCLK_END)
+    begin
+        slowclk_counter <= SLOWCLK_WIDTH'(0);
         wrap <= wrap + 1'b1;
+    end
+    else
+        slowclk_counter <= slowclk_counter + SLOWCLK_WIDTH'(1);
 end
 
-logic [19:0] cts_counter = 20'd0;
+logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
 always @(posedge clk_pixel)
 begin
     if (audio_buffer_rst)
         audio_buffer_rst <= 1'b0;
 
-    if (cx == 0 && cy == 0)
+    if (video_field_end)
         audio_info_frame_sent <= 1'b0;
 
     if (packet_enable)
@@ -150,8 +151,7 @@ begin
         else if (wrap != last_wrap)
         begin
             packet_type <= 8'd1;
-            cts <= cts_counter;
-            audio_clock_regeneration_sent <= 1'b1;
+            cts <= (cts_counter / 16 + 15 * cts / 16);
             last_wrap <= wrap;
         end
         else if (!audio_info_frame_sent)
@@ -161,9 +161,8 @@ begin
         end
         else
             packet_type <= 8'd0;
-
-        cts_counter <= (samples_remaining == 4'd0 && wrap != last_wrap) ? 20'd0 : cts_counter + 1'd1;
     end
+    cts_counter <= (packet_enable && samples_remaining == 4'd0 && wrap != last_wrap) ? CTS_WIDTH'(0) : cts_counter + CTS_WIDTH'(1);
 end
 
 endmodule
