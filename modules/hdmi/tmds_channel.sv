@@ -8,12 +8,12 @@ module tmds_channel
     parameter CN = 0
 )
 (
-    input clk_pixel,
-    input [7:0] video_data,
-    input [3:0] data_island_data,
-    input [1:0] control_data,
-    input [2:0] mode,  // Mode select (0 = control, 1 = video, 2 = video guard, 3 = island, 4 = island guard)
-    output reg [9:0] tmds = 10'b1101010100
+    input logic clk_pixel,
+    input logic [7:0] video_data,
+    input logic [3:0] data_island_data,
+    input logic [1:0] control_data,
+    input logic [2:0] mode,  // Mode select (0 = control, 1 = video, 2 = video guard, 3 = island, 4 = island guard)
+    output logic [9:0] tmds = 10'b1101010100
 );
 
 // See Section 5.4.4.1
