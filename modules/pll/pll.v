@@ -38,7 +38,32 @@
 `timescale 1 ns / 100 ps
 // synopsys translate_on
 
+`ifdef VCS
+      `define SIMULATION
+`endif
+`ifdef INCA
+      `define SIMULATION
+`endif
 `ifdef MODEL_TECH
+      `define SIMULATION
+`endif
+`ifdef XILINX_ISIM
+      `define SIMULATION
+`endif
+`ifdef XILINX_SIMULATOR
+      `define SIMULATION
+`endif
+`ifdef __ICARUS__
+      `define SIMULATION
+`endif
+`ifdef VERILATOR
+      `define SIMULATION
+`endif
+`ifdef Veritak
+      `define SIMULATION
+`endif
+
+`ifdef SIMULATION
 module pll (
 	input wire inclk0,
 	output reg c0 = 0,
