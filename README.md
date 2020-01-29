@@ -88,7 +88,7 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 * Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
 
-### To-do List
+### To-do List (upon request)
 - [x] 24-bit color
 - [x] Data island packets
 	- [x] Null packet
