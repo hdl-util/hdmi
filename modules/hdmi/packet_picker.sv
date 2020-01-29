@@ -150,10 +150,6 @@ begin
         else if (wrap != last_wrap)
         begin
             packet_type <= 8'd1;
-            // cts <= 20'd27000;
-            // if (cts != cts_counter)
-            //     cts <= cts_counter;
-            // else
             cts <= cts_counter;
             audio_clock_regeneration_sent <= 1'b1;
             last_wrap <= wrap;

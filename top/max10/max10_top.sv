@@ -35,13 +35,8 @@ always @(posedge clk_audio)
     pwm_acc <= pwm_acc[AUDIO_BIT_WIDTH-1:0] + audio_sample_word;
 
 logic [23:0] rgb;
-logic [AUDIO_BIT_WIDTH-1:0] audio_buffer;
 logic [9:0] cx, cy;
 hdmi #(.VIDEO_ID_CODE(3), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .clk_audio(clk_audio), .rgb(rgb), .audio_sample_word('{audio_sample_word, audio_sample_word}), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
-
-// Overscan / border test (left = red, top = green, right = blue, bottom = blue, fill = black)
-// always @(posedge clk_pixel)
-    // rgb <= {cx == 138 ? ~8'd0 : 8'd0, cy == 45 ? ~8'd0 : 8'd0, cx == 857 || cy == 524 ? ~8'd0 : 8'd0};
 
 logic [7:0] character = 8'h30;
 logic [5:0] prevcy = 6'd0;
