@@ -26,7 +26,7 @@ module hdmi
 
     // As noted in Section 7.3, the minimal audio requirements are met: 16-bit to 24-bit L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
     // See Table 7-4 or README.md
-    parameter AUDIO_RATE = 32000,
+    parameter AUDIO_RATE = 44100,
 
     // Defaults to 16-bit audio. Can be anywhere from 16-bit to 24-bit.
     parameter AUDIO_BIT_WIDTH = 16
