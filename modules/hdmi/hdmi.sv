@@ -186,7 +186,7 @@ generate
         logic data_island_period_instantaneous;
         assign data_island_period_instantaneous = num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
         logic packet_enable;
-        assign packet_enable = data_island_period_instantaneous && 5'(cx - 10) == 5'd0;
+        assign packet_enable = data_island_period_instantaneous && 5'(cx + 22) == 5'd0;
 
         logic data_island_guard = 0;
         logic data_island_preamble = 0;
@@ -215,10 +215,15 @@ generate
             casex ({data_island_guard, data_island_period, video_guard, video_data_period})
                 4'b1???: begin // DI guard
                     mode <= 3'd4;
+                    video_data <= 24'dX;
+                    control_data <= 6'dX;
+                    data_island_data <= 12'dX;
                 end
                 4'b01??: begin // DI period
                     mode <= 3'd3;
                     // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
+                    video_data <= 24'dX;
+                    control_data <= 6'dX;
                     data_island_data[11:4] <= packet_data[8:1];
                     data_island_data[3] <= cx != screen_start_x;
                     data_island_data[2] <= packet_data[0];
@@ -226,14 +231,21 @@ generate
                 end
                 4'b001?: begin // VD guard
                     mode <= 3'd2;
+                    video_data <= 24'dX;
+                    control_data <= 6'dX;
+                    data_island_data <= 12'dX;
                 end
                 4'b0001: begin // VD period
                     mode <= 3'd1;
                     video_data <= rgb;
+                    control_data <= 6'dX;
+                    data_island_data <= 12'dX;
                 end
                 default: begin // Control period
                     mode <= 3'd0;
+                    video_data <= 24'dX;
                     control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
+                    data_island_data <= 12'dX;
                 end
             endcase
         end
@@ -246,10 +258,12 @@ generate
             begin
                 mode <= 3'd1;
                 video_data <= rgb;
+                control_data <= 6'dX;
             end
             else
             begin
                 mode <= 3'd0;
+                video_data <= 24'dX;
                 control_data <= {4'b0000, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
             end
         end
@@ -268,20 +282,14 @@ endgenerate
 // See Section 5.4.1
 logic [3:0] tmds_counter = 4'd0;
 
-integer j;
+generate
+    for (i = 0; i < NUM_CHANNELS; i++)
+    begin: tmds_shifting
+        always @(posedge clk_tmds)
+            tmds_shift[i] <=  tmds_counter == 4'd9 ? tmds[i] : {1'bX, tmds_shift[i][9:1]};
+    end
+endgenerate
 always @(posedge clk_tmds)
-begin
-    if (tmds_counter == 4'd9)
-    begin
-        tmds_shift <= tmds;
-        tmds_counter <= 4'd0;
-    end
-    else
-    begin
-        tmds_counter <= tmds_counter + 4'd1;
-        for (j = 0; j < NUM_CHANNELS; j++)
-            tmds_shift[j] <= {1'bX, tmds_shift[j][9:1]};
-    end
-end
+    tmds_counter <= tmds_counter == 4'd9 ? 4'd0 : tmds_counter + 4'd1;
 
 endmodule

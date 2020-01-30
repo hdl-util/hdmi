@@ -31,6 +31,42 @@ assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 
 `endif
 
 // Audio Clock Regeneration Packet
+localparam SLOWCLK_WIDTH = $clog2(n / 128);
+localparam SLOWCLK_END = SLOWCLK_WIDTH'(n / 128);
+logic [SLOWCLK_WIDTH-1:0] slowclk_counter = SLOWCLK_WIDTH'(1);
+logic wrap = 1'b0;
+always @(posedge clk_audio)
+begin
+    if (slowclk_counter == SLOWCLK_END)
+    begin
+        slowclk_counter <= SLOWCLK_WIDTH'(0);
+        wrap <= !wrap;
+    end
+    else
+        slowclk_counter <= slowclk_counter + SLOWCLK_WIDTH'(1);
+end
+
+// See Section 7.2.3. Values derived from "Other" row in Tables 7-1, 7-2, 7-3.
+localparam n = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
+localparam CTS_IDEAL = 20'(VIDEO_RATE*n/128/AUDIO_RATE);
+localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
+logic [CTS_WIDTH-1:0] cts;
+logic last_cts_wrap = 1'b0;
+logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
+always @(posedge clk_pixel)
+begin
+    if (wrap != last_cts_wrap)
+    begin
+        cts_counter <= CTS_WIDTH'(0);
+        cts <= cts_counter;
+        last_cts_wrap <= wrap;
+    end
+    else
+        cts_counter <= cts_counter + CTS_WIDTH'(1);
+end
+audio_clock_regeneration_packet audio_clock_regeneration_packet (.n(n), .cts({(20-CTS_WIDTH)'(0), cts}), .header(headers[1]), .sub(subs[1]));
+
+// Audio Sample packet
 localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 44100 ? 4'b0000
     : AUDIO_RATE == 88200 ? 4'b1000
@@ -39,15 +75,6 @@ localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 96000 ? 4'b1010
     : AUDIO_RATE == 192000 ? 4'b1110
     : 4'bXXXX;
-
-// See Section 7.2.3. Values derived from "Other" row in Tables 7-1, 7-2, 7-3.
-localparam n = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
-localparam CTS_IDEAL = 20'(VIDEO_RATE*n/128/AUDIO_RATE);
-localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
-logic [CTS_WIDTH-1:0] cts = CTS_IDEAL;
-audio_clock_regeneration_packet audio_clock_regeneration_packet (.n(n), .cts({(20-CTS_WIDTH)'(0), cts}), .header(headers[1]), .sub(subs[1]));
-
-// Audio Sample packet
 localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
@@ -113,24 +140,7 @@ auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxi
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 logic audio_info_frame_sent = 1'b0;
-
-localparam SLOWCLK_WIDTH = $clog2(n / 128);
-localparam SLOWCLK_END = SLOWCLK_WIDTH'(n / 128);
-logic [SLOWCLK_WIDTH-1:0] slowclk_counter = SLOWCLK_WIDTH'(1);
-logic wrap = 1'b0;
 logic last_wrap = 1'b0;
-always @(posedge clk_audio)
-begin
-    if (slowclk_counter == SLOWCLK_END)
-    begin
-        slowclk_counter <= SLOWCLK_WIDTH'(0);
-        wrap <= wrap + 1'b1;
-    end
-    else
-        slowclk_counter <= slowclk_counter + SLOWCLK_WIDTH'(1);
-end
-
-logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
 always @(posedge clk_pixel)
 begin
     if (audio_buffer_rst)
@@ -151,7 +161,6 @@ begin
         else if (wrap != last_wrap)
         begin
             packet_type <= 8'd1;
-            cts <= (cts_counter / 16 + 15 * cts / 16);
             last_wrap <= wrap;
         end
         else if (!audio_info_frame_sent)
@@ -162,7 +171,6 @@ begin
         else
             packet_type <= 8'd0;
     end
-    cts_counter <= (packet_enable && samples_remaining == 4'd0 && wrap != last_wrap) ? CTS_WIDTH'(0) : cts_counter + CTS_WIDTH'(1);
 end
 
 endmodule
