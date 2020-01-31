@@ -201,11 +201,14 @@ begin
             end
             frame_counter <= (frame_counter + num_samples_present) % 192;
           end
+          8'h82: begin
+            $display("AVI InfoFrame");
+          end
           8'h84: begin
             $display("Audio InfoFrame");
           end
           default: begin
-            $fatal("Unhandled packet type %h (%s) at %d, %d: %p", header[7:0], header[7:0] == 8'h82 ? "AVI InfoFrame" : header[7:0] == 8'h84 ? "Audio InfoFrame" : "Unknown", cx, cy, sub);
+            $fatal("Unhandled packet type %h (%s) at %d, %d: %p", header[7:0], "Unknown", cx, cy, sub);
           end
         endcase
       end

@@ -31,40 +31,8 @@ assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 
 `endif
 
 // Audio Clock Regeneration Packet
-localparam SLOWCLK_WIDTH = $clog2(n / 128);
-localparam SLOWCLK_END = SLOWCLK_WIDTH'(n / 128);
-logic [SLOWCLK_WIDTH-1:0] slowclk_counter = SLOWCLK_WIDTH'(1);
-logic wrap = 1'b0;
-always @(posedge clk_audio)
-begin
-    if (slowclk_counter == SLOWCLK_END)
-    begin
-        slowclk_counter <= SLOWCLK_WIDTH'(0);
-        wrap <= !wrap;
-    end
-    else
-        slowclk_counter <= slowclk_counter + SLOWCLK_WIDTH'(1);
-end
-
-// See Section 7.2.3. Values derived from "Other" row in Tables 7-1, 7-2, 7-3.
-localparam n = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
-localparam CTS_IDEAL = 20'(VIDEO_RATE*n/128/AUDIO_RATE);
-localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
-logic [CTS_WIDTH-1:0] cts;
-logic last_cts_wrap = 1'b0;
-logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
-always @(posedge clk_pixel)
-begin
-    if (wrap != last_cts_wrap)
-    begin
-        cts_counter <= CTS_WIDTH'(0);
-        cts <= cts_counter;
-        last_cts_wrap <= wrap;
-    end
-    else
-        cts_counter <= cts_counter + CTS_WIDTH'(1);
-end
-audio_clock_regeneration_packet audio_clock_regeneration_packet (.n(n), .cts({(20-CTS_WIDTH)'(0), cts}), .header(headers[1]), .sub(subs[1]));
+logic clk_slow_wrap;
+audio_clock_regeneration_packet #(.VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .clk_slow_wrap(clk_slow_wrap), .header(headers[1]), .sub(subs[1]));
 
 // Audio Sample packet
 localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
@@ -119,18 +87,15 @@ logic [23:0] audio_sample_word_packet [3:0] [1:0];
 logic [3:0] audio_sample_word_present_packet;
 
 logic [7:0] frame_counter = 8'd0;
+integer k;
 always @(posedge clk_pixel)
 begin
     if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin
-        if (audio_sample_word_present_packet == 4'b0001)
-            frame_counter <= frame_counter == 8'd191 ? 8'd0 : frame_counter + 3'd1;
-        else if (audio_sample_word_present_packet[3:1] == 3'b001)
-            frame_counter <= frame_counter >= 8'd190 ? 8'(frame_counter + 2 - 192) : frame_counter + 3'd2;
-        else if (audio_sample_word_present_packet[3:2] == 2'b01)
-            frame_counter <= frame_counter >= 8'd189 ? 8'(frame_counter + 3 - 192) : frame_counter + 3'd3;
-        else if (audio_sample_word_present_packet[3] == 1'b1)
-            frame_counter <= frame_counter >= 8'd188 ? 8'(frame_counter + 4 - 192) : frame_counter + 3'd4;
+        for (k = 0; k < MAX_SAMPLES_PER_PACKET; k++)
+            frame_counter = frame_counter + audio_sample_word_present_packet[k];
+        if (frame_counter > 8'd192)
+            frame_counter = 8'd192 - frame_counter;
     end
 end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .user_data_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .audio_sample_word(audio_sample_word_packet), .audio_sample_word_present(audio_sample_word_present_packet), .header(headers[2]), .sub(subs[2]));
@@ -140,14 +105,18 @@ auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxi
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 logic audio_info_frame_sent = 1'b0;
-logic last_wrap = 1'b0;
+logic auxiliary_video_information_info_frame_sent = 1'b0;
+logic last_clk_slow_wrap = 1'b0;
 always @(posedge clk_pixel)
 begin
     if (audio_buffer_rst)
         audio_buffer_rst <= 1'b0;
 
     if (video_field_end)
+    begin
         audio_info_frame_sent <= 1'b0;
+        auxiliary_video_information_info_frame_sent <= 1'b0;
+    end
 
     if (packet_enable)
     begin
@@ -158,15 +127,20 @@ begin
             audio_sample_word_present_packet <= {samples_remaining >= 3'd4, samples_remaining >= 3'd3, samples_remaining >= 3'd2, samples_remaining >= 3'd1};
             audio_buffer_rst <= 1'b1;
         end
-        else if (wrap != last_wrap)
+        else if (last_clk_slow_wrap != clk_slow_wrap)
         begin
             packet_type <= 8'd1;
-            last_wrap <= wrap;
+            last_clk_slow_wrap <= clk_slow_wrap;
         end
         else if (!audio_info_frame_sent)
         begin
             packet_type <= 8'h84;
             audio_info_frame_sent <= 1'b1;
+        end
+        else if (!auxiliary_video_information_info_frame_sent)
+        begin
+            packet_type <= 8'h82;
+            auxiliary_video_information_info_frame_sent <= 1'b1;
         end
         else
             packet_type <= 8'd0;

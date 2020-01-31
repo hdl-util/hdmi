@@ -212,60 +212,22 @@ generate
 
         always @(posedge clk_pixel)
         begin
-            casex ({data_island_guard, data_island_period, video_guard, video_data_period})
-                4'b1???: begin // DI guard
-                    mode <= 3'd4;
-                    video_data <= 24'dX;
-                    control_data <= 6'dX;
-                    data_island_data <= 12'dX;
-                end
-                4'b01??: begin // DI period
-                    mode <= 3'd3;
-                    // See Section 5.2.3.4, Section 5.3.1, Section 5.3.2
-                    video_data <= 24'dX;
-                    control_data <= 6'dX;
-                    data_island_data[11:4] <= packet_data[8:1];
-                    data_island_data[3] <= cx != screen_start_x;
-                    data_island_data[2] <= packet_data[0];
-                    data_island_data[1:0] <= {vsync, hsync};
-                end
-                4'b001?: begin // VD guard
-                    mode <= 3'd2;
-                    video_data <= 24'dX;
-                    control_data <= 6'dX;
-                    data_island_data <= 12'dX;
-                end
-                4'b0001: begin // VD period
-                    mode <= 3'd1;
-                    video_data <= rgb;
-                    control_data <= 6'dX;
-                    data_island_data <= 12'dX;
-                end
-                default: begin // Control period
-                    mode <= 3'd0;
-                    video_data <= 24'dX;
-                    control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
-                    data_island_data <= 12'dX;
-                end
-            endcase
+            mode <= data_island_guard ? 3'd4 : data_island_period ? 3'd3 : video_guard ? 3'd2 : video_data_period ? 3'd1 : 3'd0;
+            video_data <= rgb;
+            control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
+            data_island_data[11:4] <= packet_data[8:1];
+            data_island_data[3] <= cx != screen_start_x;
+            data_island_data[2] <= packet_data[0];
+            data_island_data[1:0] <= {vsync, hsync};
         end
     end
     else // DVI_OUTPUT = 1
     begin
         always @(posedge clk_pixel)
         begin
-            if (video_data_period)
-            begin
-                mode <= 3'd1;
-                video_data <= rgb;
-                control_data <= 6'dX;
-            end
-            else
-            begin
-                mode <= 3'd0;
-                video_data <= 24'dX;
-                control_data <= {4'b0000, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
-            end
+            mode <= video_data_period;
+            video_data <= rgb;
+            control_data <= {4'b0000, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
         end
     end
 endgenerate
