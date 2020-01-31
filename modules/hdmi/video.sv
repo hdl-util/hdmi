@@ -6,15 +6,15 @@ module auxiliary_video_information_info_frame
     parameter VIDEO_FORMAT = 2'b00, // 00 = RGB, 01 = YCbCr 4:2:2, 10 = YCbCr 4:4:4
     parameter ACTIVE_FORMAT_INFO_PRESENT = 1'b0, // Not valid
     parameter BAR_INFO = 2'b00, // Not valid
-    parameter SCAN_INFO = 2'b10, // Composed for an underscanned display
+    parameter SCAN_INFO = 2'b00, // No data
     parameter COLORIMETRY = 2'b00, // No data
-    parameter PICTURE_ASPECT_RATIO = 2'b00, // See CEA-CEB16 [22] for more information about Active Format Description processing.
-    parameter ACTIVE_FORMAT_ASPECT_RATIO = 4'b1000,
+    parameter PICTURE_ASPECT_RATIO = 2'b00, // No data, See CEA-CEB16 for more information about Active Format Description processing.
+    parameter ACTIVE_FORMAT_ASPECT_RATIO = 4'b1000, // Not valid unless ACTIVE_FORMAT_INFO_PRESENT = 1'b1, then Same as picture aspect ratio
     parameter IT_CONTENT = 1'b0, //  The IT content bit indicates when picture content is composed according to common IT practice (i.e. without regard to Nyquist criterion) and is unsuitable for analog reconstruction or filtering. When the IT content bit is set to 1, downstream processors should pass pixel data unfiltered and without analog reconstruction.
     parameter EXTENDED_COLORIMETRY = 3'b000, // Not valid unless COLORIMETRY = 2'b11. The extended colorimetry bits, EC2, EC1, and EC0, describe optional colorimetry encoding that may be applicable to some implementations and are always present, whether their information is valid or not (see CEA 861-D Section 7.5.5).
     parameter RGB_QUANTIZATION_RANGE = 2'b00, // Default. Displays conforming to CEA-861-D accept both a limited quantization range of 220 levels (16 to 235) anda full range of 256 levels (0 to 255) when receiving video with RGB color space (see CEA 861-D Sections 5.1, Section 5.2, Section 5.3 and Section 5.4). By default, RGB pixel data values should be assumed to have the limited range when receiving a CE video format, and the full range when receiving an IT format. The quantization bits allow the source to override this default and to explicitly indicate the current RGB quantization range.
     parameter NON_UNIFORM_PICTURE_SCALING = 2'b00, // None. The Nonuniform Picture Scaling bits shall be set if the source device scales the picture or has determined that scaling has been performed in a specific direction.
-    parameter VIDEO_ID_CODE = 7'd1, // Same as the one from the HDMI module
+    parameter VIDEO_ID_CODE, // Same as the one from the HDMI module
     parameter YCC_QUANTIZATION_RANGE = 2'b00, // 00 = Limited, 01 = Full
     parameter CONTENT_TYPE = 2'b00, // No data, becomes Graphics if IT_CONTENT = 1'b1.
     parameter PIXEL_REPETITION = 4'b0000 // None
