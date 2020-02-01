@@ -4,9 +4,9 @@ SystemVerilog code for FPGA HDMI 1.4a video/audio output, along with utility cod
 
 ## Why?
 
-Most open source HDMI modules output a DVI signal, which HDMI sinks are backwards compatible with.
+Most open source HDMI code outputs a DVI signal, which HDMI sinks are backwards compatible with.
 
-To send audio and other auxiliary data, a true HDMI signal must be sent. The HDMI module in this repository lets you do that.
+To send audio and support other HDMI-only functionality, a true HDMI signal must be sent. The code in this repository lets you do that.
 
 ### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
 
@@ -51,7 +51,7 @@ endmodule
 
 ### Pixel/TMDS Clock
 
-You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for each supported format is shown below:
+You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
 
 |Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
 |---|---|---|---|
@@ -68,7 +68,7 @@ You'll need to set up a PLL for producing the HDMI clocks. The pixel clock for e
 
 The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
 
-## L-PCM Audio Bitrate / Sampling Frequency
+### L-PCM Audio Bitrate / Sampling Frequency
 
 Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
 
@@ -82,7 +82,7 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 |96 kHz|96000|
 |192 kHz|192000|
 
-## Potential limitations
+### Potential limitations
 
 * Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
 	* Workaround: use DDR/other special I/O features like I/O serializers
@@ -121,9 +121,15 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
 
-### Licensing
+## Licensing
 
 Dual-licensed under Apache License 2.0 and MIT License.
+
+## Alternatives
+
+- [HDMI Intel FPGA IP Core](https://www.intel.com/content/www/us/en/programmable/products/intellectual-property/ip/interface-protocols/m-alt-hdmi-megacore.html) (Stratix/Arria/Cyclone)
+- [Xilinx HDMI solutions](https://www.xilinx.com/products/intellectual-property/hdmi.html#overview) (Virtex/Kintex/Zynq/Artix)
+- [Artix 7 HDMI Processing](https://github.com/hamsternz/Artix-7-HDMI-processing) (VHDL)
 
 ## Reference Documents
 
