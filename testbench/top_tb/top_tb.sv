@@ -204,6 +204,9 @@ begin
           8'h82: begin
             $display("AVI InfoFrame");
           end
+          8'h83: begin
+            $display("SPD InfoFrame");
+          end
           8'h84: begin
             $display("Audio InfoFrame");
           end

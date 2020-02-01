@@ -102,10 +102,14 @@ audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WO
 
 auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
 
+source_product_description_info_frame source_product_description_info_frame(.header(headers[131]), .sub(subs[131]));
+
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
+
 
 logic audio_info_frame_sent = 1'b0;
 logic auxiliary_video_information_info_frame_sent = 1'b0;
+logic source_product_description_info_frame_sent = 1'b0;
 logic last_clk_slow_wrap = 1'b0;
 always @(posedge clk_pixel)
 begin
@@ -116,6 +120,7 @@ begin
     begin
         audio_info_frame_sent <= 1'b0;
         auxiliary_video_information_info_frame_sent <= 1'b0;
+        source_product_description_info_frame_sent <= 1'b0;
     end
 
     if (packet_enable)
@@ -141,6 +146,11 @@ begin
         begin
             packet_type <= 8'h82;
             auxiliary_video_information_info_frame_sent <= 1'b1;
+        end
+        else if (!source_product_description_info_frame_sent)
+        begin
+            packet_type <= 8'h83;
+            source_product_description_info_frame_sent <= 1'b1;
         end
         else
             packet_type <= 8'd0;

@@ -109,6 +109,9 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 	- [ ] 1-bit audio
 	- [x] Audio InfoFrame
 	- [x] Auxiliary Video Information InfoFrame
+	- [x] Source Product Descriptor InfoFrame
+	- [ ] MPEG Source InfoFrame
+		- NOTE—Problems with the MPEG Source Infoframe have been identified that were not able to be fixed in time for CEA-861-D. Implementation is strongly discouraged until a future revision fixes the problems
 - [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
 - [x] VGA-compatible text mode
 	- [x] IBM 8x16 font
