@@ -90,7 +90,6 @@ generate
             assign screen_height = 480;
             assign hsync = ~(cx > 15 && cx <= 15 + 96);
             assign vsync = ~(cy < 2);
-            localparam VIDEO_RATE = VIDEO_REFRESH_RATE ? 25.2E6 : 25.175E6;
             end
         2, 3:
         begin
@@ -100,7 +99,6 @@ generate
             assign screen_height = 480;
             assign hsync = ~(cx > 15 && cx <= 15 + 62);
             assign vsync = ~(cy > 5 && cy < 12);
-            localparam VIDEO_RATE = VIDEO_REFRESH_RATE ? 27.027E6 : 27E6;
             end
         4:
         begin
@@ -110,7 +108,6 @@ generate
             assign screen_height = 720;
             assign hsync = cx > 109 && cx <= 109 + 40;
             assign vsync = cy < 5;
-            localparam VIDEO_RATE = VIDEO_REFRESH_RATE ? 74.25E6 : 74.176E6;
         end
         16:
         begin
@@ -120,7 +117,6 @@ generate
             assign screen_height = 1080;
             assign hsync = cx > 87 && cx <= 87 + 44;
             assign vsync = cy < 5;
-            localparam VIDEO_RATE = VIDEO_REFRESH_RATE ? 148.5E6 : 148.352E6;
         end
         17, 18:
         begin
@@ -130,7 +126,6 @@ generate
             assign screen_height = 576;
             assign hsync = ~(cx > 11 && cx <= 11 + 64);
             assign vsync = ~(cy < 5);
-            localparam VIDEO_RATE = 27E6;
         end
         19:
         begin
@@ -140,10 +135,7 @@ generate
             assign screen_height = 720;
             assign hsync = cx > 439 && cx <= 439 + 40;
             assign vsync = cy < 5;
-            localparam VIDEO_RATE = 74.25E6;
         end
-        default:
-            localparam VIDEO_RATE = 0;
     endcase
     assign screen_start_x = frame_width - screen_width;
     assign screen_start_y = frame_height - screen_height;
