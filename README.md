@@ -127,9 +127,10 @@ Dual-licensed under Apache License 2.0 and MIT License.
 
 ## Alternatives
 
-- [HDMI Intel FPGA IP Core](https://www.intel.com/content/www/us/en/programmable/products/intellectual-property/ip/interface-protocols/m-alt-hdmi-megacore.html) (Stratix/Arria/Cyclone)
-- [Xilinx HDMI solutions](https://www.xilinx.com/products/intellectual-property/hdmi.html#overview) (Virtex/Kintex/Zynq/Artix)
-- [Artix 7 HDMI Processing](https://github.com/hamsternz/Artix-7-HDMI-processing) (VHDL)
+- [HDMI Intel FPGA IP Core](https://www.intel.com/content/www/us/en/programmable/products/intellectual-property/ip/interface-protocols/m-alt-hdmi-megacore.html): Stratix/Arria/Cyclone
+- [Xilinx HDMI solutions](https://www.xilinx.com/products/intellectual-property/hdmi.html#overview): Virtex/Kintex/Zynq/Artix
+- [Artix 7 HDMI Processing](https://github.com/hamsternz/Artix-7-HDMI-processing): VHDL, decode & encode
+- [SimpleVOut](https://github.com/cliffordwolf/SimpleVOut): many formats, no auxiliary data
 
 ## Reference Documents
 
