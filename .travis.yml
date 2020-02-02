@@ -1,0 +1,14 @@
+sudo: required
+language: python
+
+install:
+	- pip install -r requirements.txt
+	- curl 'http://download.altera.com/akdlm/software/acdsinst/19.1std/670/ib_installers/ModelSimSetup-19.1.0.670-linux.run' -o ModelSimSetup.run
+	- chmod +x ModelSimSetup.run
+	- ./ModelSimSetup.run --mode unattended --accept_eula 1
+
+script:
+	- cd ./sim/modelsim/top_tp/
+	- hdlmake
+	- make clean
+	- make
