@@ -5,6 +5,7 @@ install:
     - stat ~/intelFPGA/19.1/ || (curl 'http://download.altera.com/akdlm/software/acdsinst/19.1std/670/ib_installers/ModelSimSetup-19.1.0.670-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && travis_wait 30 ./ModelSimSetup.run --mode unattended --accept_eula 1)
 
 script:
+    - export PATH=$PATH:/home/travis/intelFPGA/19.1/modelsim_ase/bin
     - cd ./sim/modelsim/top_tb/
     - hdlmake
     - make clean
