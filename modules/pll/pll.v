@@ -38,45 +38,7 @@
 `timescale 1 ns / 100 ps
 // synopsys translate_on
 
-`ifdef VCS
-      `define SIMULATION
-`endif
-`ifdef INCA
-      `define SIMULATION
-`endif
-`ifdef MODEL_TECH
-      `define SIMULATION
-`endif
-`ifdef XILINX_ISIM
-      `define SIMULATION
-`endif
-`ifdef XILINX_SIMULATOR
-      `define SIMULATION
-`endif
-`ifdef __ICARUS__
-      `define SIMULATION
-`endif
-`ifdef VERILATOR
-      `define SIMULATION
-`endif
-`ifdef Veritak
-      `define SIMULATION
-`endif
-
-`ifdef SIMULATION
-module pll (
-	input wire inclk0,
-	output reg c0 = 0,
-	output reg c1 = 1,
-	output reg c2 = 0
-);
-
-always #2 c0 = ~c0; // Faked as 250 MHz
-always #20 c1 = ~c1; // Faked as 25 MHz
-always #10417 c2 = ~c2;
-
-endmodule
-`else
+`ifdef ALTERA_RESERVED_QIS
 module pll (
 	inclk0,
 	c0,
@@ -201,6 +163,19 @@ module pll (
 		altpll_component.port_extclk3 = "PORT_UNUSED",
 		altpll_component.width_clock = 5;
 
+
+endmodule
+`else
+module pll (
+	input wire inclk0,
+	output reg c0 = 0,
+	output reg c1 = 1,
+	output reg c2 = 0
+);
+
+always #2 c0 = ~c0; // Faked as 250 MHz
+always #20 c1 = ~c1; // Faked as 25 MHz
+always #10417 c2 = ~c2;
 
 endmodule
 `endif

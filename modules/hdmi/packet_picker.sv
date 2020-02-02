@@ -94,8 +94,8 @@ begin
     begin
         for (k = 0; k < MAX_SAMPLES_PER_PACKET; k++)
             frame_counter = frame_counter + audio_sample_word_present_packet[k];
-        if (frame_counter > 8'd192)
-            frame_counter = 8'd192 - frame_counter;
+        if (frame_counter >= 8'd192)
+            frame_counter = frame_counter - 8'd192;
     end
 end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .user_data_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .audio_sample_word(audio_sample_word_packet), .audio_sample_word_present(audio_sample_word_present_packet), .header(headers[2]), .sub(subs[2]));

@@ -5,7 +5,7 @@ module top_tb();
 initial begin
   $dumpvars(0, top_tb);
   // #36036000000ps $finish; // Terminate simulation after ~2 frames are generated
-  #20ms $stop;
+  #20ms $finish;
 end
 
 logic CLK_50MHZ = 0;

@@ -6,43 +6,7 @@
 
 `timescale 1 ps / 1 ps
 
-`ifdef VCS
-      `define SIMULATION
-`endif
-`ifdef INCA
-      `define SIMULATION
-`endif
-`ifdef MODEL_TECH
-      `define SIMULATION
-`endif
-`ifdef XILINX_ISIM
-      `define SIMULATION
-`endif
-`ifdef XILINX_SIMULATOR
-      `define SIMULATION
-`endif
-`ifdef __ICARUS__
-      `define SIMULATION
-`endif
-`ifdef VERILATOR
-      `define SIMULATION
-`endif
-`ifdef Veritak
-      `define SIMULATION
-`endif
-
-`ifdef SIMULATION
-// For purposes of simulation, OBUFDS just outputs the input signal along with an inverted copy.
-// Check other simulators using https://gist.github.com/amuramatsu/be54c5548a0ece78c95897d570915a0e.
-module OBUFDS (
-           input  wire [3:0] din,       //       din.export
-           output reg [3:0] pad_out,   //   pad_out.export
-           output reg [3:0] pad_out_b  // pad_out_b.export
-       );
-always @* pad_out <= din;
-always @* pad_out_b <= ~din;
-endmodule
-`elsif ALTERA_RESERVED_QIS
+`ifdef ALTERA_RESERVED_QIS
 module OBUFDS (
 		input  wire [3:0] din,       //       din.export
 		output wire [3:0] pad_out,   //   pad_out.export
@@ -100,6 +64,17 @@ module OBUFDS (
 		.oe              (4'b0000)    // (terminated)
 	);
 
+endmodule
+`else
+// For purposes of simulation, OBUFDS just outputs the input signal along with an inverted copy.
+// Check other simulators using https://gist.github.com/amuramatsu/be54c5548a0ece78c95897d570915a0e.
+module OBUFDS (
+           input  wire [3:0] din,       //       din.export
+           output reg [3:0] pad_out,   //   pad_out.export
+           output reg [3:0] pad_out_b  // pad_out_b.export
+       );
+always @* pad_out <= din;
+always @* pad_out_b <= ~din;
 endmodule
 `endif
 // Retrieval info: <?xml version="1.0"?>
