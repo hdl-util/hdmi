@@ -196,7 +196,7 @@ generate
         logic video_field_end;
         assign video_field_end = cx == frame_width - 1'b1 && cy == frame_height - 1'b1;
         logic [4:0] packet_pixel_counter;
-        localparam VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : 0) * (VIDEO_REFRESH_RATE == 60 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
+        localparam VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
         packet_picker #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .video_field_end(video_field_end), .packet_enable(packet_enable), .packet_pixel_counter(packet_pixel_counter), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
         logic [8:0] packet_data;
         packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
