@@ -3,6 +3,7 @@ language: python
 install:
     - pip install -r requirements.txt
     - stat ~/intelFPGA/19.1/ || (curl 'http://download.altera.com/akdlm/software/acdsinst/19.1std/670/ib_installers/ModelSimSetup-19.1.0.670-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && travis_wait 30 ./ModelSimSetup.run --mode unattended --accept_eula 1 && sed -i 's/linux_rh60/linuxaloem/g' ~/intelFPGA/19.1/modelsim_ase/vco )
+    - find ~/intelFPGA
 script:
     - export PATH=$PATH:/home/travis/intelFPGA/19.1/modelsim_ase/bin
     - cd ./sim/modelsim/top_tb/
