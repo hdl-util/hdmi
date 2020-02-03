@@ -1,5 +1,7 @@
 # hdmi
 
+[![Build Status](https://travis-ci.org/hdl-util/hdmi.svg?branch=master)](https://travis-ci.org/hdl-util/hdmi)
+
 SystemVerilog code for FPGA HDMI 1.4a video/audio output.
 
 ## Why?
