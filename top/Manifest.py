@@ -4,7 +4,7 @@ files = [
 
 modules = {
     "local": [
-        "../hdmi"
+        "../src"
     ],
     "git": [
         "git@github.com:hdl-util/pll.git::master"

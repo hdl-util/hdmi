@@ -14,7 +14,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 ## Usage
 
-1. Take files from `hdmi/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
+1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
 2. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
 3. Consult the usage example in `top/top.sv`
 4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF

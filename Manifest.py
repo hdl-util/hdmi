@@ -1,3 +1,3 @@
 modules = {
-    "local": "./hdmi/"
+    "local": "./src/"
 }
