@@ -46,7 +46,7 @@ generate
     end
     for (i = 0; i < 4; i++)
     begin: pb_to_sub
-        assign sub[i] = {pb[7 + i*7], pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
+        assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
     end
 endgenerate
 
