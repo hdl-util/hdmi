@@ -1,6 +1,6 @@
-# verilog-hdmi
+# hdmi
 
-SystemVerilog code for FPGA HDMI 1.4a video/audio output, along with utility code like VGA-compatible text mode.
+SystemVerilog code for FPGA HDMI 1.4a video/audio output.
 
 ## Why?
 
