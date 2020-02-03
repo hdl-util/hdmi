@@ -1,4 +1,15 @@
+sudo: required
 language: python
+os: linux
+addons:
+  apt:
+    update: false
+    packages:
+      - gcc-multilib
+      - lib32gcc1
+      - lib32z1
+      - lib32stdc++6
+      - g++-multilib
 
 install:
     - pip install -r requirements.txt
