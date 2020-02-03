@@ -7,7 +7,7 @@ modules = {
         "../src"
     ],
     "git": [
-        "git@github.com:hdl-util/pll.git::master"
+        "https://github.com/hdl-util/pll.git::master"
     ]
 }
 
