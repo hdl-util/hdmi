@@ -13,13 +13,11 @@ addons:
 
 install:
     - pip install -r requirements.txt
-    - stat /tmp/modelsim_ase || (curl 'http://download.altera.com/akdlm/software/acdsinst/19.1std/670/ib_installers/ModelSimSetup-19.1.0.670-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && ./ModelSimSetup.run --mode unattended --accept_eula 1 --installdir /tmp && sed -i 's/linux_rh60/linuxaloem/g' /tmp/modelsim_ase/vco )
-    - ls -l /tmp/modelsim_ase/linuxaloem
+    - stat /tmp/modelsim_ase || (curl 'http://download.altera.com/akdlm/software/acdsinst/19.1std/670/ib_installers/ModelSimSetup-19.1.0.670-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && ./ModelSimSetup.run --mode unattended --accept_eula 1 --installdir /tmp && sed -i 's/linux_rh60/linux/g' /tmp/modelsim_ase/vco )
 script:
-    - export PATH=$PATH:/tmp/modelsim_ase/linuxaloem
+    - export PATH=$PATH:/tmp/modelsim_ase/bin
     - cd ./sim/modelsim/top_tb/
-    - /tmp/modelsim_ase/linuxaloem/vlog
-    - /tmp/modelsim_ase/linuxaloem/vlib
+    - hdlmake fetch
     - hdlmake
     - make clean
     - make
