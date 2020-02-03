@@ -3,5 +3,5 @@ files = [
 ]
 
 modules = {
-  "local" : [ "../../top/max10" ],
+  "local" : [ "../../top/" ],
 }

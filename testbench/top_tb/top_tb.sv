@@ -8,34 +8,18 @@ initial begin
   #20ms $finish;
 end
 
-logic CLK_50MHZ = 0;
-logic CLK_32KHZ = 0;
-logic RST = 0;
-logic CLK_50MHZ_ENABLE;
-logic CLK_32KHZ_ENABLE;
-logic [7:0] LED;
+logic clk_original = 0;
 logic [2:0] tmds_p;
 logic tmds_clock_p;
 logic [2:0] tmds_n;
 logic tmds_clock_n;
-logic PWM_OUT;
 
-// Clock generator
-// always #1000ns CLK_32KHZ = ~CLK_32KHZ;
-// always #10ns CLK_50MHZ = ~CLK_50MHZ;
-
-max10_top max10_top (
-    .CLK_50MHZ(CLK_50MHZ),
-    .CLK_32KHZ(CLK_32KHZ),
-    .RST(RST),
-    .CLK_50MHZ_ENABLE(CLK_50MHZ_ENABLE),
-    .CLK_32KHZ_ENABLE(CLK_32KHZ_ENABLE),
-    .LED(LED),
+top top (
+    .clk_original(clk_original),
     .tmds_p(tmds_p),
     .tmds_clock_p(tmds_clock_p),
     .tmds_n(tmds_n),
-    .tmds_clock_n(tmds_clock_n),
-    .PWM_OUT(PWM_OUT)
+    .tmds_clock_n(tmds_clock_n)
 );
 
 logic [9:0] cx = 858 - 4;
@@ -79,9 +63,9 @@ generate
 endgenerate
 
 logic [3:0] counter = 0;
-always @(posedge max10_top.clk_tmds)
+always @(posedge top.clk_tmds)
 begin
-  assert (counter == max10_top.hdmi.tmds_counter) else $fatal("Shift-out counter doesn't match decoder counter");
+  assert (counter == top.hdmi.tmds_counter) else $fatal("Shift-out counter doesn't match decoder counter");
   if (counter == 9)
   begin
     counter <= 0;
@@ -131,22 +115,22 @@ logic [191:0] channel_status [1:0] = '{192'dX, 192'dX};
 logic first_packet = 1;
 
 integer k;
-always @(posedge max10_top.clk_pixel)
+always @(posedge top.clk_pixel)
 begin
-  cx <= cx == max10_top.hdmi.frame_width - 1 ? 0 : cx + 1;
-  cy <= cx == max10_top.hdmi.frame_width-1'b1 ? cy == max10_top.hdmi.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
-  // if (max10_top.hdmi.data_island_period && max10_top.hdmi.packet_assembler.counter == 0)
+  cx <= cx == top.hdmi.frame_width - 1 ? 0 : cx + 1;
+  cy <= cx == top.hdmi.frame_width-1'b1 ? cy == top.hdmi.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
+  // if (top.hdmi.data_island_period && top.hdmi.packet_assembler.counter == 0)
   // begin
-  //   $display("Packet assembler receiving sub %b %d at (%d, %d) with frame counter %d", max10_top.hdmi.packet_assembler.sub[0], max10_top.hdmi.packet_assembler.header[7:0], max10_top.hdmi.cx - 1, max10_top.hdmi.cy, max10_top.hdmi.frame_counter);
+  //   $display("Packet assembler receiving sub %b %d at (%d, %d) with frame counter %d", top.hdmi.packet_assembler.sub[0], top.hdmi.packet_assembler.header[7:0], top.hdmi.cx - 1, top.hdmi.cy, top.hdmi.frame_counter);
   // end
 
-  if (max10_top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
+  if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
   begin
     assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect: %b", tmds_values[2]);
     assert(tmds_values[1] == 10'b0100110011) else $fatal("Channel 1 DI GB incorrect");
     assert(tmds_values[0] == 10'b1010001110 || tmds_values[0] == 10'b1001110001 || tmds_values[0] == 10'b0101100011 || tmds_values[0] == 10'b1011000011) else $fatal("Channel 0 DI GB incorrect");
   end
-  else if (max10_top.hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= 10 && cx < 10 + max10_top.hdmi.true_hdmi_output.num_packets_alongside * 32)
+  else if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= 10 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32)
   begin
     data_counter <= data_counter + 1'd1;
     if (data_counter == 0)
@@ -186,8 +170,8 @@ begin
                 assert(header[20 + k] == 1'b1) else $fatal("Sample B value low for sample %d with counter %d", k, frame_counter);
                 // if (channel_status != '{192'dX, 192'dX})
                 // begin
-                //   assert(channel_status[0] == max10_top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
-                //   assert(channel_status[1] == max10_top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
+                //   assert(channel_status[0] == top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
+                //   assert(channel_status[1] == top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
                 // end
               end
               else
@@ -228,7 +212,7 @@ begin
     sub[0][{data_counter, 1'b0}] <= decoded_terc4_values[1][0];
     header[data_counter] <= decoded_terc4_values[0][2];
   end
-  // else if (cx == max10_top.hdmi.frame_width - 3 && cy == max10_top.hdmi.frame_height - 1)
+  // else if (cx == top.hdmi.frame_width - 3 && cy == top.hdmi.frame_height - 1)
   //   assert (tmds_values[2] == tmds_values[1] && tmds_values[0] == tmds_values[1] && tmds_values[2] == 10'b1101010100) else $fatal("Incorrect first value: %b", tmds_values[2]);
 end
 

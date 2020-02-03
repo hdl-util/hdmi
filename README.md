@@ -14,41 +14,11 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 ## Usage
 
-* Take files from `modules/hdmi` and add them to your own project.
-* Other helpful modules for displaying text / generating sound are also available in `modules/`.
-* Consult the usage example below:
-```systemverilog
-module yourfpga_top (
-  input logic clk_original,
-  output logic [2:0] tmds_p,
-  output logic tmds_clock_p,
-  output logic [2:0] tmds_n,
-  output logic tmds_clock_n,
-);
-
-logic clk_pixel;
-logic clk_tmds;
-logic clk_audio;
-pll pll(.clk_original(clk_original), .clk_pixel(clk_pixel), .clk_tmds(clk_tmds), .clk_audio(clk_audio));
-
-logic signed [15:0] audio_sample_word = 16'sd0; // Since the L-PCM audio is 2-channel by default, this is mono audio.
-@always (posedge clk_audio) // Sawtooth wave generator
-  audio_sample_word <= audio_sample_word + 16'sd638;
-
-logic [23:0] rgb;
-logic [9:0] cx, cy;
-// Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
-always @(posedge clk_pixel)
-  rgb <= {cx == 138 ? ~8'd0 : 8'd0, cy == 45 ? ~8'd0 : 8'd0, cx == 857 || cy == 524 ? ~8'd0 : 8'd0};
-
-// 720x480 @ 59.94Hz
-hdmi #(.VIDEO_ID_CODE(3), .VIDEO_REFRESH_RATE(59.94), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi(.clk_tmds(clk_tmds), .clk_pixel(clk_pixel), .clk_audio(clk_audio), .rgb(rgb), .audio_sample_word('{audio_sample_word, audio_sample_word}), .tmds_p(tmds_p), .tmds_clock_p(tmds_clock_p), .tmds_n(tmds_n), .tmds_clock_n(tmds_clock_n), .cx(cx), .cy(cy));
-
-endmodule
-```
-
-* See `top/max10/max10_top.v` for code that runs the demo
-* Please create an issue if you run into any problems
+1. Take files from `hdmi/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
+2. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
+3. Consult the usage example in `top/top.sv`
+4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF
+5. Please create an issue if you run into any problems
 
 ### Pixel/TMDS Clock
 
