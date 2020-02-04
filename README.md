@@ -16,7 +16,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 ## Usage
 
-1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
+1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. If you use Quartus, you must redefine ALTERA_RESERVED_QIS macro for hdlmake to resolve gated code.
 2. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
 3. Consult the usage example in `top/top.sv`
 4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF
@@ -114,6 +114,7 @@ Dual-licensed under Apache License 2.0 and MIT License.
 * [DVI Specification v1.0](https://www.cs.unc.edu/~stc/FAQs/Video/dvi_spec-V1_0.pdf)
 * [IEC 60958-1](https://ia803003.us.archive.org/30/items/gov.in.is.iec.60958.1.2004/is.iec.60958.1.2004.pdf)
 * [IEC 60958-3](https://ia800905.us.archive.org/22/items/gov.in.is.iec.60958.3.2003/is.iec.60958.3.2003.pdf)
+* [E-DDC v1.2](https://glenwing.github.io/docs/)
 
 ## Special Thanks
 
@@ -123,3 +124,4 @@ Dual-licensed under Apache License 2.0 and MIT License.
 * Jean P. Nicolle (fpga4fun.com) for sparking my interest in HDMI
 	* https://www.fpga4fun.com/HDMI.html
 * Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, etc.
+* Glenwing for links to many VESA standard documents
