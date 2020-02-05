@@ -48,6 +48,8 @@ genvar i;
 generate
     if (BAR_INFO != 2'b00) // Assign values to bars if BAR_INFO says they are valid.
         assign pb[13:6] = '{8'd0, 8'd0, ~8'd0, ~8'd0, 8'd0, 8'd0, ~8'd0, ~8'd0};
+    else
+        assign pb[13:6] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
     for (i = 14; i < 28; i++)
     begin: pb_reserved
         assign pb[i] = 8'd0;
