@@ -55,16 +55,30 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 |96 kHz|96000|
 |192 kHz|192000|
 
-### Potential limitations
+### Things to be aware of / Troubleshooting
 
-* Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
-	* Workaround: use DDR/other special I/O features like I/O serializers
-* LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to directly use LVDS (3.3v) instead (tested up to 720x480). This will not work if your video has a high number of transitions.
-    * Solution: AC-couple the LVDS wires to make them TMDS by adding 100nF capacitors in series, as close to the transmitter as possible
-        * Example: See `10118241-001RLF` (HDMI connector), on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip), where LVDS IO Standard pins on a Cyclone 10 FPGA have 100nF series capacitors
-* Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
-* Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
-* EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
+* Limited resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
+    * Workaround: use DDR/other special I/O features like I/O serializers
+* FPGA does not support TMDS: many FPGAs without a dedicated HDMI output don't support TMDS
+    * You should be able to directly use LVDS (3.3v) instead, tested up to 720x480
+    * This might not work if your video has a high number of transitions or you plan to use higher resolutions
+    * Solution: AC-couple the 3.3v LVDS wires to by adding 100nF capacitors in series, as close to the transmitter as possible
+        * Why? TMDS is current mode logic, and driving a CML receiver with LVDS is detailed in [Figure 9 of Interfacing LVDS with other differential-I/O types](https://m.eet.com/media/1135468/330072.pdf)
+            * Resistors are not needed since Vcc = 3.3v for both the transmitter and receiver
+        * Example: See `J13`, on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip), where LVDS IO Standard pins on a Cyclone 10 FPGA have 100nF series capacitors
+* Poor wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference
+    * Make sure you have all the necessary pins connected (GND pins, etc.)
+    * Try switching your HDMI cable; some cheap cables like [these I got from Amazon](https://www.amazon.com/gp/product/B01JO9PB7E/) have poor shielding
+* Hot-Plug unaware: all modules are unaware of hotplug
+    * This shouldn't affect anything in the long term; the only stateful value is hdmi.tmds_channel.acc
+    * You should decide hotplug behavior (i.e. pause/resume on disconnect/connect, or ignore it)
+* EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format
+    * To be implemented...
+* SCL/SCA voltage level: I2C on a 5V logic level, as confirmed in the [TPD12S016 datasheet](https://www.ti.com/lit/ds/symlink/tpd12s016.pdf), which is unsupported by most FPGAs
+    * Solution: use a bidirectional logic level shifter compatible with I2C to convert 3.3v LVTTL to 5v
+    * Solution: use 2.5V I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
+        * To investigate: why do they do this, and does it work at all?
+
 
 ### Platform Support
 
