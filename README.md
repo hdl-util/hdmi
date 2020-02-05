@@ -16,7 +16,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 ## Usage
 
-1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. If you use Quartus, you must redefine ALTERA_RESERVED_QIS macro for hdlmake to resolve gated code.
+1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. Note that hdlmake may not resolve altera_gpio_lite properly.
 2. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
 3. Consult the usage example in `top/top.sv`
 4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF
@@ -59,8 +59,9 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 
 * Resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
 	* Workaround: use DDR/other special I/O features like I/O serializers
-* LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to use LVDS instead (tested up to 720x480)
-    * Needs further investigation
+* LVDS/TMDS: if your FPGA doesn't support TMDS, you should be able to directly use LVDS (3.3v) instead (tested up to 720x480). This will not work if your video has a high number of transitions.
+    * Solution: AC-couple the LVDS wires to make them TMDS by adding 100nF capacitors in series, as close to the transmitter as possible
+        * Example: See `10118241-001RLF` (HDMI connector), on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip), where LVDS IO Standard pins on a Cyclone 10 FPGA have 100nF series capacitors
 * Wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference. Make sure you have all the necessary pins connected. Sometimes disconnecting the ground pins might actually reduce interference.
 * Hot-Plug Unaware: all modules are unaware of hotplug. This shouldn't affect anything in the long term -- the only stateful value is hdmi.tmds_channel.acc. The user should decide what behavior is appropriate on connect/disconnect.
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format.
