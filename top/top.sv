@@ -10,6 +10,7 @@ module top (
 logic clk_pixel;
 logic clk_tmds;
 logic clk_audio;
+
 pll pll(.inclk0(clk_original), .c0(clk_tmds), .c1(clk_pixel), .c2(clk_audio));
 
 logic signed [15:0] audio_sample_word = 16'sd0; // Since the L-PCM audio is 2-channel by default, this is mono audio.

@@ -38,5 +38,3 @@ modelsim.ini
 transcript
 work/
 *.wlf
-
-ip_cores/
