@@ -11,6 +11,7 @@ addons:
       - libc6:i386
       - libsm6:i386
       - libncurses5:i386
+      - libx11-6:i386
       - zlib1g:i386
 
 
