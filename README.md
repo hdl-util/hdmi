@@ -26,6 +26,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 - [x] Altera
 - [ ] Xilinx (untested but should work)
+- [ ] Lattice (unknown)
 
 ### To-do List (upon request)
 - [x] 24-bit color
