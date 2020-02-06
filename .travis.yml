@@ -14,6 +14,7 @@ addons:
       - libx11-6:i386
       - zlib1g:i386
       - libxext6:i386
+      - libxft2:i386
 
 install:
     - pip install -r requirements.txt
