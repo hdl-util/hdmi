@@ -22,6 +22,35 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF
 5. Please create an issue if you run into any problems
 
+### Platform Support
+
+- [x] Altera
+- [ ] Xilinx (untested but should work)
+
+### To-do List (upon request)
+- [x] 24-bit color
+- [x] Data island packets
+	- [x] Null packet
+	- [x] ECC with BCH systematic encoding GF(2^8)
+	- [x] Audio clock regeneration
+	- [x] L-PCM audio
+		- [x] 2-channel
+		- [ ] 3-channel to 8-channel
+	- [ ] 1-bit audio
+	- [x] Audio InfoFrame
+	- [x] Auxiliary Video Information InfoFrame
+	- [x] Source Product Descriptor InfoFrame
+	- [ ] MPEG Source InfoFrame
+		- NOTE—Problems with the MPEG Source Infoframe have been identified that were not able to be fixed in time for CEA-861-D. Implementation is strongly discouraged until a future revision fixes the problems
+- [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
+- [x] VGA-compatible text mode
+	- [x] IBM 8x16 font
+	- [ ] Alternate fonts
+- [ ] Other color formats (YCbCr, 32-bit color, etc.)
+- [ ] Support other video id codes
+	- [ ] Interlaced video
+	- [ ] Pixel repetition
+
 ### Pixel/TMDS Clock
 
 You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
@@ -79,35 +108,6 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
     * Solution: use 2.5V I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
         * To investigate: why do they do this, and does it work at all?
 
-
-### Platform Support
-
-- [x] Altera
-- [ ] Xilinx (untested but should work)
-
-### To-do List (upon request)
-- [x] 24-bit color
-- [x] Data island packets
-	- [x] Null packet
-	- [x] ECC with BCH systematic encoding GF(2^8)
-	- [x] Audio clock regeneration
-	- [x] L-PCM audio
-		- [x] 2-channel
-		- [ ] 3-channel to 8-channel
-	- [ ] 1-bit audio
-	- [x] Audio InfoFrame
-	- [x] Auxiliary Video Information InfoFrame
-	- [x] Source Product Descriptor InfoFrame
-	- [ ] MPEG Source InfoFrame
-		- NOTE—Problems with the MPEG Source Infoframe have been identified that were not able to be fixed in time for CEA-861-D. Implementation is strongly discouraged until a future revision fixes the problems
-- [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
-- [x] VGA-compatible text mode
-	- [x] IBM 8x16 font
-	- [ ] Alternate fonts
-- [ ] Other color formats (YCbCr, 32-bit color, etc.)
-- [ ] Support other video id codes
-	- [ ] Interlaced video
-	- [ ] Pixel repetition
 
 ## Licensing
 
