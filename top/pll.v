@@ -1,4 +1,7 @@
 // This is a FAKE PLL! You should be using the PLL IP available from your FPGA vendor
+
+`timescale 1 ns / 100 ps
+
 module pll (
 	input wire inclk0,
 	output reg c0 = 0,

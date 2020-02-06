@@ -1,6 +1,6 @@
 files = [
     "top.sv",
-    "pll.sv"
+    "pll.v"
 ]
 
 modules = {
