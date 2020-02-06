@@ -5,12 +5,8 @@ addons:
   apt:
     update: false
     packages:
-      - gcc-multilib
-      - lib32gcc1
       - lib32z1
       - lib32stdc++6
-      - g++-multilib
-      - expat:i386
       - fontconfig:i386
       - libfreetype6:i386
       - libexpat1:i386
