@@ -17,10 +17,11 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 ## Usage
 
 1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. Note that hdlmake may not resolve altera_gpio_lite properly.
-2. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
-3. Consult the usage example in `top/top.sv`
-4. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF
-5. Please create an issue if you run into any problems
+1. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
+1. Consult the usage example in `top/top.sv`
+1. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF.
+1. Read through the list of detailed parameters in `hdmi.sv` to determine which apply to you.
+1. Please create an issue if you run into a problem or have any questions. Make sure you have consulted the troubleshooting section.
 
 ### Platform Support
 
@@ -52,7 +53,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
 - [ ] Special I/O features
-        - [x] DDIO
+	- [x] DDIO
 
 
 ### Pixel/TMDS Clock
@@ -111,7 +112,6 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
     * Solution: use a bidirectional logic level shifter compatible with I2C to convert 3.3v LVTTL to 5v
     * Solution: use 2.5V I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
         * To investigate: why do they do this, and does it work at all?
-
 
 ## Licensing
 
