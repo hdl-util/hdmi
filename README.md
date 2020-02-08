@@ -93,6 +93,7 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
 
 * Limited resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
     * Workaround: use DDR/other special I/O features like I/O serializers
+	* Workaround: Altera FPGA users can try to specify speed grade C6 and see if it works, though yours may be C7 or C8. If it doesn't work, try enabling DDRIO.
 * FPGA does not support TMDS: many FPGAs without a dedicated HDMI output don't support TMDS
     * You should be able to directly use LVDS (3.3v) instead, tested up to 720x480
     * This might not work if your video has a high number of transitions or you plan to use higher resolutions
