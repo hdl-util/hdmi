@@ -52,7 +52,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
 - [ ] Special I/O features
-        - [x] DDIO (Altera only)
+        - [x] DDIO
 
 
 ### Pixel/TMDS Clock
