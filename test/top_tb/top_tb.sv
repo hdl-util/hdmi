@@ -63,7 +63,7 @@ generate
 endgenerate
 
 logic [3:0] counter = 0;
-always @(posedge top.clk_tmds)
+always @(posedge top.clk_pixel_x10)
 begin
   assert (counter == top.hdmi.tmds_counter) else $fatal("Shift-out counter doesn't match decoder counter");
   if (counter == 9)

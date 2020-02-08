@@ -32,7 +32,7 @@ module hdmi
     parameter AUDIO_BIT_WIDTH = 16
 )
 (
-    input logic clk_tmds,
+    input logic clk_pixel_x10,
     input logic clk_pixel,
     input logic clk_audio,
     input logic [23:0] rgb,
@@ -239,11 +239,11 @@ logic [3:0] tmds_counter = 4'd0;
 generate
     for (i = 0; i < NUM_CHANNELS; i++)
     begin: tmds_shifting
-        always @(posedge clk_tmds)
+        always @(posedge clk_pixel_x10)
             tmds_shift[i] <=  tmds_counter == 4'd9 ? tmds[i] : {1'bX, tmds_shift[i][9:1]};
     end
 endgenerate
-always @(posedge clk_tmds)
+always @(posedge clk_pixel_x10)
     tmds_counter <= tmds_counter == 4'd9 ? 4'd0 : tmds_counter + 4'd1;
 
 endmodule
