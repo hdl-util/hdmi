@@ -18,8 +18,8 @@ module hdmi
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce resource usage or if you're only outputting video.
     parameter DVI_OUTPUT = 1'b0,
 
-    // When enabled, DDIO (Double Data Rate I/O) is used and clk_pixel_x10 only needs to be five times as fast as clk_pixel.
-    parameter DDIO = 1'b0,
+    // When enabled, DDRIO (Double Data Rate I/O) is used and clk_pixel_x10 only needs to be five times as fast as clk_pixel.
+    parameter DDRIO = 1'b0,
 
     // **All parameters below matter ONLY IF you plan on sending auxiliary data (DVI_OUTPUT == 1'b0)**
 
@@ -221,35 +221,35 @@ generate
     logic [9:0] tmds_shift [NUM_CHANNELS-1:0] = '{10'b1101010100, 10'b1101010100, 10'b1101010100};
 
     // See Section 5.4.1
-    logic [(DDIO ? 2 : 3):0] tmds_counter = 0;
+    logic [(DDRIO ? 2 : 3):0] tmds_counter = 0;
     always @(posedge clk_pixel_x10)
-        tmds_counter <= tmds_counter == (DDIO ? 3'd4: 4'd9) ? 1'd0 : tmds_counter + 1'd1;
+        tmds_counter <= tmds_counter == (DDRIO ? 3'd4: 4'd9) ? 1'd0 : tmds_counter + 1'd1;
     for (i = 0; i < NUM_CHANNELS; i++)
     begin: tmds_shifting
         always @(posedge clk_pixel_x10)
-            tmds_shift[i] <= tmds_counter == (DDIO ? 3'd4 : 4'd9) ? tmds[i] : {(DDIO ? 2'dX : 1'dX), tmds_shift[i][9:(DDIO ? 2 : 1)]};
+            tmds_shift[i] <= tmds_counter == (DDRIO ? 3'd4 : 4'd9) ? tmds[i] : {(DDRIO ? 2'dX : 1'dX), tmds_shift[i][9:(DDRIO ? 2 : 1)]};
     end
 
     // Double data rate support
     logic [NUM_CHANNELS-1:0] tmds_current;
     logic tmds_current_clk;
 
-    if (DDIO)
+    if (DDRIO)
     begin
-        logic [9:0] clk_pixel_ddio = 10'b0000011111;
+        logic [9:0] clk_pixel_DDRIO = 10'b0000011111;
         always @(posedge clk_pixel_x10)
-            clk_pixel_ddio <= {clk_pixel_ddio[1:0], clk_pixel_ddio[9:2]};
+            clk_pixel_DDRIO <= {clk_pixel_DDRIO[1:0], clk_pixel_DDRIO[9:2]};
         `ifdef SYNTHESIS // TODO: Is this really Vivado? https://forums.xilinx.com/t5/Simulation-and-Verification/Predefined-constant-for-simulation/td-p/986901
             `ifndef ALTERA_RESERVED_QIS
                 for (i = 0; i < NUM_CHANNELS; i++)
                 begin: oddr2_gen
                     ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current[i]), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(tmds_shift[i][0]), .D1(tmds_shift[i][1]), .R(1'b0), .S(1'b0));
                 end
-                ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(clk_pixel_ddio[0]), .D1(clk_pixel_ddio[1]), .R(1'b0), .S(1'b0));
+                ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(clk_pixel_DDRIO[0]), .D1(clk_pixel_DDRIO[1]), .R(1'b0), .S(1'b0));
             `endif
         `else
-            altddio_out ddio (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_ddio[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_ddio[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
-            defparam ddio.inverted_input_clocks = "OFF", ddio.lpm_hint = "UNUSED", ddio.lpm_type = "altddio_out", ddio.power_up_high = "OFF", ddio.width = NUM_CHANNELS + 1;
+            altDDRIO_out DDRIO (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_DDRIO[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_DDRIO[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
+            defparam DDRIO.inverted_input_clocks = "OFF", DDRIO.lpm_hint = "UNUSED", DDRIO.lpm_type = "altDDRIO_out", DDRIO.power_up_high = "OFF", DDRIO.width = NUM_CHANNELS + 1;
         `endif
     end
     else

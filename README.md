@@ -53,7 +53,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
 - [ ] Special I/O features
-	- [x] DDIO
+	- [x] Double Data Rate I/O (DDRIO)
 
 
 ### Pixel/TMDS Clock
@@ -107,8 +107,8 @@ Both bitrate and frequency are specified as parameters of the HDMI module. Bitra
     * This shouldn't affect anything in the long term; the only stateful value is hdmi.tmds_channel.acc
     * You should decide hotplug behavior (i.e. pause/resume on disconnect/connect, or ignore it)
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format
-    * To be implemented...
-* SCL/SCA voltage level: I2C on a 5V logic level, as confirmed in the [TPD12S016 datasheet](https://www.ti.com/lit/ds/symlink/tpd12s016.pdf), which is unsupported by most FPGAs
+    * To be implemented in a display protocol independent manner
+* SCL/SCA voltage level: though unused by this implementation...it is I2C on a 5V logic level, as confirmed in the [TPD12S016 datasheet](https://www.ti.com/lit/ds/symlink/tpd12s016.pdf), which is unsupported by most FPGAs
     * Solution: use a bidirectional logic level shifter compatible with I2C to convert 3.3v LVTTL to 5v
     * Solution: use 2.5V I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
         * To investigate: why do they do this, and does it work at all?
