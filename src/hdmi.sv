@@ -277,7 +277,8 @@ generate
         end
         for (i = 0; i < NUM_CHANNELS; i++)
         begin: tmds_shifting
-            tmds_shift[i] <=  tmds_counter == 3'd4 ? tmds[i] : {2'bX, tmds_shift[i][9:2]};
+            always @(posedge clk_pixel_x10)
+                tmds_shift[i] <= tmds_counter == 3'd4 ? tmds[i] : {2'bX, tmds_shift[i][9:2]};
         end
     end
     else
