@@ -2,13 +2,11 @@
 
 [![Build Status](https://travis-ci.org/hdl-util/hdmi.svg?branch=master)](https://travis-ci.org/hdl-util/hdmi)
 
-SystemVerilog code for FPGA HDMI 1.4a video/audio output.
+SystemVerilog code for HDMI 1.4a video/audio output on an [FPGA](https://simple.wikipedia.org/wiki/Field-programmable_gate_array).
 
 ## Why?
 
-Most open source HDMI code outputs a DVI signal, which HDMI sinks are backwards compatible with.
-
-To send audio and support other HDMI-only functionality, a true HDMI signal must be sent. The code in this repository lets you do that.
+Most free and open source HDMI source (computer/gaming console) implementations actually output a DVI signal, which HDMI sinks (TVs/monitors) are backwards compatible with. To support audio and other HDMI-only functionality, a true HDMI signal must be sent. The code in this repository lets you do that without having to license an HDMI IP block from anyone.
 
 ### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
 
@@ -16,12 +14,12 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 
 ## Usage
 
-1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. Note that hdlmake may not resolve altera_gpio_lite properly.
+1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. *Note that hdlmake may not resolve altera_gpio_lite properly, since it does not define `ALTERA_RESERVED_QIS` during Quartus project resolution.*
 1. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
-1. Consult the usage example in `top/top.sv`
-1. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo in the GIF.
-1. Read through the list of detailed parameters in `hdmi.sv` to determine which apply to you.
-1. Please create an issue if you run into a problem or have any questions. Make sure you have consulted the troubleshooting section.
+1. Consult the simple usage example in `top/top.sv`.
+1. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo as seen the demo GIF.
+1. Read through and tailor the parameters in `hdmi.sv` to your situation.
+1. Please create an issue if you run into a problem or have any questions. Make sure you have consulted the troubleshooting section first.
 
 ### Platform Support
 
@@ -44,11 +42,12 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 	- [x] Source Product Descriptor InfoFrame
 	- [ ] MPEG Source InfoFrame
 		- NOTE—Problems with the MPEG Source Infoframe have been identified that were not able to be fixed in time for CEA-861-D. Implementation is strongly discouraged until a future revision fixes the problems
+	- [ ] Gamut Metadata
 - [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
 - [x] VGA-compatible text mode
 	- [x] IBM 8x16 font
 	- [ ] Alternate fonts
-- [ ] Other color formats (YCbCr, 32-bit color, etc.)
+- [ ] Other color formats (YCbCr, deep color, etc.)
 - [ ] Support other video id codes
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
@@ -56,7 +55,7 @@ To send audio and support other HDMI-only functionality, a true HDMI signal must
 	- [x] Double Data Rate I/O (DDRIO)
 
 
-### Pixel/TMDS Clock
+### Pixel Clock
 
 You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
 
@@ -73,11 +72,11 @@ You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock f
 |720x576|17, 18|50Hz|27MHz|
 |1280x720|19|50Hz|74.25MHz|
 
-The TMDS clock should be 10 times as fast as the pixel clock.  If you only have 1 PLL, you can try to set up the TMDS clock and pulse the pixel clock at 1/10th the speed.
+The second clock is a clock 10 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both. You can avoid using two different multiplication factors, with the DDRIO feature, which only requires the second clock to be 5 times as fast.
 
 ### L-PCM Audio Bitrate / Sampling Frequency
 
-Both bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
+Both audio bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
 
 |Sampling Frequency|AUDIO_RATE value|
 |---|---|
@@ -124,6 +123,8 @@ Dual-licensed under Apache License 2.0 and MIT License.
 - [Xilinx HDMI solutions](https://www.xilinx.com/products/intellectual-property/hdmi.html#overview): Virtex/Kintex/Zynq/Artix
 - [Artix 7 HDMI Processing](https://github.com/hamsternz/Artix-7-HDMI-processing): VHDL, decode & encode
 - [SimpleVOut](https://github.com/cliffordwolf/SimpleVOut): many formats, no auxiliary data
+
+If you know of another good alternative, open and issue and it will be added.
 
 ## Reference Documents
 
