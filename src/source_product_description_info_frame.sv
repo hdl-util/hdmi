@@ -1,6 +1,7 @@
 // Implementation of HDMI SPD InfoFrame packet.
 // By Sameer Puri https://github.com/sameer
 
+// See CEA-861-D Section 6.5 page 72 (84 in PDF)
 module source_product_description_info_frame
 #(
     parameter VENDOR_NAME = "Unknown\0",

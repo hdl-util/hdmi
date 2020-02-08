@@ -1,7 +1,7 @@
 // Implementation of HDMI audio clock regeneration packet
 // By Sameer Puri https://github.com/sameer
 
-// See HDMI 1.4a Section 5.3.3.
+// See HDMI 1.4a Section 5.3.3
 module audio_clock_regeneration_packet
 #(
     parameter VIDEO_RATE,
@@ -15,7 +15,7 @@ module audio_clock_regeneration_packet
     output logic [55:0] sub [3:0]
 );
 
-// See Section 7.2.3. Values derived from "Other" row in Tables 7-1, 7-2, 7-3.
+// See Section 7.2.3, values derived from "Other" row in Tables 7-1, 7-2, 7-3.
 localparam N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
 
 localparam CLK_SLOW_WIDTH = $clog2(N / 128);

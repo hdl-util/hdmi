@@ -1,4 +1,4 @@
-// Implementation of HDMI packet ECC calculation and IEC 60958 frame counter
+// Implementation of HDMI packet ECC calculation.
 // By Sameer Puri https://github.com/sameer
 
 module packet_assembler (

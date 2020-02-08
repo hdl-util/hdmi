@@ -17,6 +17,7 @@ module tmds_channel
 );
 
 // See Section 5.4.4.1
+// Below is a direct implementation of Figure 5-7, using the same variable names. condN refers to the Nth conditional diamond.
 
 reg signed [4:0] acc = 4'd0;
 

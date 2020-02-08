@@ -1,3 +1,6 @@
+// Implementation of HDMI packet choice logic.
+// By Sameer Puri https://github.com/sameer
+
 module packet_picker
 #(
     parameter VIDEO_ID_CODE,
@@ -16,6 +19,7 @@ module packet_picker
     output logic [55:0] sub [3:0]
 );
 
+// Connect the current packet type's data to the output.
 logic [7:0] packet_type = 8'd0;
 logic [23:0] headers [255:0];
 logic [55:0] subs [255:0] [3:0];
@@ -100,13 +104,17 @@ begin
 end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .user_data_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .audio_sample_word(audio_sample_word_packet), .audio_sample_word_present(audio_sample_word_present_packet), .header(headers[2]), .sub(subs[2]));
 
+
 auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
 
+
 source_product_description_info_frame source_product_description_info_frame(.header(headers[131]), .sub(subs[131]));
+
 
 audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 
 
+// "A Source shall always transmit... [an InfoFrame] at least once per two Video Fields"
 logic audio_info_frame_sent = 1'b0;
 logic auxiliary_video_information_info_frame_sent = 1'b0;
 logic source_product_description_info_frame_sent = 1'b0;

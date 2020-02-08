@@ -1,6 +1,7 @@
 // Implementation of HDMI Auxiliary Video InfoFrame packet.
 // By Sameer Puri https://github.com/sameer
 
+// See Section 8.2.1
 module auxiliary_video_information_info_frame
 #(
     parameter VIDEO_FORMAT = 2'b00, // 00 = RGB, 01 = YCbCr 4:2:2, 10 = YCbCr 4:4:4
