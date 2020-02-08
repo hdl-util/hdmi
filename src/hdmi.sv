@@ -19,6 +19,9 @@ module hdmi
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce logic cell usage or if you're only outputting video.
     parameter DVI_OUTPUT = 1'b0,
 
+    // When enabled, DDIO is used and clk_pixel_x10 only needs to be five times as fast as clk_pixel
+    parameter DDIO = 1'b0,
+
     // **All parameters below matter ONLY IF you plan on sending auxiliary data (DVI_OUTPUT == 1'b0)**
 
     // Refresh rate in Hz
@@ -53,22 +56,59 @@ localparam NUM_CHANNELS = 3;
 logic [9:0] tmds_shift [NUM_CHANNELS-1:0] = '{10'b1101010100, 10'b1101010100, 10'b1101010100};
 
 // TODO: Is this really Vivado? https://forums.xilinx.com/t5/Simulation-and-Verification/Predefined-constant-for-simulation/td-p/986901
-`ifdef SYNTHESIS
-    `ifndef ALTERA_RESERVED_QIS
-    genvar l;
-    generate
-        for (l = 0; l < 3; l++)
-        begin: obufds_gen
-            OBUFDS obufds (.I(tmds_shift[l][0]), .O(tmds_p[l]), .OB(tmds_n[l]));
-        end
-    endgenerate
-    OBUFDS OBUFDS_clock(.I(clk_pixel), .O(tmds_clock_p), .OB(tmds_clock_n));
+generate
+    logic [NUM_CHANNELS-1:0] tmds_current;
+    logic tmds_current_clk;
+
+    if (DDIO)
+    begin
+        `ifdef SYNTHESIS
+            `ifndef ALTERA_RESERVED_QIS
+            `endif
+        `endif
+        `else
+            altddio_out ddio (
+                .dataout({tmds_current, tmds_current_clk}),
+                .outclock(clk_pixel_x10),
+                .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_ddio[0]}),
+                .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_ddio[1]}),
+                .aclr(1'b0),
+                .aset(1'b0),
+                .outclocken(1'b1),
+                .sclr(1'b0),
+                .sset(1'b0)
+            );
+        `endif
+        defparam
+            ddio.inverted_input_clocks = "OFF",
+            ddio.lpm_hint = "UNUSED",
+            ddio.lpm_type = "altddio_out",
+            ddio.power_up_high = "OFF",
+            ddio.width = NUM_CHANNELS + 1;
+    end
+    else
+    begin
+        assign tmds_current = {tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0]};
+        assign tmds_current_clk = clk_pixel;
+    end
+
+    `ifdef SYNTHESIS
+        `ifndef ALTERA_RESERVED_QIS
+        genvar l;
+        generate
+            for (l = 0; l < NUM_CHANNELS; l++)
+            begin: obufds_gen
+                OBUFDS obufds (.I(tmds_current[l]), .O(tmds_p[l]), .OB(tmds_n[l]));
+            end
+        endgenerate
+        OBUFDS OBUFDS_clock(.I(tmds_current_clk), .O(tmds_clock_p), .OB(tmds_clock_n));
+        `endif
+    `else
+    // If Altera synthesis, a true differential buffer is built with altera_gpio_lite from the Intel IP Catalog.
+    // If simulation, a mocked signal inversion is used.
+    OBUFDS obufds(.din({tmds_current, tmds_current_clk}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n, tmds_clock_n}));
     `endif
-`else
-// If Altera synthesis, a true differential buffer is built with altera_gpio_lite from the Intel IP Catalog.
-// If simulation, a mocked signal inversion is used.
-OBUFDS obufds(.din({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n,tmds_clock_n}));
-`endif
+endgenerate
 
 // See CEA-861-D for more specifics formats described below.
 logic [BIT_WIDTH-1:0] frame_width;
@@ -234,16 +274,33 @@ generate
 endgenerate
 
 // See Section 5.4.1
-logic [3:0] tmds_counter = 4'd0;
-
 generate
-    for (i = 0; i < NUM_CHANNELS; i++)
-    begin: tmds_shifting
+    if (DDIO)
+    begin
+        logic [9:0] clk_pixel_ddio = 10'b0000011111;
         always @(posedge clk_pixel_x10)
-            tmds_shift[i] <=  tmds_counter == 4'd9 ? tmds[i] : {1'bX, tmds_shift[i][9:1]};
+            clk_pixel_ddio <= {clk_pixel_ddio[1:0], clk_pixel_ddio[9:2]};
+
+        logic [2:0] tmds_counter = 3'd0;
+        for (i = 0; i < NUM_CHANNELS; i++)
+        begin: tmds_shifting
+            always @(posedge clk_pixel_x10)
+                tmds_shift[i] <=  tmds_counter == 3'd4 ? tmds[i] : {2'bX, tmds_shift[i][9:2]};
+        end
+        always @(posedge clk_pixel_x10)
+            tmds_counter <= tmds_counter == 3'd4 ? 3'd0 : tmds_counter + 3'd1;
+    end
+    else
+    begin
+        logic [3:0] tmds_counter = 4'd0;
+        for (i = 0; i < NUM_CHANNELS; i++)
+        begin: tmds_shifting
+            always @(posedge clk_pixel_x10)
+                tmds_shift[i] <=  tmds_counter == 4'd9 ? tmds[i] : {1'bX, tmds_shift[i][9:1]};
+        end
+        always @(posedge clk_pixel_x10)
+            tmds_counter <= tmds_counter == 4'd9 ? 4'd0 : tmds_counter + 4'd1;
     end
 endgenerate
-always @(posedge clk_pixel_x10)
-    tmds_counter <= tmds_counter == 4'd9 ? 4'd0 : tmds_counter + 4'd1;
 
 endmodule
