@@ -62,6 +62,9 @@ generate
 
     if (DDIO)
     begin
+        logic [9:0] clk_pixel_ddio = 10'b0000011111;
+        always @(posedge clk_pixel_x10)
+            clk_pixel_ddio <= {clk_pixel_ddio[1:0], clk_pixel_ddio[9:2]};
         `ifdef SYNTHESIS // TODO: Is this really Vivado? https://forums.xilinx.com/t5/Simulation-and-Verification/Predefined-constant-for-simulation/td-p/986901
             `ifndef ALTERA_RESERVED_QIS
                 for (l = 0; l < NUM_CHANNELS; l++)
@@ -265,33 +268,13 @@ generate
 endgenerate
 
 // See Section 5.4.1
-generate
-    if (DDIO)
-    begin
-        logic [9:0] clk_pixel_ddio = 10'b0000011111;
-        logic [2:0] tmds_counter = 3'd0;
-        always @(posedge clk_pixel_x10)
-        begin
-            clk_pixel_ddio <= {clk_pixel_ddio[1:0], clk_pixel_ddio[9:2]};
-            tmds_counter <= tmds_counter == 3'd4 ? 3'd0 : tmds_counter + 3'd1;
-        end
-        for (i = 0; i < NUM_CHANNELS; i++)
-        begin: tmds_shifting
-            always @(posedge clk_pixel_x10)
-                tmds_shift[i] <= tmds_counter == 3'd4 ? tmds[i] : {2'bX, tmds_shift[i][9:2]};
-        end
-    end
-    else
-    begin
-        logic [3:0] tmds_counter = 4'd0;
-        always @(posedge clk_pixel_x10)
-            tmds_counter <= tmds_counter == 4'd9 ? 4'd0 : tmds_counter + 4'd1;
-        for (i = 0; i < NUM_CHANNELS; i++)
-        begin: tmds_shifting
-            always @(posedge clk_pixel_x10)
-                tmds_shift[i] <=  tmds_counter == 4'd9 ? tmds[i] : {1'bX, tmds_shift[i][9:1]};
-        end
-    end
-endgenerate
+logic [(DDIO ? 2 : 3):0] tmds_counter = 0;
+always @(posedge clk_pixel_x10)
+    tmds_counter <= tmds_counter == (DDIO ? 3'd4: 4'd9) ? 1'd0 : tmds_counter + 1'd1;
+for (i = 0; i < NUM_CHANNELS; i++)
+begin: tmds_shifting
+    always @(posedge clk_pixel_x10)
+        tmds_shift[i] <= tmds_counter == (DDIO ? 3'd4 : 4'd9) ? tmds[i] : {(DDIO ? 2'dX : 1'dX), tmds_shift[i][9:(DDIO ? 2 : 1)]};
+end
 
 endmodule
