@@ -18,7 +18,7 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 1. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
 1. Consult the simple usage example in `top/top.sv`.
 1. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo as seen the demo GIF.
-1. Read through and tailor the parameters in `hdmi.sv` to your situation.
+1. Read through the parameters in `hdmi.sv` and tailor any instantiations to your situation.
 1. Please create an issue if you run into a problem or have any questions. Make sure you have consulted the troubleshooting section first.
 
 ### Platform Support
