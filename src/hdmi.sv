@@ -70,7 +70,6 @@ generate
                 end
                 ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(clk_pixel_ddio[0]), .D1(clk_pixel_ddio[1]), .R(1'b0), .S(1'b0));
             `endif
-        `endif
         `else
             altddio_out ddio (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_ddio[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_ddio[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
             defparam
