@@ -248,7 +248,7 @@ generate
                 ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(clk_pixel_DDRIO[0]), .D1(clk_pixel_DDRIO[1]), .R(1'b0), .S(1'b0));
             `endif
         `else
-            altDDRIO_out DDRIO (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_DDRIO[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_DDRIO[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
+            altDDIO_out DDRIO (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_DDRIO[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_DDRIO[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
             defparam DDRIO.inverted_input_clocks = "OFF", DDRIO.lpm_hint = "UNUSED", DDRIO.lpm_type = "altDDRIO_out", DDRIO.power_up_high = "OFF", DDRIO.width = NUM_CHANNELS + 1;
         `endif
     end
