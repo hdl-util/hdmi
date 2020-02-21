@@ -117,31 +117,47 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
 
 Dual-licensed under Apache License 2.0 and MIT License.
 
-### HDMI
+### HDMI Adoption
 
-I am NOT a lawyer, the below advice is given based on discussion from [a Hacker News post](https://news.ycombinator.com/item?id=22279308).
+I am NOT a lawyer, the below advice is given based on discussion from [a Hacker News post](https://news.ycombinator.com/item?id=22279308) and my research.
 
-HDMI itself is not a royalty free technology, unfortunately. You are free to use it for testing, development, etc. but to *legally* create and sell end-user products:
+HDMI itself is not a royalty free technology, unfortunately. You are free to use it for testing, development, etc. but to receive the HDMI LA's (licensing administration) blessing to create and sell end-user products:
 
 
 > The manufacturer of the finished end-user product MUST be a licensed HDMI Adopter, and
-
 > The finished end-user product MUST satisfy all requirements as defined in the Adopter Agreement including but not limited to passing compliance testing either at an HDMI ATC or through self-testing.
 
 
-Becoming an adopter means you pay a flat annual fee (~ $1k-$2k) plus a per device royalty (~ $0.05). If you are selling an end-user device and DO NOT want to use HDMI, you can turn on the `DVI_OUTPUT` parameter, which will disable any HDMI logic. 
+Becoming an adopter means you have to pay a flat annual fee (~ $1k-$2k) and a per device royalty (~ $0.05). If you are selling an end-user device and DO NOT want to become an adopter, you can turn on the `DVI_OUTPUT` parameter, which will disable any HDMI-only logic, like audio.
 
-The consequences for selling an HDMI product without being a licensed adopter are unclear, but relate to issues with resellers, manufacturers, customs, etc.
+Please consult your lawyer if you have any concerns. Here are a few noteworthy cases that may help you make a decision:
 
+* Arduino LLC is not an adopter, yet sells the [Arduino MKR Vidor 4000](https://store.arduino.cc/usa/mkr-vidor-4000) FPGA 
+    * It has a micro-HDMI connector
+    * [Having an HDMI connector does not require a license](https://electronics.stackexchange.com/questions/28202/legality-of-using-hdmi-connectors-in-non-hdmi-product)
+    * Official examples provided by Arduino on GitHub only perform DVI output
+    * It is a user's choice to program the FPGA for HDMI output
+    * Therefore: the device isn't an end-user product under the purview of HDMI LA
+* Unlicensed DisplayPort to HDMI cables (2011)
+    * [Articles suggests that the HDMI LA can recall illegal products](https://www.pcmag.com/archive/displayport-to-hdmi-cables-illegal-could-be-recalled-266671?amp=1).
+    * But these cables [are still sold on Amazon](https://www.amazon.com/s?k=hdmi+to+displayport+cable)
+    * Therefore: the power of HDMI LA to enforce licensing is unclear
+* [Terminated Adopters](https://hdmi.org/adopter/terminated)
+    * There are currently 1,043 terminated adopters
+    * Includes noteworthy companies like Xilinx, Lattice Semiconductor, Cypress Semiconductor, EVGA (!), etc.
+    * No conclusion
+* Raspberry Pi Trading Ltd is licensed
+    * They include the HDMI logo for products
+    * Therefore: Raspberry Pi products are legal, licensed end-user products
 
-## Alternatives
+## Alternative Implementations
 
 - [HDMI Intel FPGA IP Core](https://www.intel.com/content/www/us/en/programmable/products/intellectual-property/ip/interface-protocols/m-alt-hdmi-megacore.html): Stratix/Arria/Cyclone
 - [Xilinx HDMI solutions](https://www.xilinx.com/products/intellectual-property/hdmi.html#overview): Virtex/Kintex/Zynq/Artix
 - [Artix 7 HDMI Processing](https://github.com/hamsternz/Artix-7-HDMI-processing): VHDL, decode & encode
 - [SimpleVOut](https://github.com/cliffordwolf/SimpleVOut): many formats, no auxiliary data
 
-If you know of another good alternative, open and issue and it will be added.
+If you know of another good alternative, open an issue and it will be added.
 
 ## Reference Documents
 
