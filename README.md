@@ -117,6 +117,23 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
 
 Dual-licensed under Apache License 2.0 and MIT License.
 
+### HDMI
+
+I am NOT a lawyer, the below advice is given based on discussion from [a Hacker News post](https://news.ycombinator.com/item?id=22279308).
+
+HDMI itself is not a royalty free technology, unfortunately. You are free to use it for testing, development, etc. but to *legally* create and sell end-user products:
+
+
+> The manufacturer of the finished end-user product MUST be a licensed HDMI Adopter, and
+
+> The finished end-user product MUST satisfy all requirements as defined in the Adopter Agreement including but not limited to passing compliance testing either at an HDMI ATC or through self-testing.
+
+
+Becoming an adopter means you pay a flat annual fee (~ $1k-$2k) plus a per device royalty (~ $0.05). If you are selling an end-user device and DO NOT want to use HDMI, you can turn on the `DVI_OUTPUT` parameter, which will disable any HDMI logic. 
+
+The consequences for selling an HDMI product without being a licensed adopter are unclear, but relate to issues with resellers, manufacturers, customs, etc.
+
+
 ## Alternatives
 
 - [HDMI Intel FPGA IP Core](https://www.intel.com/content/www/us/en/programmable/products/intellectual-property/ip/interface-protocols/m-alt-hdmi-megacore.html): Stratix/Arria/Cyclone
@@ -145,4 +162,4 @@ If you know of another good alternative, open and issue and it will be added.
 * Jean P. Nicolle (fpga4fun.com) for sparking my interest in HDMI
 	* https://www.fpga4fun.com/HDMI.html
 * Bureau of Indian Standards for free equivalents of non-free IEC standards 60958-1, 60958-3, etc.
-* Glenwing for links to many VESA standard documents
+* @glenwing for [links to many VESA standard documents](https://glenwing.github.io/docs/)
