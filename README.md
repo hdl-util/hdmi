@@ -111,7 +111,12 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
 * SCL/SCA voltage level: though unused by this implementation...it is I2C on a 5V logic level, as confirmed in the [TPD12S016 datasheet](https://www.ti.com/lit/ds/symlink/tpd12s016.pdf), which is unsupported by most FPGAs
     * Solution: use a bidirectional logic level shifter compatible with I2C to convert 3.3v LVTTL to 5v
     * Solution: use 2.5V I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
-        * To investigate: why do they do this, and does it work at all?
+    	* HDMI sink SCL lines has a pull-up to 47K +/- 10%
+	* `V IH actual = 3.3 + (5 - 3.3)/(6.65K + 47K +/- 4.7K) = 3.4937V to 3.5309V`
+	* I2C specifies `V IH max = 3.8V` for `V IH nominal = 3.3V`
+	* I2C specifies `V IH min = 3.5V` for `V IH nominal = 5V`
+	* Within specification for both the sink and the source
+	* To investigate: SDA line
 
 ## Licensing
 
