@@ -249,7 +249,7 @@ generate
             `endif
         `else
             altDDIO_out DDRIO (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], clk_pixel_DDRIO[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], clk_pixel_DDRIO[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
-            defparam DDRIO.inverted_input_clocks = "OFF", DDRIO.lpm_hint = "UNUSED", DDRIO.lpm_type = "altDDRIO_out", DDRIO.power_up_high = "OFF", DDRIO.width = NUM_CHANNELS + 1;
+            defparam DDRIO.inverted_input_clocks = "OFF", DDRIO.lpm_hint = "UNUSED", DDRIO.lpm_type = "altDDIO_out", DDRIO.power_up_high = "OFF", DDRIO.width = NUM_CHANNELS + 1;
         `endif
     end
     else
