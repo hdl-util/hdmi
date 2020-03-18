@@ -6,7 +6,18 @@
 
 `timescale 1 ps / 1 ps
 
-`ifdef ALTERA_RESERVED_QIS
+`ifdef MODEL_TECH
+// For purposes of simulation, OBUFDS just outputs the input signal along with an inverted copy.
+// Check other simulators using https://gist.github.com/amuramatsu/be54c5548a0ece78c95897d570915a0e.
+module OBUFDS (
+           input  wire [3:0] din,       //       din.export
+           output reg [3:0] pad_out,   //   pad_out.export
+           output reg [3:0] pad_out_b  // pad_out_b.export
+       );
+always @* pad_out <= din;
+always @* pad_out_b <= ~din;
+endmodule
+`else
 module OBUFDS (
 		input  wire [3:0] din,       //       din.export
 		output wire [3:0] pad_out,   //   pad_out.export
@@ -64,17 +75,6 @@ module OBUFDS (
 		.oe              (4'b0000)    // (terminated)
 	);
 
-endmodule
-`else
-// For purposes of simulation, OBUFDS just outputs the input signal along with an inverted copy.
-// Check other simulators using https://gist.github.com/amuramatsu/be54c5548a0ece78c95897d570915a0e.
-module OBUFDS (
-           input  wire [3:0] din,       //       din.export
-           output reg [3:0] pad_out,   //   pad_out.export
-           output reg [3:0] pad_out_b  // pad_out_b.export
-       );
-always @* pad_out <= din;
-always @* pad_out_b <= ~din;
 endmodule
 `endif
 // Retrieval info: <?xml version="1.0"?>

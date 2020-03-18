@@ -14,7 +14,7 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 
 ## Usage
 
-1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module. *Note that hdlmake may not resolve altera_gpio_lite properly, since it does not define `ALTERA_RESERVED_QIS` during Quartus project resolution.*
+1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
 1. Other helpful modules for displaying text / generating sound are also available in this GitHub organization.
 1. Consult the simple usage example in `top/top.sv`.
 1. See [hdmi-demo](https://github.com/hdl-util/hdmi-demo) for code that runs the demo as seen the demo GIF.
