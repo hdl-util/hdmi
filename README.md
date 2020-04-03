@@ -104,21 +104,14 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
     * Make sure you have all the necessary pins connected (GND pins, etc.)
     * Try switching your HDMI cable; some cheap cables like [these I got from Amazon](https://www.amazon.com/gp/product/B01JO9PB7E/) have poor shielding
 * Hot-Plug unaware: all modules are unaware of hotplug
-    * This shouldn't affect anything in the long term; the only stateful value is hdmi.tmds_channel.acc
+    * This shouldn't affect anything in the long term; the only stateful value is `hdmi.tmds_channel[2:0].acc`
     * You should decide hotplug behavior (i.e. pause/resume on disconnect/connect, or ignore it)
 * EDID not implemented: it is assumed you know what format you want at synthesis time, so there is no dynamic decision on video format
     * To be implemented in a display protocol independent manner
 * SCL/SCA voltage level: though unused by this implementation...it is I2C on a 5V logic level, as confirmed in the [TPD12S016 datasheet](https://www.ti.com/lit/ds/symlink/tpd12s016.pdf), which is unsupported by most FPGAs
     * Solution: use a bidirectional logic level shifter compatible with I2C to convert 3.3v LVTTL to 5v
     * Solution: use 3.3-V LVTTL I/O standard with 6.65k pull-up resistors to 3.3v (as done in `J13` on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip))
-    	* SCL voltage is supported
-    		* HDMI sink SCL lines has a pull-up to 47K +/- 10%
-		* `V IH actual = 3.3 + (5 - 3.3)/(6.65K + 47K +/- 4.7K) = 3.4937V to 3.5309V`
-		* I2C specifies `V IH max = 3.8V` for `V IH nominal = 3.3V`
-		* I2C specifies `V IH min = 3.5V` for `V IH nominal = 5V`
-		* Intel Cyclone 10 specifies `V IH max = 3.6V`, check your FPGA!
-	* Within specification for both the sink and the source
-	* To investigate: SDA line
+	* Emailed Arduino support: safe to use as long as the HDMI slave does not have pull-ups
 
 ## Licensing
 
