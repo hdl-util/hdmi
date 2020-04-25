@@ -78,6 +78,8 @@ The second clock is a clock 10 times as fast as the pixel clock. Even if your FP
 
 Both audio bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
 
+**WARNING: the audio can be REALLY LOUD if you use the full dynamic range with hand-generated waveforms! Using less dynamic range means you won't be deafened! (i.e. audio_sample >> 8 )**
+
 |Sampling Frequency|AUDIO_RATE value|
 |---|---|
 |32 kHz|32000|
