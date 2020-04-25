@@ -88,6 +88,28 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
 |96 kHz|96000|
 |192 kHz|192000|
 
+
+### Source Device Information Code
+
+This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE_INFORMATION` to give HDMI sinks an idea of what capabilities an HDMI sink might have. It may be used for displaying a relevant icon in an input list (i.e. DVD logo for a DVD player).
+
+|Code|Source Device Information|
+|---|---|
+|0x00|Unknown|
+|0x01|Digital Set-top Box|
+|0x02|DVD Player|
+|0x03|Digital VHS|
+|0x04|HDD Videorecorder|
+|0x05|Digital Video Camera|
+|0x06|Digital Still Camera|
+|0x07|Video CD|
+|0x08|Game|
+|0x09|PC General|
+|0x0a|Blu-Ray Disc|
+|0x0b|Super Audio CD|
+|0x0c|HD DVD|
+|0x0d|Portable Media Player|
+
 ### Things to be aware of / Troubleshooting
 
 * Limited resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
@@ -165,6 +187,7 @@ If you know of another good alternative, open an issue and it will be added.
 
 * [HDMI Specification v1.4a](https://libgen.is/book/index.php?md5=28FFF92120C7A2C88F91727004DA71ED)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
+* [CTA-861-G.pdf](https://b-ok.cc/book/5463292/52859e)
 * [DVI Specification v1.0](https://www.cs.unc.edu/~stc/FAQs/Video/dvi_spec-V1_0.pdf)
 * [IEC 60958-1](https://ia803003.us.archive.org/30/items/gov.in.is.iec.60958.1.2004/is.iec.60958.1.2004.pdf)
 * [IEC 60958-3](https://ia800905.us.archive.org/22/items/gov.in.is.iec.60958.3.2003/is.iec.60958.3.2003.pdf)

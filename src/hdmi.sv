@@ -23,7 +23,7 @@ module hdmi
 
     // **All parameters below matter ONLY IF you plan on sending auxiliary data (DVI_OUTPUT == 1'b0)**
 
-    // Refresh rate in Hz
+    // Specify the refresh rate in Hz you are using for audio calculations
     parameter VIDEO_REFRESH_RATE = 59.94,
 
     // As specified in Section 7.3, the minimal audio requirements are met: 16-bit or more L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
@@ -32,7 +32,13 @@ module hdmi
     parameter AUDIO_RATE = 44100,
 
     // Defaults to 16-bit audio, the minmimum supported by HDMI sinks. Can be anywhere from 16-bit to 24-bit.
-    parameter AUDIO_BIT_WIDTH = 16
+    parameter AUDIO_BIT_WIDTH = 16,
+
+    // Some HDMI sinks will show the source product description below to users (i.e. in a list of inputs instead of HDMI 1, HDMI 2, etc.).
+    // If you care about this, change it below.
+    parameter VENDOR_NAME = "Unknown\0", // Must be 8 bytes null-padded 7-bit ASCII
+    parameter PRODUCT_DESCRIPTION = "FPGA\0\0\0\0\0\0\0\0\0\0\0\0", // Must be 16 bytes null-padded 7-bit ASCII
+    parameter SOURCE_DEVICE_INFORMATION = 8'h00 // See README.md or CTA-861-G for the list of valid codes
 )
 (
     input logic clk_pixel_x10,
@@ -186,7 +192,15 @@ generate
         assign video_field_end = cx == frame_width - 1'b1 && cy == frame_height - 1'b1;
         logic [4:0] packet_pixel_counter;
         localparam VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
-        packet_picker #(.VIDEO_ID_CODE(VIDEO_ID_CODE), .VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE), .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH)) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .video_field_end(video_field_end), .packet_enable(packet_enable), .packet_pixel_counter(packet_pixel_counter), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
+        packet_picker #(
+            .VIDEO_ID_CODE(VIDEO_ID_CODE),
+            .VIDEO_RATE(VIDEO_RATE),
+            .AUDIO_RATE(AUDIO_RATE),
+            .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH),
+            .VENDOR_NAME(VENDOR_NAME),
+            .PRODUCT_DESCRIPTION(PRODUCT_DESCRIPTION),
+            .SOURCE_DEVICE_INFORMATION(SOURCE_DEVICE_INFORMATION)
+        ) packet_picker (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .video_field_end(video_field_end), .packet_enable(packet_enable), .packet_pixel_counter(packet_pixel_counter), .audio_sample_word(audio_sample_word), .header(header), .sub(sub));
         logic [8:0] packet_data;
         packet_assembler packet_assembler (.clk_pixel(clk_pixel), .data_island_period(data_island_period), .header(header), .sub(sub), .packet_data(packet_data), .counter(packet_pixel_counter));
 

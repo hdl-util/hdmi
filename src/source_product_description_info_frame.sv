@@ -4,9 +4,9 @@
 // See CEA-861-D Section 6.5 page 72 (84 in PDF)
 module source_product_description_info_frame
 #(
-    parameter VENDOR_NAME = "Unknown\0",
-    parameter PRODUCT_DESCRIPTION = "FPGA\0\0\0\0\0\0\0\0\0\0\0\0",
-    parameter SOURCE_DEVICE_INFORMATION = 8'h00
+    parameter VENDOR_NAME,
+    parameter PRODUCT_DESCRIPTION,
+    parameter SOURCE_DEVICE_INFORMATION
 )
 (
     output logic [23:0] header,
