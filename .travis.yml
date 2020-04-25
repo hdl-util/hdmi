@@ -23,6 +23,8 @@ script:
     - export PATH=$PATH:/home/travis/intelFPGA/19.1/modelsim_ase/bin
     - cd ./sim/top_tb/ && hdlmake fetch && hdlmake && make
     - cd -
+    - cd ./sim/audio_param_tb/ && hdlmake fetch && hdlmake && make
+    - cd -
 cache:
     directories:
         - /home/travis/intelFPGA/
