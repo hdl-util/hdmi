@@ -186,6 +186,7 @@ If you know of another good alternative, open an issue and it will be added.
 *These documents are not hosted here! They are available on Library Genesis and at other locations.*
 
 * [HDMI Specification v1.4a](https://libgen.is/book/index.php?md5=28FFF92120C7A2C88F91727004DA71ED)
+* [HDMI Specification v2.0](https://b-ok.cc/book/5464885/1f0b4c)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
 * [CTA-861-G.pdf](https://b-ok.cc/book/5463292/52859e)
 * [DVI Specification v1.0](https://www.cs.unc.edu/~stc/FAQs/Video/dvi_spec-V1_0.pdf)
