@@ -78,7 +78,7 @@ generate
         for (j = 0; j < 2; j++)
         begin: inner_pad
             if (MAX_SAMPLES_PER_PACKET >= i + 1)
-                assign audio_sample_word_buffer_padded[i][j] = {(24-AUDIO_BIT_WIDTH)'(0), audio_sample_word_buffer[i][j]};
+                assign audio_sample_word_buffer_padded[i][j] = {audio_sample_word_buffer[i][j], (24-AUDIO_BIT_WIDTH)'(0)};
             `ifdef MODEL_TECH
             else
                 assign audio_sample_word_buffer_padded[i][j] = 24'd0;
