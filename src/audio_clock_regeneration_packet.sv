@@ -21,7 +21,7 @@ localparam N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE %
 localparam CLK_SLOW_WIDTH = $clog2(N / 128);
 localparam CLK_SLOW_END = CLK_SLOW_WIDTH'(N / 128);
 logic [CLK_SLOW_WIDTH-1:0] clk_slow_counter = CLK_SLOW_WIDTH'(1);
-always @(posedge clk_audio)
+always_ff @(posedge clk_audio)
 begin
     if (clk_slow_counter == CLK_SLOW_END)
     begin
@@ -29,24 +29,32 @@ begin
         clk_slow_wrap <= !clk_slow_wrap;
     end
     else
+    begin
         clk_slow_counter <= clk_slow_counter + CLK_SLOW_WIDTH'(1);
+        clk_slow_wrap <= clk_slow_wrap;
+    end
 end
+
+logic [1:0] clk_slow_wrap_synchronizer_chain = 2'd0;
+always_ff @(posedge clk_pixel)
+    clk_slow_wrap_synchronizer_chain <= {clk_slow_wrap, clk_slow_wrap_synchronizer_chain[1]};
 
 localparam CTS_IDEAL = 20'(VIDEO_RATE*N/128/AUDIO_RATE);
 localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
 logic [19:0] cts;
-logic last_clk_slow_wrap = 1'b0;
 logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
 begin
-    if (last_clk_slow_wrap != clk_slow_wrap)
+    if (clk_slow_wrap_synchronizer_chain[1] ^ clk_slow_wrap_synchronizer_chain[0])
     begin
         cts_counter <= CTS_WIDTH'(0);
         cts <= {(20-CTS_WIDTH)'(0), cts_counter};
-        last_clk_slow_wrap <= clk_slow_wrap;
     end
     else
+    begin
         cts_counter <= cts_counter + CTS_WIDTH'(1);
+        cts <= cts;
+    end
 end
 
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Audio Clock Regeneration Packet header."

@@ -54,41 +54,43 @@ localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WI
 localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
 localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
 
-localparam MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
-logic [(MAX_SAMPLES_PER_PACKET == 4 ? 2 : 1):0] samples_remaining = 1'd0;
-logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_buffer [MAX_SAMPLES_PER_PACKET-1:0] [1:0];
-logic audio_buffer_rst = 1'b0;
-always @(posedge clk_audio or posedge audio_buffer_rst)
+logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer [1:0];
+logic audio_sample_word_transfer_control = 1'd0;
+always @(posedge clk_audio)
 begin
-    if (audio_buffer_rst)
-        samples_remaining <= 1'd0;
-    else
-    begin
-        audio_sample_word_buffer[samples_remaining] <= audio_sample_word;
-        samples_remaining <= samples_remaining + 1'd1;
-    end
+    audio_sample_word_transfer <= audio_sample_word;
+    audio_sample_word_transfer_control <= !audio_sample_word_transfer_control;
 end
 
-logic [23:0] audio_sample_word_buffer_padded [3:0] [1:0];
-genvar i;
-genvar j;
-generate
-    for (i = 0; i < 4; i++)
-    begin: outer_pad
-        for (j = 0; j < 2; j++)
-        begin: inner_pad
-            if (MAX_SAMPLES_PER_PACKET >= i + 1)
-                assign audio_sample_word_buffer_padded[i][j] = {audio_sample_word_buffer[i][j], (24-AUDIO_BIT_WIDTH)'(0)};
-            `ifdef MODEL_TECH
-            else
-                assign audio_sample_word_buffer_padded[i][j] = 24'd0;
-            `else
-            else
-                assign audio_sample_word_buffer_padded[i][j] = 24'dX;
-            `endif
-        end
+logic [1:0] audio_sample_word_transfer_control_synchronizer_chain = 2'd0;
+always @(posedge clk_pixel)
+    audio_sample_word_transfer_control_synchronizer_chain <= {audio_sample_word_transfer_control, audio_sample_word_transfer_control_synchronizer_chain[1]};
+
+localparam MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
+logic [(MAX_SAMPLES_PER_PACKET == 4 ? 2 : 1):0] samples_remaining = 1'd0;
+logic [23:0] audio_sample_word_buffer [MAX_SAMPLES_PER_PACKET-1:0] [1:0];
+logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer_mux [1:0];
+always_comb
+begin
+    if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
+        audio_sample_word_transfer_mux = audio_sample_word_transfer;
+    else
+        audio_sample_word_transfer_mux = audio_sample_word_buffer[samples_remaining];
+end
+
+logic audio_buffer_rst = 1'b0;
+always @(posedge clk_pixel)
+begin
+    if (audio_buffer_rst)
+        samples_remaining = 1'd0;
+
+    if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
+    begin
+        audio_sample_word_buffer[samples_remaining][0] <= {audio_sample_word_transfer_mux[0], (24-AUDIO_BIT_WIDTH)'(0)};
+        audio_sample_word_buffer[samples_remaining][1] <= {audio_sample_word_transfer_mux[1], (24-AUDIO_BIT_WIDTH)'(0)};
+        samples_remaining = samples_remaining + 1'd1;
     end
-endgenerate
+end
 
 logic [23:0] audio_sample_word_packet [3:0] [1:0];
 logic [3:0] audio_sample_word_present_packet;
@@ -133,13 +135,12 @@ begin
         auxiliary_video_information_info_frame_sent <= 1'b0;
         source_product_description_info_frame_sent <= 1'b0;
     end
-
-    if (packet_enable)
+    else if (packet_enable)
     begin
         if (samples_remaining != 4'd0)
         begin
             packet_type <= 8'd2;
-            audio_sample_word_packet <= audio_sample_word_buffer_padded;
+            audio_sample_word_packet[MAX_SAMPLES_PER_PACKET-1:0] <= audio_sample_word_buffer;
             audio_sample_word_present_packet <= {samples_remaining >= 3'd4, samples_remaining >= 3'd3, samples_remaining >= 3'd2, samples_remaining >= 3'd1};
             audio_buffer_rst <= 1'b1;
         end
