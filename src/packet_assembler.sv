@@ -11,7 +11,7 @@ module packet_assembler (
 );
 
 // 32 pixel wrap-around counter. See Section 5.2.3.4 for further information.
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
     if (data_island_period)
         counter <= counter + 5'd1;
 
@@ -56,7 +56,7 @@ generate
     end
 endgenerate
 
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
 begin
     if (data_island_period)
     begin
@@ -69,6 +69,8 @@ begin
         else if (counter == 5'd31)
             parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; // Reset ECC for next packet
     end
+    else
+        parity <= '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
 end
 
 endmodule

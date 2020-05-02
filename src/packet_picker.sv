@@ -56,14 +56,14 @@ localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
 
 logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer [1:0];
 logic audio_sample_word_transfer_control = 1'd0;
-always @(posedge clk_audio)
+always_ff @(posedge clk_audio)
 begin
     audio_sample_word_transfer <= audio_sample_word;
     audio_sample_word_transfer_control <= !audio_sample_word_transfer_control;
 end
 
 logic [1:0] audio_sample_word_transfer_control_synchronizer_chain = 2'd0;
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
     audio_sample_word_transfer_control_synchronizer_chain <= {audio_sample_word_transfer_control, audio_sample_word_transfer_control_synchronizer_chain[1]};
 
 localparam MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
@@ -79,7 +79,7 @@ begin
 end
 
 logic audio_buffer_rst = 1'b0;
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
 begin
     if (audio_buffer_rst)
         samples_remaining = 1'd0;
@@ -97,7 +97,7 @@ logic [3:0] audio_sample_word_present_packet;
 
 logic [7:0] frame_counter = 8'd0;
 integer k;
-always @(posedge clk_pixel)
+always_ff @(posedge clk_pixel)
 begin
     if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin

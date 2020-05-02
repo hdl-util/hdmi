@@ -36,28 +36,28 @@ assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 // PB7-13 =  sub1
 // PB14-20 = sub2
 // PB21-27 = sub3
-logic [7:0] pb [27:0];
+logic [7:0] packet_bytes [27:0];
 
-assign pb[0] = ~(header[23:16] + header[15:8] + header[7:0] + pb[13] + pb[12] + pb[11] + pb[10] + pb[9] + pb[8] + pb[7] + pb[6] + pb[5] + pb[4] + pb[3] + pb[2] + pb[1]);
-assign pb[1] = {1'b0, VIDEO_FORMAT, ACTIVE_FORMAT_INFO_PRESENT, BAR_INFO, SCAN_INFO};
-assign pb[2] = {COLORIMETRY, PICTURE_ASPECT_RATIO, ACTIVE_FORMAT_ASPECT_RATIO};
-assign pb[3] = {IT_CONTENT, EXTENDED_COLORIMETRY, RGB_QUANTIZATION_RANGE, NON_UNIFORM_PICTURE_SCALING};
-assign pb[4] = {1'b0, VIDEO_ID_CODE};
-assign pb[5] = {YCC_QUANTIZATION_RANGE, CONTENT_TYPE, PIXEL_REPETITION};
+assign packet_bytes[0] = ~(header[23:16] + header[15:8] + header[7:0] + packet_bytes[13] + packet_bytes[12] + packet_bytes[11] + packet_bytes[10] + packet_bytes[9] + packet_bytes[8] + packet_bytes[7] + packet_bytes[6] + packet_bytes[5] + packet_bytes[4] + packet_bytes[3] + packet_bytes[2] + packet_bytes[1]);
+assign packet_bytes[1] = {1'b0, VIDEO_FORMAT, ACTIVE_FORMAT_INFO_PRESENT, BAR_INFO, SCAN_INFO};
+assign packet_bytes[2] = {COLORIMETRY, PICTURE_ASPECT_RATIO, ACTIVE_FORMAT_ASPECT_RATIO};
+assign packet_bytes[3] = {IT_CONTENT, EXTENDED_COLORIMETRY, RGB_QUANTIZATION_RANGE, NON_UNIFORM_PICTURE_SCALING};
+assign packet_bytes[4] = {1'b0, VIDEO_ID_CODE};
+assign packet_bytes[5] = {YCC_QUANTIZATION_RANGE, CONTENT_TYPE, PIXEL_REPETITION};
 
 genvar i;
 generate
     if (BAR_INFO != 2'b00) // Assign values to bars if BAR_INFO says they are valid.
-        assign pb[13:6] = '{8'd0, 8'd0, ~8'd0, ~8'd0, 8'd0, 8'd0, ~8'd0, ~8'd0};
+        assign packet_bytes[13:6] = '{8'd0, 8'd0, ~8'd0, ~8'd0, 8'd0, 8'd0, ~8'd0, ~8'd0};
     else
-        assign pb[13:6] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
+        assign packet_bytes[13:6] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
     for (i = 14; i < 28; i++)
     begin: pb_reserved
-        assign pb[i] = 8'd0;
+        assign packet_bytes[i] = 8'd0;
     end
     for (i = 0; i < 4; i++)
     begin: pb_to_sub
-        assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
+        assign sub[i] = {packet_bytes[6 + i*7], packet_bytes[5 + i*7], packet_bytes[4 + i*7], packet_bytes[3 + i*7], packet_bytes[2 + i*7], packet_bytes[1 + i*7], packet_bytes[0 + i*7]};
     end
 endgenerate
 

@@ -30,24 +30,24 @@ assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 // PB7-13 =  sub1
 // PB14-20 = sub2
 // PB21-27 = sub3
-logic [7:0] pb [27:0];
+logic [7:0] packet_bytes [27:0];
 
-assign pb[0] = ~(header[23:16] + header[15:8] + header[7:0] + pb[5] + pb[4] + pb[3] + pb[2] + pb[1]);
-assign pb[1] = {AUDIO_CODING_TYPE, 1'b0, AUDIO_CHANNEL_COUNT};
-assign pb[2] = {3'd0, SAMPLING_FREQUENCY, SAMPLE_SIZE};
-assign pb[3] = 8'd0;
-assign pb[4] = CHANNEL_ALLOCATION;
-assign pb[5] = {DOWN_MIX_INHIBITED, LEVEL_SHIFT_VALUE, 1'b0, LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL};
+assign packet_bytes[0] = ~(header[23:16] + header[15:8] + header[7:0] + packet_bytes[5] + packet_bytes[4] + packet_bytes[3] + packet_bytes[2] + packet_bytes[1]);
+assign packet_bytes[1] = {AUDIO_CODING_TYPE, 1'b0, AUDIO_CHANNEL_COUNT};
+assign packet_bytes[2] = {3'd0, SAMPLING_FREQUENCY, SAMPLE_SIZE};
+assign packet_bytes[3] = 8'd0;
+assign packet_bytes[4] = CHANNEL_ALLOCATION;
+assign packet_bytes[5] = {DOWN_MIX_INHIBITED, LEVEL_SHIFT_VALUE, 1'b0, LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL};
 
 genvar i;
 generate
     for (i = 6; i < 28; i++)
     begin: pb_reserved
-        assign pb[i] = 8'd0;
+        assign packet_bytes[i] = 8'd0;
     end
     for (i = 0; i < 4; i++)
     begin: pb_to_sub
-        assign sub[i] = {pb[6 + i*7], pb[5 + i*7], pb[4 + i*7], pb[3 + i*7], pb[2 + i*7], pb[1 + i*7], pb[0 + i*7]};
+        assign sub[i] = {packet_bytes[6 + i*7], packet_bytes[5 + i*7], packet_bytes[4 + i*7], packet_bytes[3 + i*7], packet_bytes[2 + i*7], packet_bytes[1 + i*7], packet_bytes[0 + i*7]};
     end
 endgenerate
 endmodule
