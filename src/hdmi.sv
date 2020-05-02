@@ -6,39 +6,39 @@ module hdmi
     // Defaults to 640x480 which should be supported by almost if not all HDMI sinks.
     // See README.md or CEA-861-D for enumeration of video id codes.
     // Pixel repetition, interlaced scans and other special output modes are not implemented (yet).
-    parameter VIDEO_ID_CODE = 7'd1,
+    parameter int VIDEO_ID_CODE = 1,
 
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
-    parameter BIT_WIDTH = VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
-    parameter BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 11: 10,
+    parameter int BIT_WIDTH = VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
+    parameter int BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 11: 10,
 
     // A true HDMI signal sends auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
     // HDMI signal sinks are fortunately backwards-compatible with DVI signals.
     // Enable this flag if the output should be a DVI signal. You might want to do this to reduce resource usage or if you're only outputting video.
-    parameter DVI_OUTPUT = 1'b0,
+    parameter bit DVI_OUTPUT = 1'b0,
 
     // When enabled, DDRIO (Double Data Rate I/O) is used and clk_pixel_x10 only needs to be five times as fast as clk_pixel.
-    parameter DDRIO = 1'b0,
+    parameter bit DDRIO = 1'b0,
 
     // **All parameters below matter ONLY IF you plan on sending auxiliary data (DVI_OUTPUT == 1'b0)**
 
     // Specify the refresh rate in Hz you are using for audio calculations
-    parameter VIDEO_REFRESH_RATE = 59.94,
+    parameter real VIDEO_REFRESH_RATE = 59.94,
 
     // As specified in Section 7.3, the minimal audio requirements are met: 16-bit or more L-PCM audio at 32 kHz, 44.1 kHz, or 48 kHz.
     // See Table 7-4 or README.md for an enumeration of sampling frequencies supported by HDMI.
     // Note that sinks may not support rates above 48 kHz.
-    parameter AUDIO_RATE = 44100,
+    parameter int AUDIO_RATE = 44100,
 
     // Defaults to 16-bit audio, the minmimum supported by HDMI sinks. Can be anywhere from 16-bit to 24-bit.
-    parameter AUDIO_BIT_WIDTH = 16,
+    parameter int AUDIO_BIT_WIDTH = 16,
 
     // Some HDMI sinks will show the source product description below to users (i.e. in a list of inputs instead of HDMI 1, HDMI 2, etc.).
     // If you care about this, change it below.
-    parameter VENDOR_NAME = "Unknown\0", // Must be 8 bytes null-padded 7-bit ASCII
-    parameter PRODUCT_DESCRIPTION = "FPGA\0\0\0\0\0\0\0\0\0\0\0\0", // Must be 16 bytes null-padded 7-bit ASCII
-    parameter SOURCE_DEVICE_INFORMATION = 8'h00 // See README.md or CTA-861-G for the list of valid codes
+    parameter string VENDOR_NAME = "Unknown\0", // Must be 8 bytes null-padded 7-bit ASCII
+    parameter string PRODUCT_DESCRIPTION = "FPGA\0\0\0\0\0\0\0\0\0\0\0\0", // Must be 16 bytes null-padded 7-bit ASCII
+    parameter bit [7:0] SOURCE_DEVICE_INFORMATION = 8'h00 // See README.md or CTA-861-G for the list of valid codes
 )
 (
     input logic clk_pixel_x10,
@@ -70,7 +70,7 @@ module hdmi
     output logic [BIT_HEIGHT-1:0] screen_start_y
 );
 
-localparam NUM_CHANNELS = 3;
+localparam int NUM_CHANNELS = 3;
 logic hsync;
 logic vsync;
 
@@ -165,7 +165,7 @@ generate
         end
 
         // See Section 5.2.3.1
-        integer max_num_packets_alongside;
+        int max_num_packets_alongside;
         logic [4:0] num_packets_alongside;
         always_comb
         begin
@@ -197,7 +197,7 @@ generate
         logic video_field_end;
         assign video_field_end = cx == frame_width - 1'b1 && cy == frame_height - 1'b1;
         logic [4:0] packet_pixel_counter;
-        localparam VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
+        localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
             .VIDEO_RATE(VIDEO_RATE),

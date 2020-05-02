@@ -3,13 +3,13 @@
 
 module packet_picker
 #(
-    parameter VIDEO_ID_CODE,
-    parameter VIDEO_RATE,
-    parameter AUDIO_BIT_WIDTH,
-    parameter AUDIO_RATE,
-    parameter VENDOR_NAME,
-    parameter PRODUCT_DESCRIPTION,
-    parameter SOURCE_DEVICE_INFORMATION
+    parameter int VIDEO_ID_CODE,
+    parameter real VIDEO_RATE,
+    parameter int AUDIO_BIT_WIDTH,
+    parameter int AUDIO_RATE,
+    parameter string VENDOR_NAME,
+    parameter string PRODUCT_DESCRIPTION,
+    parameter bit [7:0] SOURCE_DEVICE_INFORMATION
 )
 (
     input logic clk_pixel,
@@ -42,7 +42,7 @@ logic clk_audio_counter_wrap;
 audio_clock_regeneration_packet #(.VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .clk_audio_counter_wrap(clk_audio_counter_wrap), .header(headers[1]), .sub(subs[1]));
 
 // Audio Sample packet
-localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
+localparam bit [3:0] SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 44100 ? 4'b0000
     : AUDIO_RATE == 88200 ? 4'b1000
     : AUDIO_RATE == 176400 ? 4'b1100
@@ -50,9 +50,9 @@ localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
     : AUDIO_RATE == 96000 ? 4'b1010
     : AUDIO_RATE == 192000 ? 4'b1110
     : 4'bXXXX;
-localparam AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
-localparam WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
-localparam WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
+localparam int AUDIO_BIT_WIDTH_COMPARATOR = AUDIO_BIT_WIDTH < 20 ? 20 : AUDIO_BIT_WIDTH == 20 ? 25 : AUDIO_BIT_WIDTH < 24 ? 24 : AUDIO_BIT_WIDTH == 24 ? 29 : -1;
+localparam bit [2:0] WORD_LENGTH = 3'(AUDIO_BIT_WIDTH_COMPARATOR - AUDIO_BIT_WIDTH);
+localparam bit WORD_LENGTH_LIMIT = AUDIO_BIT_WIDTH <= 20 ? 1'b0 : 1'b1;
 
 logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer [1:0];
 logic audio_sample_word_transfer_control = 1'd0;
@@ -66,7 +66,7 @@ logic [1:0] audio_sample_word_transfer_control_synchronizer_chain = 2'd0;
 always_ff @(posedge clk_pixel)
     audio_sample_word_transfer_control_synchronizer_chain <= {audio_sample_word_transfer_control, audio_sample_word_transfer_control_synchronizer_chain[1]};
 
-localparam MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
+localparam int MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
 logic [(MAX_SAMPLES_PER_PACKET == 4 ? 2 : 1):0] samples_remaining = 1'd0;
 logic [23:0] audio_sample_word_buffer [MAX_SAMPLES_PER_PACKET-1:0] [1:0];
 logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer_mux [1:0];
@@ -96,7 +96,7 @@ logic [23:0] audio_sample_word_packet [3:0] [1:0];
 logic [3:0] audio_sample_word_present_packet;
 
 logic [7:0] frame_counter = 8'd0;
-integer k;
+int k;
 always_ff @(posedge clk_pixel)
 begin
     if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame

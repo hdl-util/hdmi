@@ -5,7 +5,7 @@ module tmds_channel
 #(
     // TMDS Channel number.
     // There are only 3 possible channel numbers in HDMI 1.4a: 0, 1, 2.
-    parameter CN = 0
+    parameter int CN
 )
 (
     input logic clk_pixel,

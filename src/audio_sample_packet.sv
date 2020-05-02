@@ -10,41 +10,41 @@ module audio_sample_packet
     // A thorough explanation of the below parameters can be found in IEC 60958-3 5.2, 5.3.
 
     // 0 = Consumer, 1 = Professional
-    parameter GRADE = 1'b0,
+    parameter bit GRADE = 1'b0,
 
     // 0 = LPCM, 1 = IEC 61937 compressed
-    parameter SAMPLE_WORD_TYPE = 1'b0,
+    parameter bit SAMPLE_WORD_TYPE = 1'b0,
 
     // 0 = asserted, 1 = not asserted
-    parameter COPYRIGHT_NOT_ASSERTED = 1'b1,
+    parameter bit COPYRIGHT_NOT_ASSERTED = 1'b1,
 
     // 000 = no pre-emphasis, 001 = 50μs/15μs pre-emphasis
-    parameter PRE_EMPHASIS = 3'b000,
+    parameter bit [2:0] PRE_EMPHASIS = 3'b000,
 
     // Only one valid value
-    parameter MODE = 2'b00,
+    parameter bit [1:0] MODE = 2'b00,
 
     // Set to all 0s for general device.
-    parameter CATEGORY_CODE = 8'd0,
+    parameter bit [7:0] CATEGORY_CODE = 8'd0,
 
     // TODO: not really sure what this is...
     // 0 = "Do no take into account"
-    parameter SOURCE_NUMBER = 4'd0,
+    parameter bit [3:0] SOURCE_NUMBER = 4'd0,
 
     // 0000 = 44.1 kHz
-    parameter SAMPLING_FREQUENCY,
+    parameter bit [3:0] SAMPLING_FREQUENCY,
 
     // Normal accuracy: +/- 1000 * 10E-6 (00), High accuracy +/- 50 * 10E-6 (01)
-    parameter CLOCK_ACCURACY = 2'b00,
+    parameter bit [1:0] CLOCK_ACCURACY = 2'b00,
 
     // 3-bit representation of the number of bits to subtract (except 101 is actually subtract 0) with LSB first, followed by maxmium length of 20 bits (0) or 24 bits (1)
-    parameter WORD_LENGTH,
+    parameter bit [2:0] WORD_LENGTH,
 
     // Frequency prior to conversion in a consumer playback system. 0000 = not indicated.
-    parameter ORIGINAL_SAMPLING_FREQUENCY = 4'b0000,
+    parameter bit [3:0] ORIGINAL_SAMPLING_FREQUENCY = 4'b0000,
 
     // 2-channel = 0, >= 3-channel = 1
-    parameter LAYOUT = 1'b0
+    parameter bit LAYOUT = 1'b0
 
 )
 (
@@ -63,7 +63,7 @@ module audio_sample_packet
 logic [3:0] CHANNEL_LEFT = 4'd1;
 logic [3:0] CHANNEL_RIGHT = 4'd2;
 
-localparam CHANNEL_STATUS_LENGTH = 8'd192;
+localparam bit [7:0] CHANNEL_STATUS_LENGTH = 8'd192;
 // See IEC 60958-1 5.1, Table 2
 logic [192-1:0] channel_status_left;
 assign channel_status_left = {152'd0, ORIGINAL_SAMPLING_FREQUENCY, WORD_LENGTH, 2'b00, CLOCK_ACCURACY, SAMPLING_FREQUENCY, CHANNEL_LEFT, SOURCE_NUMBER, CATEGORY_CODE, MODE, PRE_EMPHASIS, COPYRIGHT_NOT_ASSERTED, SAMPLE_WORD_TYPE, GRADE};

@@ -4,21 +4,18 @@
 // See CEA-861-D Section 6.5 page 72 (84 in PDF)
 module source_product_description_info_frame
 #(
-    parameter VENDOR_NAME,
-    parameter PRODUCT_DESCRIPTION,
-    parameter SOURCE_DEVICE_INFORMATION
+    parameter string VENDOR_NAME,
+    parameter string PRODUCT_DESCRIPTION,
+    parameter bit [7:0] SOURCE_DEVICE_INFORMATION
 )
 (
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
 
-bit [8*8-1:0] vendor_name = VENDOR_NAME;
-bit [16*8-1:0] product_description = PRODUCT_DESCRIPTION;
-
-localparam LENGTH = 5'd25;
-localparam VERSION = 8'd1;
-localparam TYPE = 7'd3;
+localparam bit [4:0] LENGTH = 5'd25;
+localparam bit [7:0] VERSION = 8'd1;
+localparam bit [6:0] TYPE = 7'd3;
 
 assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 
@@ -34,13 +31,13 @@ genvar i;
 generate
     for (i = 1; i < 9; i++)
     begin: pb_vendor
-        assign packet_bytes[i] = vendor_name[i*8-1:(i-1)*8];
+        assign packet_bytes[i] = VENDOR_NAME[i - 1] == 8'h30 ? 8'h00 : VENDOR_NAME[i - 1];
     end
-    for (i = 9; i < 25; i++)
+    for (i = 9; i < LENGTH; i++)
     begin: pb_product
-        assign packet_bytes[i] = product_description[(i-8)*8-1:(i-9)*8];
+        assign packet_bytes[i] = PRODUCT_DESCRIPTION[i - 9] == 8'h30 ? 8'h00 : PRODUCT_DESCRIPTION[i - 9];
     end
-    assign packet_bytes[25] = SOURCE_DEVICE_INFORMATION;
+    assign packet_bytes[LENGTH] = SOURCE_DEVICE_INFORMATION;
     for (i = 26; i < 28; i++)
     begin: pb_reserved
         assign packet_bytes[i] = 8'd0;

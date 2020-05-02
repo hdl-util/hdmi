@@ -4,11 +4,11 @@
 // See Section 8.2.2
 module audio_info_frame
 #(
-    parameter AUDIO_CHANNEL_COUNT = 3'd1, // 2 channels. See CEA-861-D table 17 for details.
-    parameter CHANNEL_ALLOCATION = 8'h00, // Channel 0 = Front Left, Channel 1 = Front Right (0-indexed)
-    parameter DOWN_MIX_INHIBITED = 1'b0, // Permitted or no information about any assertion of this. The DM_INH field is to be set only for DVD-Audio applications.
-    parameter LEVEL_SHIFT_VALUE = 4'd0, // 4-bit unsigned number from 0dB up to 15dB, used for downmixing.
-    parameter LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL = 2'b00 // No information, LFE = bass-only info < 120Hz, used in Dolby Surround.
+    parameter bit [2:0] AUDIO_CHANNEL_COUNT = 3'd1, // 2 channels. See CEA-861-D table 17 for details.
+    parameter bit [7:0] CHANNEL_ALLOCATION = 8'h00, // Channel 0 = Front Left, Channel 1 = Front Right (0-indexed)
+    parameter bit DOWN_MIX_INHIBITED = 1'b0, // Permitted or no information about any assertion of this. The DM_INH field is to be set only for DVD-Audio applications.
+    parameter bit [3:0] LEVEL_SHIFT_VALUE = 4'd0, // 4-bit unsigned number from 0dB up to 15dB, used for downmixing.
+    parameter bit [1:0] LOW_FREQUENCY_EFFECTS_PLAYBACK_LEVEL = 2'b00 // No information, LFE = bass-only info < 120Hz, used in Dolby Surround.
 )
 (
     output logic [23:0] header,
@@ -16,13 +16,13 @@ module audio_info_frame
 );
 
 // NOTE—HDMI requires the coding type, sample size and sample frequency fields to be set to 0 ("Refer to Stream Header") as these items are carried in the audio stream
-localparam AUDIO_CODING_TYPE = 4'd0; // Refer to stream header.
-localparam SAMPLING_FREQUENCY = 3'd0; // Refer to stream header.
-localparam SAMPLE_SIZE = 2'd0; // Refer to stream header.
+localparam bit [3:0] AUDIO_CODING_TYPE = 4'd0; // Refer to stream header.
+localparam bit [2:0] SAMPLING_FREQUENCY = 3'd0; // Refer to stream header.
+localparam bit [1:0] SAMPLE_SIZE = 2'd0; // Refer to stream header.
 
-localparam LENGTH = 5'd10;
-localparam VERSION = 8'd1;
-localparam TYPE = 7'd4;
+localparam bit [4:0] LENGTH = 5'd10;
+localparam bit [7:0] VERSION = 8'd1;
+localparam bit [6:0] TYPE = 7'd4;
 
 assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 
