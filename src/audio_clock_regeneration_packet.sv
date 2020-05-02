@@ -10,51 +10,50 @@ module audio_clock_regeneration_packet
 (
     input logic clk_pixel,
     input logic clk_audio,
-    output logic clk_slow_wrap = 1'b0,
+    output logic clk_audio_counter_wrap,
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
 
+localparam CLK_AUDIO_COUNTER_WIDTH = $clog2(N / 128);
+localparam CLK_AUDIO_COUNTER_END = CLK_AUDIO_COUNTER_WIDTH'(N / 128);
+logic [CLK_AUDIO_COUNTER_WIDTH-1:0] clk_audio_counter = CLK_AUDIO_COUNTER_WIDTH'(1);
+logic internal_clk_audio_counter_wrap = 1'd0;
+always_ff @(posedge clk_audio)
+begin
+    if (clk_audio_counter == CLK_AUDIO_COUNTER_END)
+    begin
+        clk_audio_counter <= CLK_AUDIO_COUNTER_WIDTH'(0);
+        internal_clk_audio_counter_wrap <= !internal_clk_audio_counter_wrap;
+    end
+    else
+        clk_audio_counter <= clk_audio_counter + CLK_AUDIO_COUNTER_WIDTH'(1);
+end
+
+logic [1:0] clk_audio_counter_wrap_synchronizer_chain = 2'd0;
+always_ff @(posedge clk_pixel)
+begin
+    clk_audio_counter_wrap_synchronizer_chain <= {internal_clk_audio_counter_wrap, clk_audio_counter_wrap_synchronizer_chain[1]};
+    clk_audio_counter_wrap <= clk_audio_counter_wrap_synchronizer_chain[0];
+end
+
 // See Section 7.2.3, values derived from "Other" row in Tables 7-1, 7-2, 7-3.
 localparam N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
 
-localparam CLK_SLOW_WIDTH = $clog2(N / 128);
-localparam CLK_SLOW_END = CLK_SLOW_WIDTH'(N / 128);
-logic [CLK_SLOW_WIDTH-1:0] clk_slow_counter = CLK_SLOW_WIDTH'(1);
-always_ff @(posedge clk_audio)
-begin
-    if (clk_slow_counter == CLK_SLOW_END)
-    begin
-        clk_slow_counter <= CLK_SLOW_WIDTH'(0);
-        clk_slow_wrap <= !clk_slow_wrap;
-    end
-    else
-    begin
-        clk_slow_counter <= clk_slow_counter + CLK_SLOW_WIDTH'(1);
-        clk_slow_wrap <= clk_slow_wrap;
-    end
-end
+localparam CTS_COUNTER_IDEAL = 20'(VIDEO_RATE*N/128/AUDIO_RATE);
+localparam CTS_COUNTER_WIDTH = $clog2(20'(CTS_COUNTER_IDEAL * 1.1));
 
-logic [1:0] clk_slow_wrap_synchronizer_chain = 2'd0;
-always_ff @(posedge clk_pixel)
-    clk_slow_wrap_synchronizer_chain <= {clk_slow_wrap, clk_slow_wrap_synchronizer_chain[1]};
-
-localparam CTS_IDEAL = 20'(VIDEO_RATE*N/128/AUDIO_RATE);
-localparam CTS_WIDTH = $clog2(20'(CTS_IDEAL * 1.1));
 logic [19:0] cts;
-logic [CTS_WIDTH-1:0] cts_counter = CTS_WIDTH'(0);
+logic [CTS_COUNTER_WIDTH-1:0] cts_counter = CTS_COUNTER_WIDTH'(0);
 always_ff @(posedge clk_pixel)
 begin
-    if (clk_slow_wrap_synchronizer_chain[1] ^ clk_slow_wrap_synchronizer_chain[0])
+    if (clk_audio_counter_wrap_synchronizer_chain[1] ^ clk_audio_counter_wrap_synchronizer_chain[0])
     begin
-        cts_counter <= CTS_WIDTH'(0);
-        cts <= {(20-CTS_WIDTH)'(0), cts_counter};
+        cts_counter <= CTS_COUNTER_WIDTH'(0);
+        cts <= {(20-CTS_COUNTER_WIDTH)'(0), cts_counter};
     end
     else
-    begin
-        cts_counter <= cts_counter + CTS_WIDTH'(1);
-        cts <= cts;
-    end
+        cts_counter <= cts_counter + CTS_COUNTER_WIDTH'(1);
 end
 
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Audio Clock Regeneration Packet header."
@@ -63,6 +62,7 @@ assign header = {8'd0, 8'd0, 8'd1};
 `else
 assign header = {8'dX, 8'dX, 8'd1};
 `endif
+
 // "The four Subpackets each contain the same Audio Clock regeneration Subpacket."
 genvar i;
 generate

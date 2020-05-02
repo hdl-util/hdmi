@@ -38,8 +38,8 @@ assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 
 `endif
 
 // Audio Clock Regeneration Packet
-logic clk_slow_wrap;
-audio_clock_regeneration_packet #(.VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .clk_slow_wrap(clk_slow_wrap), .header(headers[1]), .sub(subs[1]));
+logic clk_audio_counter_wrap;
+audio_clock_regeneration_packet #(.VIDEO_RATE(VIDEO_RATE), .AUDIO_RATE(AUDIO_RATE)) audio_clock_regeneration_packet (.clk_pixel(clk_pixel), .clk_audio(clk_audio), .clk_audio_counter_wrap(clk_audio_counter_wrap), .header(headers[1]), .sub(subs[1]));
 
 // Audio Sample packet
 localparam SAMPLING_FREQUENCY = AUDIO_RATE == 32000 ? 4'b0011
@@ -123,8 +123,8 @@ audio_info_frame audio_info_frame(.header(headers[132]), .sub(subs[132]));
 logic audio_info_frame_sent = 1'b0;
 logic auxiliary_video_information_info_frame_sent = 1'b0;
 logic source_product_description_info_frame_sent = 1'b0;
-logic last_clk_slow_wrap = 1'b0;
-always @(posedge clk_pixel)
+logic last_clk_audio_counter_wrap = 1'b0;
+always_ff @(posedge clk_pixel)
 begin
     if (audio_buffer_rst)
         audio_buffer_rst <= 1'b0;
@@ -134,6 +134,7 @@ begin
         audio_info_frame_sent <= 1'b0;
         auxiliary_video_information_info_frame_sent <= 1'b0;
         source_product_description_info_frame_sent <= 1'b0;
+        packet_type <= 8'dx;
     end
     else if (packet_enable)
     begin
@@ -144,10 +145,10 @@ begin
             audio_sample_word_present_packet <= {samples_remaining >= 3'd4, samples_remaining >= 3'd3, samples_remaining >= 3'd2, samples_remaining >= 3'd1};
             audio_buffer_rst <= 1'b1;
         end
-        else if (last_clk_slow_wrap != clk_slow_wrap)
+        else if (last_clk_audio_counter_wrap ^ clk_audio_counter_wrap)
         begin
             packet_type <= 8'd1;
-            last_clk_slow_wrap <= clk_slow_wrap;
+            last_clk_audio_counter_wrap <= clk_audio_counter_wrap;
         end
         else if (!audio_info_frame_sent)
         begin
