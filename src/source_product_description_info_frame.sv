@@ -4,8 +4,8 @@
 // See CEA-861-D Section 6.5 page 72 (84 in PDF)
 module source_product_description_info_frame
 #(
-    parameter string VENDOR_NAME,
-    parameter string PRODUCT_DESCRIPTION,
+    parameter bit [8*8-1:0] VENDOR_NAME,
+    parameter bit [8*16-1:0] PRODUCT_DESCRIPTION,
     parameter bit [7:0] SOURCE_DEVICE_INFORMATION
 )
 (
@@ -27,15 +27,28 @@ logic [7:0] packet_bytes [27:0];
 
 assign packet_bytes[0] = ~(header[23:16] + header[15:8] + header[7:0] + packet_bytes[24] + packet_bytes[23] + packet_bytes[22] + packet_bytes[21] + packet_bytes[20] + packet_bytes[19] + packet_bytes[18] + packet_bytes[17] + packet_bytes[16] + packet_bytes[15] + packet_bytes[14] + packet_bytes[13] + packet_bytes[12] + packet_bytes[11] + packet_bytes[10] + packet_bytes[9] + packet_bytes[8] + packet_bytes[7] + packet_bytes[6] + packet_bytes[5] + packet_bytes[4] + packet_bytes[3] + packet_bytes[2] + packet_bytes[1]);
 
+
+byte vendor_name [0:7];
+byte product_description [0:15];
+
 genvar i;
 generate
+    for (i = 0; i < 8; i++)
+    begin: vendor_to_bytes
+        assign vendor_name[i] = VENDOR_NAME[(7-i+1)*8-1:(7-i)*8];
+    end
+    for (i = 0; i < 8; i++)
+    begin: product_to_bytes
+        assign product_description[i] = PRODUCT_DESCRIPTION[(15-i+1)*8-1:(15-i)*8];
+    end
+
     for (i = 1; i < 9; i++)
     begin: pb_vendor
-        assign packet_bytes[i] = VENDOR_NAME[i - 1] == 8'h30 ? 8'h00 : VENDOR_NAME[i - 1];
+        assign packet_bytes[i] = vendor_name[i - 1] == 8'h30 ? 8'h00 : vendor_name[i - 1];
     end
     for (i = 9; i < LENGTH; i++)
     begin: pb_product
-        assign packet_bytes[i] = PRODUCT_DESCRIPTION[i - 9] == 8'h30 ? 8'h00 : PRODUCT_DESCRIPTION[i - 9];
+        assign packet_bytes[i] = product_description[i - 9] == 8'h30 ? 8'h00 : product_description[i - 9];
     end
     assign packet_bytes[LENGTH] = SOURCE_DEVICE_INFORMATION;
     for (i = 26; i < 28; i++)
