@@ -40,7 +40,7 @@ begin
     clk_audio_counter_wrap <= clk_audio_counter_wrap_synchronizer_chain[0];
 end
 
-localparam bit [19:0] CYCLE_TIME_STAMP_COUNTER_IDEAL = 20'(VIDEO_RATE * N / 128 / AUDIO_RATE);
+localparam bit [19:0] CYCLE_TIME_STAMP_COUNTER_IDEAL = 20'(int'(VIDEO_RATE * N / 128 / AUDIO_RATE));
 localparam int CYCLE_TIME_STAMP_COUNTER_WIDTH = $clog2(20'(int'(CYCLE_TIME_STAMP_COUNTER_IDEAL * 1.1))); // Account for 10% deviation in audio clock
 
 logic [19:0] cycle_time_stamp = 20'd0;
