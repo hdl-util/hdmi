@@ -38,7 +38,7 @@ module audio_sample_packet
     parameter bit [1:0] CLOCK_ACCURACY = 2'b00,
 
     // 3-bit representation of the number of bits to subtract (except 101 is actually subtract 0) with LSB first, followed by maxmium length of 20 bits (0) or 24 bits (1)
-    parameter bit [2:0] WORD_LENGTH,
+    parameter bit [3:0] WORD_LENGTH,
 
     // Frequency prior to conversion in a consumer playback system. 0000 = not indicated.
     parameter bit [3:0] ORIGINAL_SAMPLING_FREQUENCY = 4'b0000,

@@ -128,7 +128,7 @@ endgenerate
 // Apply selected mode.
 always @(posedge clk_pixel)
 begin
-    unique case (mode)
+    case (mode)
         3'd0: tmds <= control_coding;
         3'd1: tmds <= video_coding;
         3'd2: tmds <= video_guard_band;

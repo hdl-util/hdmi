@@ -42,7 +42,7 @@ assign packet_bytes[0] = ~(header[23:16] + header[15:8] + header[7:0] + packet_b
 assign packet_bytes[1] = {1'b0, VIDEO_FORMAT, ACTIVE_FORMAT_INFO_PRESENT, BAR_INFO, SCAN_INFO};
 assign packet_bytes[2] = {COLORIMETRY, PICTURE_ASPECT_RATIO, ACTIVE_FORMAT_ASPECT_RATIO};
 assign packet_bytes[3] = {IT_CONTENT, EXTENDED_COLORIMETRY, RGB_QUANTIZATION_RANGE, NON_UNIFORM_PICTURE_SCALING};
-assign packet_bytes[4] = {1'b0, VIDEO_ID_CODE};
+assign packet_bytes[4] = {1'b0, 7'(VIDEO_ID_CODE)};
 assign packet_bytes[5] = {YCC_QUANTIZATION_RANGE, CONTENT_TYPE, PIXEL_REPETITION};
 
 genvar i;
