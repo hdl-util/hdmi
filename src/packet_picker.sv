@@ -69,13 +69,13 @@ always_ff @(posedge clk_pixel)
 localparam int MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
 logic [(MAX_SAMPLES_PER_PACKET == 4 ? 2 : 1):0] samples_remaining = 1'd0;
 logic [23:0] audio_sample_word_buffer [MAX_SAMPLES_PER_PACKET-1:0] [1:0];
-logic [23:0] audio_sample_word_transfer_mux [1:0];
+logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer_mux [1:0];
 always_comb
 begin
     if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
-        audio_sample_word_transfer_mux = '{{audio_sample_word_transfer[1], {(24-AUDIO_BIT_WIDTH){1'b0}}}, {audio_sample_word_transfer[0], {(24-AUDIO_BIT_WIDTH){1'b0}}}};
+        audio_sample_word_transfer_mux = audio_sample_word_transfer;
     else
-        audio_sample_word_transfer_mux = audio_sample_word_buffer[samples_remaining];
+        audio_sample_word_transfer_mux = '{audio_sample_word_buffer[samples_remaining][1][23:(24-AUDIO_BIT_WIDTH)], audio_sample_word_buffer[samples_remaining][0][23:(24-AUDIO_BIT_WIDTH)]};
 end
 
 logic audio_buffer_rst = 1'b0;
