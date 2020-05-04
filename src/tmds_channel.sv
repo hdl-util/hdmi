@@ -19,7 +19,7 @@ module tmds_channel
 // See Section 5.4.4.1
 // Below is a direct implementation of Figure 5-7, using the same variable names. condN refers to the Nth conditional diamond.
 
-logic signed [4:0] acc = 4'd0;
+logic signed [4:0] acc = 5'sd0;
 
 logic [8:0] q_m;
 logic [9:0] q_out;
@@ -27,46 +27,46 @@ logic [9:0] video_coding;
 assign video_coding = q_out;
 
 wire [3:0] N1D = video_data[0] + video_data[1] + video_data[2] + video_data[3] + video_data[4] + video_data[5] + video_data[6] + video_data[7];
-wire [3:0] N1q_m07 = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7];
-wire [3:0] N0q_m07 = 4'd8 - N1q_m07;
+wire signed [4:0] N1q_m07 = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7];
+wire signed [4:0] N0q_m07 = ~q_m[0] + ~q_m[1] + ~q_m[2] + ~q_m[3] + ~q_m[4] + ~q_m[5] + ~q_m[6] + ~q_m[7];
 
 logic signed [4:0] acc_add;
 
 always_comb
 begin
-    if (N1D > 4'd4 || (N1D == 4'd4 && video_data[0] == 1'd0))
+    if (N1D > 5'sd4 || (N1D == 5'sd4 && video_data[0] == 1'd0))
         q_m = {1'b0, q_m[6:0] ~^ video_data[7:1], video_data[0]};
     else
         q_m = {1'b1, q_m[6:0] ^ video_data[7:1], video_data[0]};
-    if (acc == $signed(0) || (N1q_m07 == N0q_m07))
+    if (acc == 5'sd0 || (N1q_m07 == N0q_m07))
     begin
         if (q_m[8])
         begin
-            acc_add = $signed(N1q_m07) - $signed(N0q_m07);
+            acc_add = N1q_m07 - N0q_m07;
             q_out = {~q_m[8], q_m[8], q_m[7:0]};
         end
         else
         begin
-            acc_add = $signed(N0q_m07) - $signed(N1q_m07);
+            acc_add = N0q_m07 - N1q_m07;
             q_out = {~q_m[8], q_m[8], ~q_m[7:0]};
         end
     end
     else
     begin
-        if ((acc > $signed(0) && N1q_m07 > 4'd4) || (acc < $signed(0) && N1q_m07 < 4'd4))
+        if ((acc > 5'sd0 && N1q_m07 > N0q_m07) || (acc < 5'sd0 && N1q_m07 < N0q_m07))
         begin
             q_out = {1'b1, q_m[8], ~q_m[7:0]};
-            acc_add = ($signed(N0q_m07) - $signed(N1q_m07)) + $signed({q_m[8], 1'b0});
+            acc_add = (N0q_m07 - N1q_m07) + (q_m[8] ? 5'sd2 : 5'sd0);
         end
         else
         begin
             q_out = {1'b0, q_m[8], q_m[7:0]};
-            acc_add = ($signed(N1q_m07) - $signed(N0q_m07)) - $signed({~q_m[8], 1'b0});
+            acc_add = (N1q_m07 - N0q_m07) - (~q_m[8] ? 5'sd2 : 5'sd0);
         end
     end
 end
 
-always_ff @(posedge clk_pixel) acc <= mode != 3'd1 ? $signed(4'd0) : acc + acc_add;
+always_ff @(posedge clk_pixel) acc <= mode != 3'd1 ? 5'sd0 : acc + acc_add;
 
 // See Section 5.4.2
 logic [9:0] control_coding;
