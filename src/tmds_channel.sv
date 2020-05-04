@@ -38,7 +38,7 @@ begin
         q_m = {1'b0, q_m[6:0] ~^ video_data[7:1], video_data[0]};
     else
         q_m = {1'b1, q_m[6:0] ^ video_data[7:1], video_data[0]};
-    if (acc == 0 || (N1q_m07 == N0q_m07))
+    if (acc == $signed(0) || (N1q_m07 == N0q_m07))
     begin
         if (q_m[8])
         begin
@@ -53,15 +53,15 @@ begin
     end
     else
     begin
-        if ((acc > 0 && N1q_m07 > 4'd4) || (acc < 0 && N1q_m07 < 4'd4))
+        if ((acc > $signed(0) && N1q_m07 > 4'd4) || (acc < $signed(0) && N1q_m07 < 4'd4))
         begin
             q_out = {1'b1, q_m[8], ~q_m[7:0]};
-            acc_add = $signed(N0q_m07) - $signed(N1q_m07) + $signed({q_m[8], 1'b0});
+            acc_add = ($signed(N0q_m07) - $signed(N1q_m07)) + $signed({q_m[8], 1'b0});
         end
         else
         begin
             q_out = {1'b0, q_m[8], q_m[7:0]};
-            acc_add = $signed(N1q_m07) - $signed(N0q_m07) - $signed({~q_m[8], 1'b0});
+            acc_add = ($signed(N1q_m07) - $signed(N0q_m07)) - $signed({~q_m[8], 1'b0});
         end
     end
 end
