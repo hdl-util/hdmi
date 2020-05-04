@@ -93,7 +93,7 @@ Both audio bitrate and frequency are specified as parameters of the HDMI module.
 
 ### Source Device Information Code
 
-This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE_INFORMATION` to give HDMI sinks an idea of what capabilities an HDMI sink might have. It may be used for displaying a relevant icon in an input list (i.e. DVD logo for a DVD player).
+This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE_INFORMATION` to give HDMI sinks an idea of what capabilities an HDMI source might have. It may be used for displaying a relevant icon in an input list (i.e. DVD logo for a DVD player).
 
 |Code|Source Device Information|
 |---|---|
