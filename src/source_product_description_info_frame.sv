@@ -37,7 +37,7 @@ generate
     begin: vendor_to_bytes
         assign vendor_name[i] = VENDOR_NAME[(7-i+1)*8-1:(7-i)*8];
     end
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 16; i++)
     begin: product_to_bytes
         assign product_description[i] = PRODUCT_DESCRIPTION[(15-i+1)*8-1:(15-i)*8];
     end
