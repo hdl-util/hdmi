@@ -1,17 +1,14 @@
-module top (
-    input logic clk_original,
-
-    output logic [2:0] tmds_p,
-    output logic tmds_clock_p,
-    output logic [2:0] tmds_n,
-    output logic tmds_clock_n
-);
+module top ();
+logic [2:0] tmds_p;
+logic tmds_clock_p;
+logic [2:0] tmds_n;
+logic tmds_clock_n;
 
 logic clk_pixel;
 logic clk_pixel_x10;
 logic clk_audio;
 
-pll pll(.inclk0(clk_original), .c0(clk_pixel_x10), .c1(clk_pixel), .c2(clk_audio));
+pll pll(.c0(clk_pixel_x10), .c1(clk_pixel), .c2(clk_audio));
 
 logic signed [15:0] audio_sample_word = 16'sd0; // Since the L-PCM audio is 2-channel by default, this is mono audio.
 always @(posedge clk_audio) // Sawtooth wave generator

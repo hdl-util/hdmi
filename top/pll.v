@@ -3,7 +3,6 @@
 `timescale 1 ns / 100 ps
 
 module pll (
-	input wire inclk0,
 	output reg c0 = 0,
 	output reg c1 = 1,
 	output reg c2 = 0

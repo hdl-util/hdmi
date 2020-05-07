@@ -3,24 +3,10 @@
 module top_tb();
 
 initial begin
-  $dumpvars(0, top_tb);
-  // #36036000000ps $finish; // Terminate simulation after ~2 frames are generated
   #20ms $finish;
 end
 
-logic clk_original = 0;
-logic [2:0] tmds_p;
-logic tmds_clock_p;
-logic [2:0] tmds_n;
-logic tmds_clock_n;
-
-top top (
-    .clk_original(clk_original),
-    .tmds_p(tmds_p),
-    .tmds_clock_p(tmds_clock_p),
-    .tmds_n(tmds_n),
-    .tmds_clock_n(tmds_clock_n)
-);
+top top ();
 
 logic [9:0] cx = 858 - 4;
 logic [9:0] cy = 524;
@@ -62,27 +48,11 @@ generate
   end
 endgenerate
 
-logic [3:0] counter = 0;
-always @(posedge top.clk_pixel_x10)
+always @(posedge top.clk_pixel)
 begin
-  assert (counter == top.hdmi.tmds_counter) else $fatal("Shift-out counter doesn't match decoder counter");
-  if (counter == 9)
-  begin
-    counter <= 0;
-  end
-  else
-    counter <= counter + 1'd1;
-
-  tmds_values[0][counter] <= tmds_p[0];
-  tmds_values[1][counter] <= tmds_p[1];
-  tmds_values[2][counter] <= tmds_p[2];
-
-  if (counter == 0)
-  begin
-    tmds_values[0][9:1] <= 9'dX;
-    tmds_values[1][9:1] <= 9'dX;
-    tmds_values[2][9:1] <= 9'dX;
-  end
+  tmds_values[0] <= top.hdmi.tmds[0];
+  tmds_values[1] <= top.hdmi.tmds[1];
+  tmds_values[2] <= top.hdmi.tmds[2];
 end
 
 logic [4:0] data_counter = 0;
