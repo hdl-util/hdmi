@@ -83,7 +83,7 @@ generate
             assign frame_height = 525;
             assign screen_width = 640;
             assign screen_height = 480;
-            assign hsync = ~(cx > 15 && cx <= 15 + 96);
+            assign hsync = ~(cx >= 16 && cx < 16 + 96);
             assign vsync = ~(cy < 2);
             end
         2, 3:
@@ -92,7 +92,7 @@ generate
             assign frame_height = 525;
             assign screen_width = 720;
             assign screen_height = 480;
-            assign hsync = ~(cx > 15 && cx <= 15 + 62);
+            assign hsync = ~(cx >= 16 && cx < 16 + 62);
             assign vsync = ~(cy > 5 && cy < 12);
             end
         4:
@@ -101,7 +101,7 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync = cx > 109 && cx <= 109 + 40;
+            assign hsync = cx >= 110 && cx < 110 + 40;
             assign vsync = cy < 5;
         end
         16:
@@ -110,7 +110,7 @@ generate
             assign frame_height = 1125;
             assign screen_width = 1920;
             assign screen_height = 1080;
-            assign hsync = cx > 87 && cx <= 87 + 44;
+            assign hsync = cx >= 88 && cx < 88 + 44;
             assign vsync = cy < 5;
         end
         17, 18:
@@ -119,7 +119,7 @@ generate
             assign frame_height = 625;
             assign screen_width = 720;
             assign screen_height = 576;
-            assign hsync = ~(cx > 11 && cx <= 11 + 64);
+            assign hsync = ~(cx >= 12 && cx < 12 + 64);
             assign vsync = ~(cy < 5);
         end
         19:
@@ -128,7 +128,7 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync = cx > 439 && cx <= 439 + 40;
+            assign hsync = cx >= 440 && cx < 440 + 40;
             assign vsync = cy < 5;
         end
         97, 107:
@@ -137,7 +137,7 @@ generate
             assign frame_height = 2250;
             assign screen_width = 3840;
             assign screen_height = 2160;
-            assign hsync = cx > 175 && cx <= 175 + 88;
+            assign hsync = cx >= 176 && cx < 176 + 88;
             assign vsync = cy < 10;
         end
     endcase
