@@ -71,6 +71,7 @@ You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock f
 |1920x1080|16|59.94Hz|148.352MHz|
 |720x576|17, 18|50Hz|27MHz|
 |1280x720|19|50Hz|74.25MHz|
+|3840x2160|97, 107|60Hz|594MHz|
 
 The second clock is a clock 10 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both. You can avoid using two different multiplication factors, with the DDRIO feature, which only requires the second clock to be 5 times as fast.
 

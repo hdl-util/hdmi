@@ -131,6 +131,15 @@ generate
             assign hsync = cx > 439 && cx <= 439 + 40;
             assign vsync = cy < 5;
         end
+        97, 107:
+        begin
+            assign frame_width = 4400;
+            assign frame_height = 2250;
+            assign screen_width = 3840;
+            assign screen_height = 2160;
+            assign hsync = cx > 175 && cx <= 175 + 88;
+            assign vsync = cy < 10;
+        end
     endcase
     assign screen_start_x = frame_width - screen_width;
     assign screen_start_y = frame_height - screen_height;
