@@ -17,7 +17,7 @@ module tmds_channel
 );
 
 // See Section 5.4.4.1
-// Below is a direct implementation of Figure 5-7, using the same variable names. condN refers to the Nth conditional diamond.
+// Below is a direct implementation of Figure 5-7, using the same variable names.
 
 logic signed [4:0] acc = 5'sd0;
 
@@ -26,15 +26,32 @@ logic [9:0] q_out;
 logic [9:0] video_coding;
 assign video_coding = q_out;
 
-wire [3:0] N1D = video_data[0] + video_data[1] + video_data[2] + video_data[3] + video_data[4] + video_data[5] + video_data[6] + video_data[7];
-wire signed [4:0] N1q_m07 = q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7];
-wire signed [4:0] N0q_m07 = ~q_m[0] + ~q_m[1] + ~q_m[2] + ~q_m[3] + ~q_m[4] + ~q_m[5] + ~q_m[6] + ~q_m[7];
+logic [3:0] N1D;
+logic signed [4:0] N1q_m07;
+logic signed [4:0] N0q_m07;
+always_comb
+begin
+    N1D = video_data[0] + video_data[1] + video_data[2] + video_data[3] + video_data[4] + video_data[5] + video_data[6] + video_data[7];
+    case(q_m[0] + q_m[1] + q_m[2] + q_m[3] + q_m[4] + q_m[5] + q_m[6] + q_m[7])
+        4'b0000: N1q_m07 = 5'sd0;
+        4'b0001: N1q_m07 = 5'sd1;
+        4'b0010: N1q_m07 = 5'sd2;
+        4'b0011: N1q_m07 = 5'sd3;
+        4'b0100: N1q_m07 = 5'sd4;
+        4'b0101: N1q_m07 = 5'sd5;
+        4'b0110: N1q_m07 = 5'sd6;
+        4'b0111: N1q_m07 = 5'sd7;
+        4'b1000: N1q_m07 = 5'sd8;
+        default: N1q_m07 = 5'sd0;
+    endcase
+    N0q_m07 = 5'sd8 - N1q_m07;
+end
 
 logic signed [4:0] acc_add;
 
 always_comb
 begin
-    if (N1D > 5'sd4 || (N1D == 5'sd4 && video_data[0] == 1'd0))
+    if (N1D > 4'd4 || (N1D == 4'd4 && video_data[0] == 1'd0))
         q_m = {1'b0, q_m[6:0] ~^ video_data[7:1], video_data[0]};
     else
         q_m = {1'b1, q_m[6:0] ^ video_data[7:1], video_data[0]};
