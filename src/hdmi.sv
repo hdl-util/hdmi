@@ -84,7 +84,7 @@ generate
             assign screen_width = 640;
             assign screen_height = 480;
             assign hsync = ~(cx >= 16 && cx < 16 + 96);
-            assign vsync = ~(cy < 2);
+            assign vsync = ~(cy >= 10 && cy < 10 + 2);
             end
         2, 3:
         begin
@@ -93,7 +93,7 @@ generate
             assign screen_width = 720;
             assign screen_height = 480;
             assign hsync = ~(cx >= 16 && cx < 16 + 62);
-            assign vsync = ~(cy > 5 && cy < 12);
+            assign vsync = ~(cy >= 9 && cy < 9 + 6);
             end
         4:
         begin
@@ -102,7 +102,7 @@ generate
             assign screen_width = 1280;
             assign screen_height = 720;
             assign hsync = cx >= 110 && cx < 110 + 40;
-            assign vsync = cy < 5;
+            assign vsync = cy >= 5 && cy < 5 + 5;
         end
         16:
         begin
@@ -111,7 +111,7 @@ generate
             assign screen_width = 1920;
             assign screen_height = 1080;
             assign hsync = cx >= 88 && cx < 88 + 44;
-            assign vsync = cy < 5;
+            assign vsync = cy >= 4 && cy < 4 + 5;
         end
         17, 18:
         begin
@@ -120,7 +120,7 @@ generate
             assign screen_width = 720;
             assign screen_height = 576;
             assign hsync = ~(cx >= 12 && cx < 12 + 64);
-            assign vsync = ~(cy < 5);
+            assign vsync = ~(cy >= 5 && cy < 5 + 5);
         end
         19:
         begin
@@ -129,7 +129,7 @@ generate
             assign screen_width = 1280;
             assign screen_height = 720;
             assign hsync = cx >= 440 && cx < 440 + 40;
-            assign vsync = cy < 5;
+            assign vsync = cy >= 5 && cy < 5 + 5;
         end
         97, 107:
         begin
@@ -138,7 +138,7 @@ generate
             assign screen_width = 3840;
             assign screen_height = 2160;
             assign hsync = cx >= 176 && cx < 176 + 88;
-            assign vsync = cy < 10;
+            assign vsync = cy >= 8 && cy < 8 + 10;
         end
     endcase
     assign screen_start_x = frame_width - screen_width;
