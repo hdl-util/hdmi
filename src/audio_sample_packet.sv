@@ -41,7 +41,7 @@ module audio_sample_packet
     parameter bit [3:0] WORD_LENGTH,
 
     // Frequency prior to conversion in a consumer playback system. 0000 = not indicated.
-    parameter bit [3:0] ORIGINAL_SAMPLING_FREQUENCY = 4'b0000,
+    parameter bit [3:0] ORIGINAL_SAMPLING_FREQUENCY,
 
     // 2-channel = 0, >= 3-channel = 1
     parameter bit LAYOUT = 1'b0
