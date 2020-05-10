@@ -32,7 +32,7 @@ assign header = {{3'b0, LENGTH}, VERSION, {1'b1, TYPE}};
 // PB21-27 = sub3
 logic [7:0] packet_bytes [27:0];
 
-assign packet_bytes[0] = ~(header[23:16] + header[15:8] + header[7:0] + packet_bytes[5] + packet_bytes[4] + packet_bytes[3] + packet_bytes[2] + packet_bytes[1]);
+assign packet_bytes[0] = 8'd1 + ~(header[23:16] + header[15:8] + header[7:0] + packet_bytes[5] + packet_bytes[4] + packet_bytes[3] + packet_bytes[2] + packet_bytes[1]);
 assign packet_bytes[1] = {AUDIO_CODING_TYPE, 1'b0, AUDIO_CHANNEL_COUNT};
 assign packet_bytes[2] = {3'd0, SAMPLING_FREQUENCY, SAMPLE_SIZE};
 assign packet_bytes[3] = 8'd0;

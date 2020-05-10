@@ -82,6 +82,16 @@ assign num_samples_present = 3'(header[11]) + header[10] + header[9] + header[8]
 logic [$clog2(192)-1:0] frame_counter = 0;
 logic [191:0] channel_status [1:0] = '{192'dX, 192'dX};
 
+// PB0-PB6 = sub0
+// PB7-13 =  sub1
+// PB14-20 = sub2
+// PB21-27 = sub3
+logic [7:0] packet_bytes [0:27];
+for (i = 0; i < 28; i++)
+begin
+  assign packet_bytes[i] = sub[i / 7][((i % 7) + 1) * 8 - 1 :(i % 7) * 8];
+end
+
 logic first_packet = 1;
 
 integer k;
@@ -89,10 +99,6 @@ always @(posedge top.clk_pixel)
 begin
   cx <= cx == top.hdmi.frame_width - 1 ? 0 : cx + 1;
   cy <= cx == top.hdmi.frame_width-1'b1 ? cy == top.hdmi.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
-  // if (top.hdmi.data_island_period && top.hdmi.packet_assembler.counter == 0)
-  // begin
-  //   $display("Packet assembler receiving sub %b %d at (%d, %d) with frame counter %d", top.hdmi.packet_assembler.sub[0], top.hdmi.packet_assembler.header[7:0], top.hdmi.cx - 1, top.hdmi.cy, top.hdmi.frame_counter);
-  // end
 
   if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
   begin
@@ -113,7 +119,6 @@ begin
       if (cx != 10 || !first_packet) // Packet complete
       begin
         first_packet <= 0;
-        // $display("Received packet for (%d, %d)", cx - 32, cy);
         case(header[7:0])
           8'h00: begin
             $display("NULL packet");
@@ -138,11 +143,6 @@ begin
               if ((frame_counter + k) % 192 == 0) // Last frame was end of IEC60958 frame, this sample starts a new frame
               begin
                 assert(header[20 + k] == 1'b1) else $fatal("Sample B value low for sample %d with counter %d", k, frame_counter);
-                // if (channel_status != '{192'dX, 192'dX})
-                // begin
-                //   assert(channel_status[0] == top.hdmi.audio_sample_packet.channel_status_left) else $fatal("Previous sample channel status left incorrect: %b", channel_status[0]);
-                //   assert(channel_status[1] == top.hdmi.audio_sample_packet.channel_status_right) else $fatal("Previous sample channel status right incorrect: %b", channel_status[1]);
-                // end
               end
               else
                 assert(header[20 + k] == 1'b0) else $fatal("Sample B value high for sample %d with counter %d", k, frame_counter);
@@ -157,12 +157,17 @@ begin
           end
           8'h82: begin
             $display("AVI InfoFrame");
+            assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
           end
           8'h83: begin
-            $display("SPD InfoFrame");
+            $display("SPD InfoFrame this is a %s created by %s that is a 0x%h", 128'(packet_bytes[9:24]), 64'(packet_bytes[1:8]), packet_bytes[25]);
+            assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
           end
           8'h84: begin
             $display("Audio InfoFrame");
+            assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
+            assert(packet_bytes[1] == 8'd1) else $fatal("Only channel count of 2 should be set");
+            assert(packet_bytes[2] == 8'd0 && packet_bytes[3] == 8'd0) else $fatal("These are reserved / refer to stream header");
           end
           default: begin
             $fatal("Unhandled packet type %h (%s) at %d, %d: %p", header[7:0], "Unknown", cx, cy, sub);
@@ -170,8 +175,6 @@ begin
         endcase
       end
     end
-    // $display("Original value for (%d, %d) %b, %b, %b", cx, cy, tmds_values[2], tmds_values[1], tmds_values[0]);
-    // $display("Decoded value for (%d, %d) %b, %b, %b", cx, cy, decoded_terc4_values[2], decoded_terc4_values[1], decoded_terc4_values[0]);
     sub[3][{data_counter, 1'b1}] <= decoded_terc4_values[2][3];
     sub[3][{data_counter, 1'b0}] <= decoded_terc4_values[1][3];
     sub[2][{data_counter, 1'b1}] <= decoded_terc4_values[2][2];
@@ -182,8 +185,6 @@ begin
     sub[0][{data_counter, 1'b0}] <= decoded_terc4_values[1][0];
     header[data_counter] <= decoded_terc4_values[0][2];
   end
-  // else if (cx == top.hdmi.frame_width - 3 && cy == top.hdmi.frame_height - 1)
-  //   assert (tmds_values[2] == tmds_values[1] && tmds_values[0] == tmds_values[1] && tmds_values[2] == 10'b1101010100) else $fatal("Incorrect first value: %b", tmds_values[2]);
 end
 
 endmodule
