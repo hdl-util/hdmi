@@ -93,6 +93,7 @@ begin
 end
 
 logic first_packet = 1;
+logic first_audio_packet = 1;
 
 integer k;
 always @(posedge top.clk_pixel)
@@ -139,9 +140,16 @@ begin
             begin
               if (!header[8 + k]) // Sample not present
                 continue;
-
+              channel_status[1][frame_counter + k] = PCUVr[k][2];
+              channel_status[0][frame_counter + k] = PCUVl[k][2];
               if ((frame_counter + k) % 192 == 0) // Last frame was end of IEC60958 frame, this sample starts a new frame
               begin
+                if (!first_audio_packet)
+                begin
+                  assert(channel_status[0] == top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left) else $fatal("Incorrect left channel status: %h should be %h", channel_status[0], top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left);
+                  assert(channel_status[1] == top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right) else $fatal("Incorrect right channel status: %h should be %h", channel_status[1], top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right);
+                end
+                first_audio_packet <= 0;
                 assert(header[20 + k] == 1'b1) else $fatal("Sample B value low for sample %d with counter %d", k, frame_counter);
               end
               else
@@ -150,8 +158,6 @@ begin
               assert(PCUVr[k][0] == 1'b0 && PCUVl[k][0] == 1'b0) else $fatal("Sample validity bits nonzero");
               assert(^{PCUVr[k][2:0], R[k]} == PCUVr[k][3]) else $fatal("Sample right parity not even: %b", {PCUVr[k], R[k]});
               assert(^{PCUVl[k][2:0], L[k]} == PCUVl[k][3]) else $fatal("Sample left parity not even: %b", {PCUVl[k], L[k]});
-              channel_status[1][frame_counter + k] <= PCUVr[k][2];
-              channel_status[0][frame_counter + k] <= PCUVl[k][2];
             end
             frame_counter <= (frame_counter + num_samples_present) % 192;
           end
