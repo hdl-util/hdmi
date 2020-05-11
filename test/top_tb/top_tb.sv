@@ -164,16 +164,19 @@ begin
           8'h82: begin
             $display("AVI InfoFrame");
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
+            assert(112'(packet_bytes[14:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           8'h83: begin
             $display("SPD InfoFrame this is a %s created by %s that is a 0x%h", 128'(packet_bytes[9:24]), 64'(packet_bytes[1:8]), packet_bytes[25]);
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
+            assert(16'(packet_bytes[26:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           8'h84: begin
             $display("Audio InfoFrame");
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
             assert(packet_bytes[1] == 8'd1) else $fatal("Only channel count of 2 should be set");
-            assert(packet_bytes[2] == 8'd0 && packet_bytes[3] == 8'd0) else $fatal("These are reserved / refer to stream header");
+            assert(packet_bytes[2] == 8'd0 && packet_bytes[3] == 8'd0) else $fatal("These are refer to stream header");
+            assert(176'(packet_bytes[6:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           default: begin
             $fatal("Unhandled packet type %h (%s) at %d, %d: %p", header[7:0], "Unknown", cx, cy, sub);
