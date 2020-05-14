@@ -66,29 +66,38 @@ logic [1:0] audio_sample_word_transfer_control_synchronizer_chain = 2'd0;
 always_ff @(posedge clk_pixel)
     audio_sample_word_transfer_control_synchronizer_chain <= {audio_sample_word_transfer_control, audio_sample_word_transfer_control_synchronizer_chain[1]};
 
-localparam int MAX_SAMPLES_PER_PACKET = AUDIO_RATE <= 48000 ? 2 : AUDIO_RATE <= 88200 ? 3 : 4;
-logic [(MAX_SAMPLES_PER_PACKET == 4 ? 2 : 1):0] samples_remaining = 1'd0;
-logic [23:0] audio_sample_word_buffer [MAX_SAMPLES_PER_PACKET-1:0] [1:0];
+logic sample_buffer_current = 1'b0;
+logic [1:0] samples_remaining = 2'd0;
+logic [23:0] audio_sample_word_buffer [1:0] [3:0] [1:0];
 logic [AUDIO_BIT_WIDTH-1:0] audio_sample_word_transfer_mux [1:0];
 always_comb
 begin
     if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
         audio_sample_word_transfer_mux = audio_sample_word_transfer;
     else
-        audio_sample_word_transfer_mux = '{audio_sample_word_buffer[samples_remaining][1][23:(24-AUDIO_BIT_WIDTH)], audio_sample_word_buffer[samples_remaining][0][23:(24-AUDIO_BIT_WIDTH)]};
+        audio_sample_word_transfer_mux = '{audio_sample_word_buffer[sample_buffer_current][samples_remaining][1][23:(24-AUDIO_BIT_WIDTH)], audio_sample_word_buffer[sample_buffer_current][samples_remaining][0][23:(24-AUDIO_BIT_WIDTH)]};
 end
 
-logic audio_buffer_rst = 1'b0;
+logic sample_buffer_used = 1'b0;
+logic sample_buffer_ready = 1'b0;
+
 always_ff @(posedge clk_pixel)
 begin
-    if (audio_buffer_rst)
-        samples_remaining = 1'd0;
+    if (sample_buffer_used)
+        sample_buffer_ready <= 1'b0;
 
     if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
     begin
-        audio_sample_word_buffer[samples_remaining][0] <= {audio_sample_word_transfer_mux[0], (24-AUDIO_BIT_WIDTH)'(0)};
-        audio_sample_word_buffer[samples_remaining][1] <= {audio_sample_word_transfer_mux[1], (24-AUDIO_BIT_WIDTH)'(0)};
-        samples_remaining = samples_remaining + 1'd1;
+        audio_sample_word_buffer[sample_buffer_current][samples_remaining][0] <= {audio_sample_word_transfer_mux[0], (24-AUDIO_BIT_WIDTH)'(0)};
+        audio_sample_word_buffer[sample_buffer_current][samples_remaining][1] <= {audio_sample_word_transfer_mux[1], (24-AUDIO_BIT_WIDTH)'(0)};
+        if (samples_remaining == 2'd3)
+        begin
+            samples_remaining <= 2'd0;
+            sample_buffer_ready <= 1'b1;
+            sample_buffer_current <= !sample_buffer_current;
+        end
+        else
+            samples_remaining <= samples_remaining + 1'd1;
     end
 end
 
@@ -101,8 +110,7 @@ always_ff @(posedge clk_pixel)
 begin
     if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin
-        for (k = 0; k < MAX_SAMPLES_PER_PACKET; k++)
-            frame_counter = frame_counter + audio_sample_word_present_packet[k];
+        frame_counter = frame_counter + 8'd4;
         if (frame_counter >= 8'd192)
             frame_counter = frame_counter - 8'd192;
     end
@@ -126,8 +134,8 @@ logic source_product_description_info_frame_sent = 1'b0;
 logic last_clk_audio_counter_wrap = 1'b0;
 always_ff @(posedge clk_pixel)
 begin
-    if (audio_buffer_rst)
-        audio_buffer_rst <= 1'b0;
+    if (sample_buffer_used)
+        sample_buffer_used <= 1'b0;
 
     if (video_field_end)
     begin
@@ -138,12 +146,12 @@ begin
     end
     else if (packet_enable)
     begin
-        if (samples_remaining != 4'd0)
+        if (sample_buffer_ready)
         begin
             packet_type <= 8'd2;
-            audio_sample_word_packet[MAX_SAMPLES_PER_PACKET-1:0] <= audio_sample_word_buffer;
-            audio_sample_word_present_packet <= {samples_remaining >= 3'd4, samples_remaining >= 3'd3, samples_remaining >= 3'd2, samples_remaining >= 3'd1};
-            audio_buffer_rst <= 1'b1;
+            audio_sample_word_packet <= audio_sample_word_buffer[!sample_buffer_current];
+            audio_sample_word_present_packet <= 4'b1111;
+            sample_buffer_used <= 1'b1;
         end
         else if (last_clk_audio_counter_wrap ^ clk_audio_counter_wrap)
         begin

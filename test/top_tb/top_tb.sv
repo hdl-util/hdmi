@@ -94,6 +94,7 @@ end
 
 logic first_packet = 1;
 logic first_audio_packet = 1;
+logic [15:0] previous_sample [1:0];
 
 integer k;
 always @(posedge top.clk_pixel)
@@ -148,6 +149,8 @@ begin
                 begin
                   assert(channel_status[0] == top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left) else $fatal("Incorrect left channel status: %h should be %h", channel_status[0], top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_left);
                   assert(channel_status[1] == top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right) else $fatal("Incorrect right channel status: %h should be %h", channel_status[1], top.hdmi.true_hdmi_output.packet_picker.audio_sample_packet.channel_status_right);
+                  assert(previous_sample[0] - 1'd1 == L[k][23:8]) else $fatal("Expected left channel sample to be 1 less than previous");
+                  assert(previous_sample[1] + 1'd1 == R[k][23:8]) else $fatal("Expected right channel sample to be 1 greater than previous");
                 end
                 first_audio_packet <= 0;
                 assert(header[20 + k] == 1'b1) else $fatal("Sample B value low for sample %d with counter %d", k, frame_counter);
@@ -156,8 +159,9 @@ begin
                 assert(header[20 + k] == 1'b0) else $fatal("Sample B value high for sample %d with counter %d", k, frame_counter);
               assert(PCUVr[k][1] == 1'b0 && PCUVl[k][1] == 1'b0) else $fatal("Sample user data bits nonzero");
               assert(PCUVr[k][0] == 1'b0 && PCUVl[k][0] == 1'b0) else $fatal("Sample validity bits nonzero");
-              assert(^{PCUVr[k][2:0], R[k]} == PCUVr[k][3]) else $fatal("Sample right parity not even: %b", {PCUVr[k], R[k]});
-              assert(^{PCUVl[k][2:0], L[k]} == PCUVl[k][3]) else $fatal("Sample left parity not even: %b", {PCUVl[k], L[k]});
+              assert({PCUVr[k][3:0], R[k]} % 2 == 0) else $fatal("Sample right parity not even: %b", {PCUVr[k], R[k]});
+              assert({PCUVl[k][3:0], L[k]} % 2 == 0) else $fatal("Sample left parity not even: %b", {PCUVl[k], L[k]});
+              previous_sample = '{L[k][23:8], R[k][23:8]};
             end
             frame_counter <= (frame_counter + num_samples_present) % 192;
           end
