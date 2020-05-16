@@ -57,14 +57,14 @@ begin
     begin
         q_m[0] = video_data[0];
         for(i = 0; i < 7; i++)
-            q_m[i + 1] = q_m[0] ~^ video_data[i + 1];
+            q_m[i + 1] = q_m[i] ~^ video_data[i + 1];
         q_m[8] = 1'b0;
     end
     else
     begin
         q_m[0] = video_data[0];
         for(i = 0; i < 7; i++)
-            q_m[i + 1] = q_m[0] ^ video_data[i + 1];
+            q_m[i + 1] = q_m[i] ^ video_data[i + 1];
         q_m[8] = 1'b1;
     end
     if (acc == 5'sd0 || (N1q_m07 == N0q_m07))
