@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/hdl-util/hdmi.svg?branch=master)](https://travis-ci.com/hdl-util/hdmi)
 
-SystemVerilog code for HDMI 1.4a video/audio output on an [FPGA](https://simple.wikipedia.org/wiki/Field-programmable_gate_array).
+SystemVerilog code for HDMI 1.4b video/audio output on an [FPGA](https://simple.wikipedia.org/wiki/Field-programmable_gate_array).
 
 ## Why?
 
