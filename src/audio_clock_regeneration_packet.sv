@@ -1,7 +1,7 @@
 // Implementation of HDMI audio clock regeneration packet
 // By Sameer Puri https://github.com/sameer
 
-// See HDMI 1.4a Section 5.3.3
+// See HDMI 1.4b Section 5.3.3
 module audio_clock_regeneration_packet
 #(
     parameter real VIDEO_RATE,
@@ -19,8 +19,8 @@ module audio_clock_regeneration_packet
 localparam int N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
 
 localparam int CLK_AUDIO_COUNTER_WIDTH = $clog2(N / 128);
-localparam bit [CLK_AUDIO_COUNTER_WIDTH-1:0] CLK_AUDIO_COUNTER_END = CLK_AUDIO_COUNTER_WIDTH'(N / 128);
-logic [CLK_AUDIO_COUNTER_WIDTH-1:0] clk_audio_counter = CLK_AUDIO_COUNTER_WIDTH'(1);
+localparam bit [CLK_AUDIO_COUNTER_WIDTH-1:0] CLK_AUDIO_COUNTER_END = CLK_AUDIO_COUNTER_WIDTH'(N / 128 - 1);
+logic [CLK_AUDIO_COUNTER_WIDTH-1:0] clk_audio_counter = CLK_AUDIO_COUNTER_WIDTH'(0);
 logic internal_clk_audio_counter_wrap = 1'd0;
 always_ff @(posedge clk_audio)
 begin
@@ -30,7 +30,7 @@ begin
         internal_clk_audio_counter_wrap <= !internal_clk_audio_counter_wrap;
     end
     else
-        clk_audio_counter <= clk_audio_counter + CLK_AUDIO_COUNTER_WIDTH'(1);
+        clk_audio_counter <= clk_audio_counter + 1'd1;
 end
 
 logic [1:0] clk_audio_counter_wrap_synchronizer_chain = 2'd0;
