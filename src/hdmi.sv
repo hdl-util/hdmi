@@ -206,7 +206,14 @@ generate
         logic video_field_end;
         assign video_field_end = cx == frame_width - 1'b1 && cy == frame_height - 1'b1;
         logic [4:0] packet_pixel_counter;
-        localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6 : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6 : VIDEO_ID_CODE == 4 ? 74.25E6 : VIDEO_ID_CODE == 16 ? 148.5E6 : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6 : VIDEO_ID_CODE == 19 ? 74.25E6 : VIDEO_ID_CODE == 97 || VIDEO_ID_CODE == 107 ? 594E6 : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
+        localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6
+            : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6
+            : VIDEO_ID_CODE == 4 ? 74.25E6
+            : VIDEO_ID_CODE == 16 ? 148.5E6
+            : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6
+            : VIDEO_ID_CODE == 19 ? 74.25E6
+            : VIDEO_ID_CODE == 97 || VIDEO_ID_CODE == 107 ? 594E6
+            : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
             .VIDEO_RATE(VIDEO_RATE),
