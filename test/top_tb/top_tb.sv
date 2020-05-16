@@ -1,15 +1,16 @@
-`timescale 1 ps / 1 ps
-
 module top_tb();
 
+timeunit 1ns;
+timeprecision 1ns;
+
 initial begin
-  #20ms $finish;
+  #1s $finish;
 end
 
 top top ();
 
-logic [9:0] cx = 858 - 4;
-logic [9:0] cy = 524;
+logic [9:0] cx = 800 - 4;
+logic [9:0] cy = 525 - 1;
 
 logic [9:0] tmds_values [2:0] = '{10'dx, 10'dx, 10'dx};
 
@@ -44,7 +45,7 @@ generate
     : tmds_values[j] == 10'b1001110001 ? 4'b1101
     : tmds_values[j] == 10'b0101100011 ? 4'b1110
     : tmds_values[j] == 10'b1011000011 ? 4'b1111
-    : 4'bZZZZ;
+    : 4'bzzzz;
   end
 endgenerate
 
@@ -99,9 +100,8 @@ logic [15:0] previous_sample [1:0];
 integer k;
 always @(posedge top.clk_pixel)
 begin
-  cx <= cx == top.hdmi.frame_width - 1 ? 0 : cx + 1;
-  cy <= cx == top.hdmi.frame_width-1'b1 ? cy == top.hdmi.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
-
+  cx <= cx == top.frame_width - 1 ? 0 : cx + 1;
+  cy <= cx == top.frame_width-1'b1 ? cy == top.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
   if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
   begin
     assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect: %b", tmds_values[2]);
@@ -130,7 +130,7 @@ begin
             assert(header[23:8] === 16'd0) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
             assert(N == 128*48000/1000) else $fatal("Incorrect N: %d should be %d", N, 128*48000/1000);
-            assert(CTS == 25000 || CTS == 24999 || CTS == 24742) else $fatal("Incorrect CTS, should hover around 25000: %d", CTS);
+            assert(CTS == 25198 || CTS == 25199 || CTS == 24938) else $fatal("Incorrect CTS, should hover around 25000: %d", CTS);
           end
           8'h02: begin
             $display("Audio Sample packet #%d - %d", frame_counter + 1, frame_counter + num_samples_present);
