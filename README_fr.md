@@ -2,15 +2,15 @@
 
 [English](./README.md) | [Français](./README_fr.md) | [Help translate](https://github.com/hdl-util/hdmi/issues/11)
 
-[![Build Status](https://travis-ci.com/hdl-util/hdmi.svg?branch=master)](https://travis-ci.com/hdl-util/hdmi)
+[![Statut de Construction](https://travis-ci.com/hdl-util/hdmi.svg?branch=master)](https://travis-ci.com/hdl-util/hdmi)
 
-SystemVerilog code for HDMI 1.4b video/audio output on an [FPGA](https://simple.wikipedia.org/wiki/Field-programmable_gate_array).
+SystemVerilog code pour transmettre vidéo/audio HDMI 1.4a sur un [FPGA](https://fr.wikipedia.org/wiki/Circuit_logique_programmable#FPGA).
 
-## Why?
+## Pourquoi?
 
-Most free and open source HDMI source (computer/gaming console) implementations actually output a DVI signal, which HDMI sinks (TVs/monitors) are backwards compatible with. To support audio and other HDMI-only functionality, a true HDMI signal must be sent. The code in this repository lets you do that without having to license an HDMI IP block from anyone.
+La plupart des implementations open source d'un source HDMI transmettre en réalité un signal DVI, avec qui les sinks HDMI (i.e. TVs/moniteurs) sont rétrocompatible. Pour supporter audio et l'autre HDMI seulement fonctionnalité, on doit transmettre un signal HDMI vrai. Le code dans ce dépôt permettez-vous de faire ça sans licencer un bloc HDMI IP de n'importe qui.
 
-### Demo: VGA-compatible text mode, 720x480p on a Dell Ultrasharp 1080p Monitor
+### Démo: Mode texte VGA-compatible, 720x480p sur un Moniteur Dell Ultrasharp 1080p
 
 ![GIF showing VGA-compatible text mode on a monitor](demo.gif)
 
@@ -29,91 +29,23 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 - [ ] Xilinx (untested but should work)
 - [ ] Lattice (unknown)
 
-### To-do List (upon request)
-- [x] 24-bit color
-- [x] Data island packets
-	- [x] Null packet
-	- [x] ECC with BCH systematic encoding GF(2^8)
-	- [x] Audio clock regeneration
-	- [x] L-PCM audio
-		- [x] 2-channel
-		- [ ] 3-channel to 8-channel
-	- [ ] 1-bit audio
-	- [x] Audio InfoFrame
-	- [x] Auxiliary Video Information InfoFrame
-	- [x] Source Product Descriptor InfoFrame
-	- [ ] MPEG Source InfoFrame
-		- NOTE—Problems with the MPEG Source Infoframe have been identified that were not able to be fixed in time for CEA-861-D. Implementation is strongly discouraged until a future revision fixes the problems
-	- [ ] Gamut Metadata
-- [x] Video formats 1, 2, 3, 4, 16, 17, 18, and 19
-- [x] VGA-compatible text mode
-	- [x] IBM 8x16 font
-	- [ ] Alternate fonts
-- [ ] Other color formats (YCbCr, deep color, etc.)
-- [ ] Support other video id codes
-	- [ ] Interlaced video
-	- [ ] Pixel repetition
-- [ ] Special I/O features
-	- [x] Double Data Rate I/O (DDRIO)
+### Liste de choses à faire
 
+S'il vous plaît regarder le readme principal pour l'information à jour.
 
-### Pixel Clock
+### Horloge Pixel
 
-You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
+Vous devrez configurer un PLL pour produire 2 horloges HDMI. S'il vous plaît regarder le readme principal pour la configuration de l'horloge première (l'horloge pixel).
 
-|Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
-|---|---|---|---|
-|640x480|1|60Hz|25.2MHz|
-|640x480|1|59.94Hz|25.175MHz|
-|720x480|2, 3|60Hz|27.027MHz|
-|720x480|2, 3|59.94Hz|27MHz|
-|1280x720|4|60Hz|74.25MHz|
-|1280x720|4|59.94Hz|74.176MHz|
-|1920x1080|16|60Hz|148.5MHz|
-|1920x1080|16|59.94Hz|148.352MHz|
-|720x576|17, 18|50Hz|27MHz|
-|1280x720|19|50Hz|74.25MHz|
-|3840x2160|97, 107|60Hz|594MHz|
+La deuxième est une horloge 10 fois plus rapide que l'horloge pixel. Même si ton FPGA a un seul PLL, le MegaWizard Altera (ou le équivalent Xilinx)  devrait pouvour les deux. Vous pouvez éviter d'utiliser deux facteurs de multiplication différents avec la fonction DDRIO, ce qui nécessite une horloge deuxième seulement 5 fois plus rapide.
 
-The second clock is a clock 10 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both. You can avoid using two different multiplication factors, with the DDRIO feature, which only requires the second clock to be 5 times as fast.
+### Débit Binaire Audio L-PCM / Fréquence d'échantillonnage
 
-### L-PCM Audio Bitrate / Sampling Frequency
-
-Both audio bitrate and frequency are specified as parameters of the HDMI module. Bitrate can be any value from 16 through 24. Below is a simple mapping of sample frequency to the appropriate parameter
-
-**WARNING: the audio can be REALLY LOUD if you use the full dynamic range with hand-generated waveforms! Using less dynamic range means you won't be deafened! (i.e. audio_sample >> 8 )**
-
-|Sampling Frequency|AUDIO_RATE value|
-|---|---|
-|32 kHz|32000|
-|44.1 kHz|44100|
-|88.2 kHz|88200|
-|176.4 kHz|176400|
-|48 kHz|48000|
-|96 kHz|96000|
-|192 kHz|192000|
-
+Débit binaire audio et fréquence sont spécifiés comme paramètres du module HDMI. Débit binaire peut être n'importe quelle valeur de 16 à 24. S'il vous plaît regarder le readme principal pour une cartographie simple de la fréquence d'échantillonnage aux paramètres appropriés.
 
 ### Source Device Information Code
 
 This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE_INFORMATION` to give HDMI sinks an idea of what capabilities an HDMI source might have. It may be used for displaying a relevant icon in an input list (i.e. DVD logo for a DVD player).
-
-|Code|Source Device Information|
-|---|---|
-|0x00|Unknown|
-|0x01|Digital Set-top Box|
-|0x02|DVD Player|
-|0x03|Digital VHS|
-|0x04|HDD Videorecorder|
-|0x05|Digital Video Camera|
-|0x06|Digital Still Camera|
-|0x07|Video CD|
-|0x08|Game|
-|0x09|PC General|
-|0x0a|Blu-Ray Disc|
-|0x0b|Super Audio CD|
-|0x0c|HD DVD|
-|0x0d|Portable Media Player|
 
 ### Things to be aware of / Troubleshooting
 
@@ -144,9 +76,9 @@ This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE
 
 Dual-licensed under Apache License 2.0 and MIT License.
 
-### HDMI Adoption
+### Adoption HDMI
 
-I am NOT a lawyer, the below advice is given based on discussion from [a Hacker News post](https://news.ycombinator.com/item?id=22279308) and my research.
+Moi je ne suis pas un avocat -- l'avis ci dessous est donné sur la base de discussion sur [une publication Hacker News](https://news.ycombinator.com/item?id=22279308) et ma recherche.
 
 HDMI itself is not a royalty free technology, unfortunately. You are free to use it for testing, development, etc. but to receive the HDMI LA's (licensing administration) blessing to create and sell end-user products:
 
