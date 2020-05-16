@@ -130,7 +130,7 @@ begin
             assert(header[23:8] === 16'd0) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
             assert(N == 128*48000/1000) else $fatal("Incorrect N: %d should be %d", N, 128*48000/1000);
-            assert(CTS > 25738 - 1000 && CTS < 25738 + 1000) else $fatal("Incorrect CTS: %d out of bounds", CTS);
+            assert(CTS == 25000 || CTS == 24999 || CTS == 24742) else $fatal("Incorrect CTS, should hover around 25000: %d", CTS);
           end
           8'h02: begin
             $display("Audio Sample packet #%d - %d", frame_counter + 1, frame_counter + num_samples_present);
