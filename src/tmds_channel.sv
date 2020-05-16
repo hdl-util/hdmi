@@ -49,12 +49,24 @@ end
 
 logic signed [4:0] acc_add;
 
+integer i;
+
 always_comb
 begin
     if (N1D > 4'd4 || (N1D == 4'd4 && video_data[0] == 1'd0))
-        q_m = {1'b0, q_m[6:0] ~^ video_data[7:1], video_data[0]};
+    begin
+        q_m[0] = video_data[0];
+        for(i = 0; i < 7; i++)
+            q_m[i + 1] = q_m[0] ~^ video_data[i + 1];
+        q_m[8] = 1'b0;
+    end
     else
-        q_m = {1'b1, q_m[6:0] ^ video_data[7:1], video_data[0]};
+    begin
+        q_m[0] = video_data[0];
+        for(i = 0; i < 7; i++)
+            q_m[i + 1] = q_m[0] ^ video_data[i + 1];
+        q_m[8] = 1'b1;
+    end
     if (acc == 5'sd0 || (N1q_m07 == N0q_m07))
     begin
         if (q_m[8])

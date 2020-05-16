@@ -14,7 +14,7 @@ logic [15:0] audio_sample_word [1:0] = '{16'sd0, 16'sd0};
 always @(posedge clk_audio)
   audio_sample_word <= '{audio_sample_word[0] + 16'sd1, audio_sample_word[1] - 16'sd1};
 
-logic [23:0] rgb;
+logic [23:0] rgb = 24'd0;
 logic [9:0] cx, cy, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
 // Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
 always @(posedge clk_pixel)
