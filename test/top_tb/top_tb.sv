@@ -4,7 +4,7 @@ timeunit 1ns;
 timeprecision 1ns;
 
 initial begin
-  #1s $finish;
+  #40ms $finish;
 end
 
 top top ();
