@@ -16,7 +16,7 @@ module audio_clock_regeneration_packet
 );
 
 // See Section 7.2.3, values derived from "Other" row in Tables 7-1, 7-2, 7-3.
-localparam int N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
+localparam bit [19:0]] N = AUDIO_RATE % 125 == 0 ? 20'(16 * AUDIO_RATE / 125) : AUDIO_RATE % 225 == 0 ? 20'(196 * AUDIO_RATE / 225) : 20'(AUDIO_RATE * 16 / 125);
 
 localparam int CLK_AUDIO_COUNTER_WIDTH = $clog2(N / 128);
 localparam bit [CLK_AUDIO_COUNTER_WIDTH-1:0] CLK_AUDIO_COUNTER_END = CLK_AUDIO_COUNTER_WIDTH'(N / 128 - 1);
@@ -40,7 +40,7 @@ begin
     clk_audio_counter_wrap <= clk_audio_counter_wrap_synchronizer_chain[0];
 end
 
-localparam bit [19:0] CYCLE_TIME_STAMP_COUNTER_IDEAL = 20'(int'(VIDEO_RATE * N / 128 / AUDIO_RATE));
+localparam bit [19:0] CYCLE_TIME_STAMP_COUNTER_IDEAL = 20'(int'(VIDEO_RATE * int'(N) / 128 / AUDIO_RATE));
 localparam int CYCLE_TIME_STAMP_COUNTER_WIDTH = $clog2(20'(int'(CYCLE_TIME_STAMP_COUNTER_IDEAL * 1.1))); // Account for 10% deviation in audio clock
 
 logic [19:0] cycle_time_stamp = 20'd0;
