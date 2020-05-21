@@ -130,6 +130,8 @@ begin
             assert(header[23:8] === 16'd0) else $fatal("Clock regen HB1, HB2 should be X: %b, %b", header[23:16], header[15:8]);
             assert(sub[0] == sub[1] && sub[1] == sub[2] && sub[2] == sub[3]) else $fatal("Clock regen subpackets are different");
             assert(N == 128*48000/1000) else $fatal("Incorrect N: %d should be %d", N, 128*48000/1000);
+            if (CTS == 24939)
+              $warning("CTS is out of spec, this should only happen once while warming up at the beginning of the testbench.");
             assert(CTS == 25200 || CTS == 25199 || CTS == 24939) else $fatal("Incorrect CTS, should hover around 25200: %d", CTS);
           end
           8'h02: begin
