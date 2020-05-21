@@ -10,7 +10,7 @@ module audio_clock_regeneration_packet
 (
     input logic clk_pixel,
     input logic clk_audio,
-    output logic clk_audio_counter_wrap,
+    output logic clk_audio_counter_wrap = 0,
     output logic [23:0] header,
     output logic [55:0] sub [3:0]
 );
@@ -47,7 +47,7 @@ begin
     if (clk_audio_counter_wrap_synchronizer_chain[1] ^ clk_audio_counter_wrap_synchronizer_chain[0])
     begin
         cycle_time_stamp_counter <= CYCLE_TIME_STAMP_COUNTER_WIDTH'(0);
-        cycle_time_stamp <= {(20-CYCLE_TIME_STAMP_COUNTER_WIDTH)'(0), cycle_time_stamp_counter};
+        cycle_time_stamp <= {(20-CYCLE_TIME_STAMP_COUNTER_WIDTH)'(0), cycle_time_stamp_counter + 1};
         clk_audio_counter_wrap <= !clk_audio_counter_wrap;
     end
     else
