@@ -25,6 +25,7 @@ script:
     - cd -
     - cd ./sim/audio_param_tb/ && hdlmake fetch && hdlmake && make
     - cd -
+    - cd ./sim/audio_clock_tb/ && hdlmake fetch && hdlmake && make
 cache:
     directories:
         - /home/travis/intelFPGA/
