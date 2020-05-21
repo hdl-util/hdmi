@@ -25,9 +25,7 @@ La plupart des implementations open source d'un source HDMI transmettre en réal
 
 ### Platform Support
 
-- [x] Altera
-- [ ] Xilinx (untested but should work)
-- [ ] Lattice (unknown)
+S'il vous plaît regarder le readme principal pour l'information à jour.
 
 ### Liste de choses à faire
 
