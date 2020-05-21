@@ -26,7 +26,7 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 ### Platform Support
 
 - [x] Altera
-- [ ] Xilinx (untested but should work)
+- [x] Xilinx
 - [ ] Lattice (unknown)
 
 ### To-do List (upon request)
