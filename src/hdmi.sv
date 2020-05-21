@@ -213,7 +213,7 @@ generate
             : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6
             : VIDEO_ID_CODE == 19 ? 74.25E6
             : VIDEO_ID_CODE == 97 || VIDEO_ID_CODE == 107 ? 594E6
-            : 0) * (VIDEO_REFRESH_RATE != 59.94 || (VIDEO_ID_CODE >= 17 && VIDEO_ID_CODE <= 19) ? 1 : 0.999);
+            : 0) * (VIDEO_REFRESH_RATE == 59.94 ? 1000.0/1001.0 : 1); // https://groups.google.com/forum/#!topic/sci.engr.advanced-tv/DQcGk5R_zsM
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
             .VIDEO_RATE(VIDEO_RATE),
