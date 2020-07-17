@@ -3,13 +3,13 @@
 
 module packet_picker
 #(
-    parameter int VIDEO_ID_CODE,
-    parameter real VIDEO_RATE,
-    parameter int AUDIO_BIT_WIDTH,
-    parameter int AUDIO_RATE,
-    parameter bit [8*8-1:0] VENDOR_NAME,
-    parameter bit [8*16-1:0] PRODUCT_DESCRIPTION,
-    parameter bit [7:0] SOURCE_DEVICE_INFORMATION
+    parameter int VIDEO_ID_CODE = 4,
+    parameter real VIDEO_RATE = 0,
+    parameter int AUDIO_BIT_WIDTH = 0,
+    parameter int AUDIO_RATE = 0,
+    parameter bit [8*8-1:0] VENDOR_NAME = 0,
+    parameter bit [8*16-1:0] PRODUCT_DESCRIPTION = 0,
+    parameter bit [7:0] SOURCE_DEVICE_INFORMATION = 0
 )
 (
     input logic clk_pixel,
@@ -27,14 +27,21 @@ logic [7:0] packet_type = 8'd0;
 logic [23:0] headers [255:0];
 logic [55:0] subs [255:0] [3:0];
 assign header = headers[packet_type];
-assign sub = subs[packet_type];
+assign sub[0] = subs[packet_type][0];
+assign sub[1] = subs[packet_type][1];
+assign sub[2] = subs[packet_type][2];
+assign sub[3] = subs[packet_type][3];
 
 // NULL packet
 // "An HDMI Sink shall ignore bytes HB1 and HB2 of the Null Packet Header and all bytes of the Null Packet Body."
 `ifdef MODEL_TECH
 assign headers[0] = {8'd0, 8'd0, 8'd0}; assign subs[0] = '{56'd0, 56'd0, 56'd0, 56'd0};
 `else
-assign headers[0] = {8'dX, 8'dX, 8'd0}; assign subs[0] = '{56'dX, 56'dX, 56'dX, 56'dX};
+assign headers[0] = {8'dX, 8'dX, 8'd0};
+assign subs[0][0] = 56'dX;
+assign subs[0][1] = 56'dX;
+assign subs[0][2] = 56'dX;
+assign subs[0][3] = 56'dX;
 `endif
 
 // Audio Clock Regeneration Packet

@@ -22,7 +22,11 @@ wire [5:0] counter_t2_p1 = {counter, 1'b1};
 // Initialize parity bits to 0
 logic [7:0] parity [4:0] = '{8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
 
-wire [63:0] bch [3:0] = '{{parity[3], sub[3]}, {parity[2], sub[2]}, {parity[1], sub[1]}, {parity[0], sub[0]}};
+wire [63:0] bch [3:0];
+assign bch[0] = {parity[0], sub[0]};
+assign bch[1] = {parity[1], sub[1]};
+assign bch[2] = {parity[2], sub[2]};
+assign bch[3] = {parity[3], sub[3]};
 wire [31:0] bch4 = {parity[4], header};
 assign packet_data = {bch[3][counter_t2_p1], bch[2][counter_t2_p1], bch[1][counter_t2_p1], bch[0][counter_t2_p1], bch[3][counter_t2], bch[2][counter_t2], bch[1][counter_t2], bch[0][counter_t2], bch4[counter]};
 

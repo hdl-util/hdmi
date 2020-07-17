@@ -250,7 +250,7 @@ generate
 endgenerate
 
 // All logic below relates to the production and output of the 10-bit TMDS code.
-logic [9:0] tmds [NUM_CHANNELS-1:0];
+logic [9:0] tmds [NUM_CHANNELS-1:0] /* verilator public_flat */ ;
 genvar i;
 generate
     // TMDS code production.
@@ -316,6 +316,7 @@ generate
         assign tmds_current_clk = tmds_shift_clk_pixel[0];
     end
 
+`ifndef VERILATOR
     // Differential signal output
     `ifdef SYNTHESIS // TODO: Is this really Vivado? https://forums.xilinx.com/t5/Simulation-and-Verification/Predefined-constant-for-simulation/td-p/986901
         `ifndef ALTERA_RESERVED_QIS
@@ -330,6 +331,8 @@ generate
         // If simulation, a mocked signal inversion is used.
         OBUFDS obufds(.din({tmds_current, tmds_current_clk}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n, tmds_clock_n}));
     `endif
+`endif
+
 endgenerate
 
 endmodule

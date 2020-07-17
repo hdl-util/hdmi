@@ -4,8 +4,8 @@
 // See HDMI 1.4b Section 5.3.3
 module audio_clock_regeneration_packet
 #(
-    parameter real VIDEO_RATE,
-    parameter int AUDIO_RATE
+    parameter real VIDEO_RATE = 25.2E6,
+    parameter int AUDIO_RATE = 48e3
 )
 (
     input logic clk_pixel,
@@ -47,7 +47,7 @@ begin
     if (clk_audio_counter_wrap_synchronizer_chain[1] ^ clk_audio_counter_wrap_synchronizer_chain[0])
     begin
         cycle_time_stamp_counter <= CYCLE_TIME_STAMP_COUNTER_WIDTH'(0);
-        cycle_time_stamp <= {(20-CYCLE_TIME_STAMP_COUNTER_WIDTH)'(0), cycle_time_stamp_counter + 1};
+        cycle_time_stamp <= {(20-CYCLE_TIME_STAMP_COUNTER_WIDTH)'(0), cycle_time_stamp_counter + CYCLE_TIME_STAMP_COUNTER_WIDTH'(1)};
         clk_audio_counter_wrap <= !clk_audio_counter_wrap;
     end
     else
