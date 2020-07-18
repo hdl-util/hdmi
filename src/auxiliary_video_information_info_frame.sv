@@ -51,12 +51,12 @@ generate
     begin
         assign packet_bytes[6] = 8'hff;
         assign packet_bytes[7] = 8'hff;
-        assign packet_bytes[8] = 8'hff;
-        assign packet_bytes[9] = 8'hff;
+        assign packet_bytes[8] = 8'h00;
+        assign packet_bytes[9] = 8'h00;
         assign packet_bytes[10] = 8'hff;
         assign packet_bytes[11] = 8'hff;
-        assign packet_bytes[12] = 8'hff;
-        assign packet_bytes[13] = 8'hff;
+        assign packet_bytes[12] = 8'h00;
+        assign packet_bytes[13] = 8'h00;
     end else begin
         assign packet_bytes[6] = 8'h00;
         assign packet_bytes[7] = 8'h00;
