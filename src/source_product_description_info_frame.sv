@@ -4,9 +4,9 @@
 // See CEA-861-D Section 6.5 page 72 (84 in PDF)
 module source_product_description_info_frame
 #(
-    parameter bit [8*8-1:0] VENDOR_NAME,
-    parameter bit [8*16-1:0] PRODUCT_DESCRIPTION,
-    parameter bit [7:0] SOURCE_DEVICE_INFORMATION
+    parameter bit [8*8-1:0] VENDOR_NAME = 0,
+    parameter bit [8*16-1:0] PRODUCT_DESCRIPTION = 0,
+    parameter bit [7:0] SOURCE_DEVICE_INFORMATION = 0
 )
 (
     output logic [23:0] header,
