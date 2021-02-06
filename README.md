@@ -71,6 +71,8 @@ You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock f
 |1280x720|4|59.94Hz|74.176MHz|
 |1920x1080|16|60Hz|148.5MHz|
 |1920x1080|16|59.94Hz|148.352MHz|
+|1920x1080|34|30Hz|74.25MHz|
+|1920x1080|34|29.97Hz|74.176MHz|
 |720x576|17, 18|50Hz|27MHz|
 |1280x720|19|50Hz|74.25MHz|
 |3840x2160|97, 107|60Hz|594MHz|

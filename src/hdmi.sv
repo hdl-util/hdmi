@@ -104,7 +104,7 @@ generate
             assign hsync = cx >= 110 && cx < 110 + 40;
             assign vsync = cy >= 5 && cy < 5 + 5;
         end
-        16:
+        16, 34:
         begin
             assign frame_width = 2200;
             assign frame_height = 1125;
@@ -212,8 +212,9 @@ generate
             : VIDEO_ID_CODE == 16 ? 148.5E6
             : VIDEO_ID_CODE == 17 || VIDEO_ID_CODE == 18 ? 27E6
             : VIDEO_ID_CODE == 19 ? 74.25E6
+            : VIDEO_ID_CODE == 34 ? 74.25E6
             : VIDEO_ID_CODE == 97 || VIDEO_ID_CODE == 107 ? 594E6
-            : 0) * (VIDEO_REFRESH_RATE == 59.94 ? 1000.0/1001.0 : 1); // https://groups.google.com/forum/#!topic/sci.engr.advanced-tv/DQcGk5R_zsM
+            : 0) * (VIDEO_REFRESH_RATE == 59.94 || VIDEO_REFRESH_RATE == 29.97 ? 1000.0/1001.0 : 1); // https://groups.google.com/forum/#!topic/sci.engr.advanced-tv/DQcGk5R_zsM
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
             .VIDEO_RATE(VIDEO_RATE),
