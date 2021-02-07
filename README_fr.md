@@ -1,8 +1,8 @@
 # hdmi
 
-[English](./README.md) | [Français](./README_fr.md) | [Help translate](https://github.com/hdl-util/hdmi/issues/11)
+[English](./README.md) | [Français](./README_fr.md) | [Nous aider avec la traduction](https://github.com/hdl-util/hdmi/issues/11)
 
-[![Statut de Construction](https://travis-ci.com/hdl-util/hdmi.svg?branch=master)](https://travis-ci.com/hdl-util/hdmi)
+![hdmi](https://github.com/hdl-util/hdmi/workflows/hdmi/badge.svg)
 
 SystemVerilog code pour transmettre vidéo/audio HDMI 1.4a sur un [FPGA](https://fr.wikipedia.org/wiki/Circuit_logique_programmable#FPGA).
 
