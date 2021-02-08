@@ -1,14 +1,12 @@
 module top ();
-logic [2:0] tmds_p;
-logic tmds_clock_p;
-logic [2:0] tmds_n;
-logic tmds_clock_n;
+logic [2:0] tmds;
+logic tmds_clock;
 
 logic clk_pixel;
-logic clk_pixel_x10;
+logic clk_pixel_x5;
 logic clk_audio;
 
-pll pll(.c0(clk_pixel_x10), .c1(clk_pixel), .c2(clk_audio));
+pll pll(.c0(clk_pixel_x5), .c1(clk_pixel), .c2(clk_audio));
 
 logic [15:0] audio_sample_word [1:0] = '{16'sd0, 16'sd0};
 always @(posedge clk_audio)
@@ -22,15 +20,13 @@ always @(posedge clk_pixel)
 
 // 640x480 @ 59.94Hz
 hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(59.94), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi(
-  .clk_pixel_x10(clk_pixel_x10),
+  .clk_pixel_x5(clk_pixel_x5),
   .clk_pixel(clk_pixel),
   .clk_audio(clk_audio),
   .rgb(rgb),
   .audio_sample_word(audio_sample_word),
-  .tmds_p(tmds_p),
-  .tmds_clock_p(tmds_clock_p),
-  .tmds_n(tmds_n),
-  .tmds_clock_n(tmds_clock_n),
+  .tmds(tmds),
+  .tmds_clock(tmds_clock),
   .cx(cx),
   .cy(cy),
   .screen_start_x(screen_start_x),

@@ -51,9 +51,9 @@ endgenerate
 
 always @(posedge top.clk_pixel)
 begin
-  tmds_values[0] <= top.hdmi.tmds[0];
-  tmds_values[1] <= top.hdmi.tmds[1];
-  tmds_values[2] <= top.hdmi.tmds[2];
+  tmds_values[0] <= top.hdmi.tmds_internal[0];
+  tmds_values[1] <= top.hdmi.tmds_internal[1];
+  tmds_values[2] <= top.hdmi.tmds_internal[2];
 end
 
 logic [4:0] data_counter = 0;

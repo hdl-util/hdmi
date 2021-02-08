@@ -10,8 +10,8 @@ module pll (
 );
 always
 begin
-	#3969ps c0 = 1;
-	#3969ps c0 = 0;
+	#7937ps c0 = 1;
+	#7937ps c0 = 0;
 end
 
 always

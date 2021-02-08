@@ -53,8 +53,6 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 - [ ] Support other video id codes
 	- [ ] Interlaced video
 	- [ ] Pixel repetition
-- [ ] Special I/O features
-	- [x] Double Data Rate I/O (DDRIO)
 
 
 ### Pixel Clock
@@ -77,7 +75,7 @@ You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock f
 |1280x720|19|50Hz|74.25MHz|
 |3840x2160|97, 107|60Hz|594MHz|
 
-The second clock is a clock 10 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both. You can avoid using two different multiplication factors, with the DDRIO feature, which only requires the second clock to be 5 times as fast.
+The second clock is a clock 5 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both.
 
 ### L-PCM Audio Bitrate / Sampling Frequency
 
@@ -120,8 +118,7 @@ This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE
 ### Things to be aware of / Troubleshooting
 
 * Limited resolution: some FPGAs don't support I/O at speeds high enough to achieve 720p/1080p
-    * Workaround: use DDR/other special I/O features like I/O serializers
-	* Workaround: Altera FPGA users can try to specify speed grade C6 and see if it works, though yours may be C7 or C8. If it doesn't work, try enabling DDRIO.
+	* Workaround: Altera FPGA users can try to specify speed grade C6 and see if it works, though yours may be C7 or C8. Beware that this might introduce some system instability.
 * FPGA does not support TMDS: many FPGAs without a dedicated HDMI output don't support TMDS
     * You should be able to directly use LVDS (3.3v) instead, tested up to 720x480
     * This might not work if your video has a high number of transitions or you plan to use higher resolutions
