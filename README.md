@@ -25,8 +25,10 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 
 ### Platform Support
 
-- [x] Altera
+- [x] Altera (tested on [MKR Vidor 4000](https://store.arduino.cc/usa/mkr-vidor-4000))
 - [x] Xilinx
+  - Confirmed for [v1.1](https://github.com/hdl-util/hdmi/releases/tag/v1.1) by community
+  - Master will be tested soon using [Spartan Edge Accelerator Board](https://www.seeedstudio.com/Spartan-Edge-Accelerator-Board-p-4261.html)
 - [ ] Lattice (unknown)
 
 ### To-do List (upon request)
