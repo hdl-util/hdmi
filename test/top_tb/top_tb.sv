@@ -87,6 +87,14 @@ logic [191:0] channel_status [1:0] = '{192'dX, 192'dX};
 // PB7-13 =  sub1
 // PB14-20 = sub2
 // PB21-27 = sub3
+
+// returns number of non-zero elements in array
+function int check_non_zero_elem(logic [7:0] a0[]);
+    check_non_zero_elem = 0;
+    for(int i=$low(a0); i <= $high(a0); i++)
+        if(a0[i] != 0) check_non_zero_elem++;
+endfunction
+
 logic [7:0] packet_bytes [0:27];
 for (i = 0; i < 28; i++)
 begin
@@ -170,19 +178,19 @@ begin
           8'h82: begin
             $display("AVI InfoFrame");
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
-            assert(112'(packet_bytes[14:27]) == 0) else $fatal("Reserved bytes not 0");
+            assert(check_non_zero_elem(packet_bytes[14:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           8'h83: begin
-            $display("SPD InfoFrame this is a %s created by %s that is a 0x%h", 128'(packet_bytes[9:24]), 64'(packet_bytes[1:8]), packet_bytes[25]);
+            $display("SPD InfoFrame this is a %s created by %s that is a 0x%h", string'(packet_bytes[9:24]), string'(packet_bytes[1:8]), packet_bytes[25]);
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
-            assert(16'(packet_bytes[26:27]) == 0) else $fatal("Reserved bytes not 0");
+            assert(check_non_zero_elem(packet_bytes[26:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           8'h84: begin
             $display("Audio InfoFrame");
             assert(packet_bytes.sum() + header[23:16] + header[15:8] + header[7:0] == 8'd0) else $fatal("Bad checksum");
             assert(packet_bytes[1] == 8'd1) else $fatal("Only channel count of 2 should be set");
             assert(packet_bytes[2] == 8'd0 && packet_bytes[3] == 8'd0) else $fatal("These are refer to stream header");
-            assert(176'(packet_bytes[6:27]) == 0) else $fatal("Reserved bytes not 0");
+            assert(check_non_zero_elem(packet_bytes[6:27]) == 0) else $fatal("Reserved bytes not 0");
           end
           default: begin
             $fatal("Unhandled packet type %h (%s) at %d, %d: %p", header[7:0], "Unknown", cx, cy, sub);
