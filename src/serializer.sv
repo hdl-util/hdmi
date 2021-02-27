@@ -14,15 +14,23 @@ module serializer
 `ifndef VERILATOR
     `ifdef SYNTHESIS
         `ifndef ALTERA_RESERVED_QIS
-            // Based on VHDL implementation by Furkan Cayci, 2010
+            // https://www.xilinx.com/support/documentation/user_guides/ug471_7Series_SelectIO.pdf
+            // Prior to use, a reset must be applied to the OSERDESE2.
+            // The OSERDESE2 contains an internal counter that controls dataflow.
+            // Failure to synchronize the reset deassertion with the CLKDIV will produce an unexpected output.
+            logic reset = 1'b1;
+            always @(posedge clk_pixel)
+            begin
+                reset <= 1'b0;
+            end
             logic [9:0] tmds_internal_plus_clock [NUM_CHANNELS:0];
-            assign tmds_internal_plus_clock =tmds_internal_plus_clock '{10'b0000011111, tmds_internal[2], tmds_internal[1], tmds_internal[0]};
+            assign tmds_internal_plus_clock = '{10'b0000011111, tmds_internal[2], tmds_internal[1], tmds_internal[0]};
             logic [1:0] cascade [NUM_CHANNELS:0];
             genvar i;
             generate
                 for (i = 0; i <= NUM_CHANNELS; i++)
                 begin: xilinx_serialize
-                    OSERDES2 #(.DATA_RATE_OQ("DDR"), .DATA_RATE_TQ("SDR"), .DATA_WIDTH(10), .SERDES_MODE("MASTER"), .TRISTATE_WIDTH(1))
+                    OSERDESE2 #(.DATA_RATE_OQ("DDR"), .DATA_RATE_TQ("SDR"), .DATA_WIDTH(10), .SERDES_MODE("MASTER"), .TRISTATE_WIDTH(1))
                         primary (
                             .OQ(i == NUM_CHANNELS ? tmds_clock : tmds[i]),
                             .OFB(),
@@ -44,7 +52,7 @@ module serializer
                             .TCE(1'b0),
                             .OCE(1'b1),
                             .TBYTEIN(1'b0),
-                            .RST(),
+                            .RST(reset),
                             .SHIFTIN1(cascade[i][0]),
                             .SHIFTIN2(cascade[i][1]),
                             .T1(1'b0),
@@ -52,7 +60,7 @@ module serializer
                             .T3(1'b0),
                             .T4(1'b0)
                         );
-                    OSERDES2 #(.DATA_RATE_OQ("DDR"), .DATA_RATE_TQ("SDR"), .DATA_WIDTH(10), .SERDES_MODE("SLAVE"), .TRISTATE_WIDTH(1))
+                    OSERDESE2 #(.DATA_RATE_OQ("DDR"), .DATA_RATE_TQ("SDR"), .DATA_WIDTH(10), .SERDES_MODE("SLAVE"), .TRISTATE_WIDTH(1))
                         secondary (
                             .OQ(),
                             .OFB(),
@@ -74,7 +82,7 @@ module serializer
                             .TCE(1'b0),
                             .OCE(1'b1),
                             .TBYTEIN(1'b0),
-                            .RST(),
+                            .RST(reset),
                             .SHIFTIN1(1'b0),
                             .SHIFTIN2(1'b0),
                             .T1(1'b0),
