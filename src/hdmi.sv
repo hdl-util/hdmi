@@ -300,10 +300,10 @@ generate
         `ifdef SYNTHESIS // TODO: Is this really Vivado? https://forums.xilinx.com/t5/Simulation-and-Verification/Predefined-constant-for-simulation/td-p/986901
             `ifndef ALTERA_RESERVED_QIS
                 for (i = 0; i < NUM_CHANNELS; i++)
-                begin: oddr2_gen
-                    ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current[i]), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(tmds_shift[i][0]), .D1(tmds_shift[i][1]), .R(1'b0), .S(1'b0));
+                begin: oddr_gen
+                    ODDR #(.DDR_CLK_EDGE("SAME_EDGE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current[i]), .C(clk_pixel_x10), .CE(1'b1), .D1(tmds_shift[i][0]), .D2(tmds_shift[i][1]), .R(1'b0), .S(1'b0));
                 end
-                ODDR2 #(.DDR_ALIGNMENT("NONE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C0(clk_pixel_x10), .C1(!clk_pixel_x10), .CE(1'b1), .D0(tmds_shift_clk_pixel[0]), .D1(tmds_shift_clk_pixel[1]), .R(1'b0), .S(1'b0));
+                ODDR #(.DDR_CLK_EDGE("SAME_EDGE"), .INIT(1'b0), .SRTYPE("SYNC")) clock_forward_inst (.Q(tmds_current_clk), .C(clk_pixel_x10), .CE(1'b1), .D1(tmds_shift_clk_pixel[0]), .D2(tmds_shift_clk_pixel[1]), .R(1'b0), .S(1'b0));
             `endif
         `else
             altDDIO_out DDRIO (.dataout({tmds_current, tmds_current_clk}), .outclock(clk_pixel_x10), .datain_h({tmds_shift[2][0], tmds_shift[1][0], tmds_shift[0][0], tmds_shift_clk_pixel[0]}), .datain_l({tmds_shift[2][1], tmds_shift[1][1], tmds_shift[0][1], tmds_shift_clk_pixel[1]}), .aclr(1'b0), .aset(1'b0), .outclocken(1'b1), .sclr(1'b0), .sset(1'b0));
@@ -328,7 +328,7 @@ generate
     `else
         // If Altera synthesis, a true differential buffer is built with altera_gpio_lite from the Intel IP Catalog.
         // If simulation, a mocked signal inversion is used.
-        OBUFDS obufds(.din({tmds_current, tmds_current_clk}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n, tmds_clock_n}));
+        OBUFDS_quartus obufds(.din({tmds_current, tmds_current_clk}), .pad_out({tmds_p, tmds_clock_p}), .pad_out_b({tmds_n, tmds_clock_n}));
     `endif
 endgenerate
 
