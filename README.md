@@ -26,9 +26,7 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 ### Platform Support
 
 - [x] Altera (tested on [MKR Vidor 4000](https://store.arduino.cc/usa/mkr-vidor-4000))
-- [x] Xilinx
-  - Confirmed for [v1.1](https://github.com/hdl-util/hdmi/releases/tag/v1.1) by community
-  - Master will be tested soon using [Spartan Edge Accelerator Board](https://www.seeedstudio.com/Spartan-Edge-Accelerator-Board-p-4261.html)
+- [x] Xilinx (tested on [Spartan Edge Accelerator Board](https://www.seeedstudio.com/Spartan-Edge-Accelerator-Board-p-4261.html))
 - [ ] Lattice (unknown)
 
 ### To-do List (upon request)
@@ -61,23 +59,24 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 
 You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
 
-|Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|
+|Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|[Progressive](https://en.wikipedia.org/wiki/Progressive_scan)/[Interlaced](https://en.wikipedia.org/wiki/Interlaced_video)|
 |---|---|---|---|
-|640x480|1|60Hz|25.2MHz|
-|640x480|1|59.94Hz|25.175MHz|
-|720x480|2, 3|60Hz|27.027MHz|
-|720x480|2, 3|59.94Hz|27MHz|
-|1280x720|4|60Hz|74.25MHz|
-|1280x720|4|59.94Hz|74.176MHz|
-|1920x1080|16|60Hz|148.5MHz|
-|1920x1080|16|59.94Hz|148.352MHz|
-|1920x1080|34|30Hz|74.25MHz|
-|1920x1080|34|29.97Hz|74.176MHz|
-|720x576|17, 18|50Hz|27MHz|
-|1280x720|19|50Hz|74.25MHz|
-|3840x2160|97, 107|60Hz|594MHz|
+|640x480|1|60Hz|25.2MHz|P|
+|640x480|1|59.94Hz|25.175MHz|P|
+|720x480|2, 3|60Hz|27.027MHz|P|
+|720x480|2, 3|59.94Hz|27MHz|P|
+|720x576|17, 18|50Hz|27MHz|P|
+|1280x720|4|60Hz|74.25MHz|P|
+|1280x720|4|59.94Hz|74.176MHz|P|
+|1280x720|19|50Hz|74.25MHz|P|
+|1920x1080|16|60Hz|148.5MHz|P|
+|1920x1080|16|59.94Hz|148.352MHz|P|
+|1920x1080|34|30Hz|74.25MHz|P|
+|1920x1080|34|29.97Hz|74.176MHz|P|
+|3840x2160 (not ready)|97, 107|60Hz|594MHz|P|
+|3840x2160|95, 105|30Hz|297MHz|P|
 
-The second clock is a clock 5 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both.
+The second clock is a clock 5 times as fast as the pixel clock. Even if your FPGA only has a single PLL, the Altera MegaWizard (or the Xilinx equivalent) should still be able to produce both. See [hdl-util/hdmi-demo](https://github.com/hdl-util/hdmi-demo/) for example PLLs.
 
 ### L-PCM Audio Bitrate / Sampling Frequency
 
