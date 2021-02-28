@@ -60,7 +60,7 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 You'll need to set up a PLL for producing the two HDMI clocks. The pixel clock for each supported format is shown below:
 
 |Video Resolution|Video ID Code(s)|Refresh Rate|Pixel Clock Frequency|[Progressive](https://en.wikipedia.org/wiki/Progressive_scan)/[Interlaced](https://en.wikipedia.org/wiki/Interlaced_video)|
-|---|---|---|---|
+|---|---|---|---|---|
 |640x480|1|60Hz|25.2MHz|P|
 |640x480|1|59.94Hz|25.175MHz|P|
 |720x480|2, 3|60Hz|27.027MHz|P|
