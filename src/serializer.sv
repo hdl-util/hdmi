@@ -20,6 +20,12 @@ module serializer
             logic [9:0] tmds_internal_plus_clock [NUM_CHANNELS:0];
             assign tmds_internal_plus_clock = '{10'b0000011111, tmds_internal[2], tmds_internal[1], tmds_internal[0]};
             logic [1:0] cascade [NUM_CHANNELS:0];
+
+            logic reset = 1'b1;
+            always @(posedge clk_pixel)
+            begin
+                reset <= 1'b0;
+            end
             genvar i;
             generate
                 for (i = 0; i <= NUM_CHANNELS; i++)
@@ -53,7 +59,7 @@ module serializer
                         .TCE(1'b0),
                         .OCE(1'b1),
                         .TBYTEIN(1'b0),
-                        .RST(1'b0),
+                        .RST(reset),
                         .SHIFTIN1(cascade[i][0]),
                         .SHIFTIN2(cascade[i][1]),
                         .T1(1'b0),
@@ -90,7 +96,7 @@ module serializer
                         .TCE(1'b0),
                         .OCE(1'b1),
                         .TBYTEIN(1'b0),
-                        .RST(1'b0),
+                        .RST(reset),
                         .SHIFTIN1(1'b0),
                         .SHIFTIN2(1'b0),
                         .T1(1'b0),
