@@ -53,21 +53,23 @@ module hdmi
     // i.e. always_ff @(posedge pixel_clk) rgb <= {8'd0, 8'(cx), 8'(cy)};
     output logic [BIT_WIDTH-1:0] cx = BIT_WIDTH'(0),
     output logic [BIT_HEIGHT-1:0] cy = BIT_HEIGHT'(0),
-    
-    // the screen is at the bottom right corner of the frame, namely:
-    // frame_width = screen_start_x + screen_width
-    // frame_height = screen_start_y + screen_height
+
+    // The screen is at the upper left corner of the frame.
+    // 0,0 = 0,0 in video
+    // the frame includes extra space for sending auxiliary data
     output logic [BIT_WIDTH-1:0] frame_width,
     output logic [BIT_HEIGHT-1:0] frame_height,
     output logic [BIT_WIDTH-1:0] screen_width,
-    output logic [BIT_HEIGHT-1:0] screen_height,
-    output logic [BIT_WIDTH-1:0] screen_start_x,
-    output logic [BIT_HEIGHT-1:0] screen_start_y
+    output logic [BIT_HEIGHT-1:0] screen_height
 );
 
 localparam int NUM_CHANNELS = 3;
 logic hsync;
 logic vsync;
+
+logic [BIT_WIDTH-1:0] hsync_porch_start, hsync_porch_size;
+logic [BIT_HEIGHT-1:0] vsync_porch_start, vsync_porch_size;
+logic invert;
 
 // See CEA-861-D for more specifics formats described below.
 generate
@@ -78,8 +80,11 @@ generate
             assign frame_height = 525;
             assign screen_width = 640;
             assign screen_height = 480;
-            assign hsync = ~(cx >= 16 && cx < 16 + 96);
-            assign vsync = ~(cy >= 10 && cy < 10 + 2);
+            assign hsync_porch_start = 16;
+            assign hsync_porch_size = 96;
+            assign vsync_porch_start = 10;
+            assign vsync_porch_size = 2;
+            assign invert = 1;
             end
         2, 3:
         begin
@@ -87,8 +92,11 @@ generate
             assign frame_height = 525;
             assign screen_width = 720;
             assign screen_height = 480;
-            assign hsync = ~(cx >= 16 && cx < 16 + 62);
-            assign vsync = ~(cy >= 9 && cy < 9 + 6);
+            assign hsync_porch_start = 16;
+            assign hsync_porch_size = 62;
+            assign vsync_porch_start = 9;
+            assign vsync_porch_size = 6;
+            assign invert = 1;
             end
         4:
         begin
@@ -96,8 +104,11 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync = cx >= 110 && cx < 110 + 40;
-            assign vsync = cy >= 5 && cy < 5 + 5;
+            assign hsync_porch_start = 110;
+            assign hsync_porch_size = 40;
+            assign vsync_porch_start = 5;
+            assign vsync_porch_size = 5;
+            assign invert = 0;
         end
         16, 34:
         begin
@@ -105,8 +116,11 @@ generate
             assign frame_height = 1125;
             assign screen_width = 1920;
             assign screen_height = 1080;
-            assign hsync = cx >= 88 && cx < 88 + 44;
-            assign vsync = cy >= 4 && cy < 4 + 5;
+            assign hsync_porch_start = 88;
+            assign hsync_porch_size = 44;
+            assign vsync_porch_start = 4;
+            assign vsync_porch_size = 5;
+            assign invert = 0;
         end
         17, 18:
         begin
@@ -114,8 +128,11 @@ generate
             assign frame_height = 625;
             assign screen_width = 720;
             assign screen_height = 576;
-            assign hsync = ~(cx >= 12 && cx < 12 + 64);
-            assign vsync = ~(cy >= 5 && cy < 5 + 5);
+            assign hsync_porch_start = 12;
+            assign hsync_porch_size = 64;
+            assign vsync_porch_start = 5;
+            assign vsync_porch_size = 5;
+            assign invert = 1;
         end
         19:
         begin
@@ -123,8 +140,11 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync = cx >= 440 && cx < 440 + 40;
-            assign vsync = cy >= 5 && cy < 5 + 5;
+            assign hsync_porch_start = 440;
+            assign hsync_porch_size = 40;
+            assign vsync_porch_start = 5;
+            assign vsync_porch_size = 5;
+            assign invert = 0;
         end
         95, 105, 97, 107:
         begin
@@ -132,12 +152,15 @@ generate
             assign frame_height = 2250;
             assign screen_width = 3840;
             assign screen_height = 2160;
-            assign hsync = cx >= 176 && cx < 176 + 88;
-            assign vsync = cy >= 8 && cy < 8 + 10;
+            assign hsync_porch_start = 176;
+            assign hsync_porch_size = 88;
+            assign vsync_porch_start = 8;
+            assign vsync_porch_size = 10;
+            assign invert = 0;
         end
     endcase
-    assign screen_start_x = frame_width - screen_width;
-    assign screen_start_y = frame_height - screen_height;
+    assign hsync = invert ^ (cx >= screen_width + hsync_porch_start && cx < screen_width + hsync_porch_start + hsync_porch_size);
+    assign vsync = invert ^ (cy >= screen_height + vsync_porch_start && cy < screen_height + vsync_porch_start + vsync_porch_size);
 endgenerate
 
 localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6
@@ -158,9 +181,9 @@ begin
 end
 
 // See Section 5.2
-logic video_data_period = 1;
+logic video_data_period = 0;
 always_ff @(posedge clk_pixel)
-    video_data_period <= cx >= screen_start_x && cy >= screen_start_y;
+    video_data_period <= cx < screen_width && cy < screen_height;
 
 logic [2:0] mode = 3'd1;
 logic [23:0] video_data = 24'd0;
@@ -170,12 +193,12 @@ logic [11:0] data_island_data = 12'd0;
 generate
     if (!DVI_OUTPUT)
     begin: true_hdmi_output
-        logic video_guard = 0;
+        logic video_guard = 1;
         logic video_preamble = 0;
         always_ff @(posedge clk_pixel)
         begin
-            video_guard <= cx >= screen_start_x - 2 && cx < screen_start_x && cy >= screen_start_y;
-            video_preamble <= cx >= screen_start_x - 10 && cx < screen_start_x - 2 && cy >= screen_start_y;
+            video_guard <= cx >= frame_width - 2 && cx < frame_width && (cy == frame_height - 1 || cy < screen_height);
+            video_preamble <= cx >= frame_width - 10 && cx < frame_width - 2 && (cy == frame_height - 1 || cy < screen_height);
         end
 
         // See Section 5.2.3.1
@@ -183,7 +206,7 @@ generate
         logic [4:0] num_packets_alongside;
         always_comb
         begin
-            max_num_packets_alongside = (screen_start_x /* VD period */ - 2 /* V guard */ - 8 /* V preamble */ - 12 /* 12px control period */ - 2 /* DI guard */ - 2 /* DI start guard */ - 8 /* DI premable */) / 32;
+            max_num_packets_alongside = ((frame_width - screen_width) /* VD period */ - 2 /* V guard */ - 8 /* V preamble */ - 12 /* 12px control period */ - 2 /* DI guard */ - 2 /* DI start guard */ - 8 /* DI premable */) / 32;
             if (max_num_packets_alongside > 18)
                 num_packets_alongside = 5'd18;
             else
@@ -191,17 +214,17 @@ generate
         end
 
         logic data_island_period_instantaneous;
-        assign data_island_period_instantaneous = num_packets_alongside > 0 && cx >= 10 && cx < 10 + num_packets_alongside * 32;
+        assign data_island_period_instantaneous = num_packets_alongside > 0 && cx >= screen_width + 10 && cx < screen_width + 10 + num_packets_alongside * 32;
         logic packet_enable;
-        assign packet_enable = data_island_period_instantaneous && 5'(cx + 22) == 5'd0;
+        assign packet_enable = data_island_period_instantaneous && 5'(cx + screen_width + 22) == 5'd0;
 
         logic data_island_guard = 0;
         logic data_island_preamble = 0;
         logic data_island_period = 0;
         always_ff @(posedge clk_pixel)
         begin
-            data_island_guard <= num_packets_alongside > 0 && ((cx >= 8 && cx < 10) || (cx >= 10 + num_packets_alongside * 32 && cx < 10 + num_packets_alongside * 32 + 2));
-            data_island_preamble <= num_packets_alongside > 0 && /* cx >= 0 && */ cx < 8;
+            data_island_guard <= num_packets_alongside > 0 && ((cx >= screen_width + 8 && cx < screen_width + 10) || (cx >= screen_width + 10 + num_packets_alongside * 32 && cx < screen_width + 10 + num_packets_alongside * 32 + 2));
+            data_island_preamble <= num_packets_alongside > 0 && cx >= screen_width && cx < screen_width + 8;
             data_island_period <= data_island_period_instantaneous;
         end
 
@@ -209,7 +232,7 @@ generate
         logic [23:0] header;
         logic [55:0] sub [3:0];
         logic video_field_end;
-        assign video_field_end = cx == frame_width - 1'b1 && cy == frame_height - 1'b1;
+        assign video_field_end = cx == screen_width - 1'b1 && cy == screen_height - 1'b1;
         logic [4:0] packet_pixel_counter;
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
@@ -230,7 +253,7 @@ generate
             video_data <= rgb;
             control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
             data_island_data[11:4] <= packet_data[8:1];
-            data_island_data[3] <= cx != screen_start_x;
+            data_island_data[3] <= cx != 0;
             data_island_data[2] <= packet_data[0];
             data_island_data[1:0] <= {vsync, hsync};
         end
