@@ -110,13 +110,13 @@ always @(posedge top.clk_pixel)
 begin
   cx <= cx == top.frame_width - 1 ? 0 : cx + 1;
   cy <= cx == top.frame_width-1'b1 ? cy == top.frame_height-1'b1 ? 0 : cy + 1'b1 : cy;
-  if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= 8 && cx < 10) || (cx >= 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
+  if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && (cx >= top.screen_width + 8 && cx < top.screen_width + 10) || (cx >= top.screen_width + 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 && cx < top.screen_width + 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32 + 2))
   begin
     assert(tmds_values[2] == 10'b0100110011) else $fatal("Channel 2 DI GB incorrect: %b", tmds_values[2]);
     assert(tmds_values[1] == 10'b0100110011) else $fatal("Channel 1 DI GB incorrect");
     assert(tmds_values[0] == 10'b1010001110 || tmds_values[0] == 10'b1001110001 || tmds_values[0] == 10'b0101100011 || tmds_values[0] == 10'b1011000011) else $fatal("Channel 0 DI GB incorrect");
   end
-  else if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= 10 && cx < 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32)
+  else if (top.hdmi.true_hdmi_output.num_packets_alongside > 0 && cx >= top.screen_width + 10 && cx < top.screen_width + 10 + top.hdmi.true_hdmi_output.num_packets_alongside * 32)
   begin
     data_counter <= data_counter + 1'd1;
     if (data_counter == 0)
@@ -126,7 +126,7 @@ begin
       sub[1][63:1] <= 63'dX;
       sub[0][63:1] <= 63'dX;
       header[31:1] <= 31'dX;
-      if (cx != 10 || !first_packet) // Packet complete
+      if (cx != top.screen_width + 10 || !first_packet) // Packet complete
       begin
         first_packet <= 0;
         case(header[7:0])

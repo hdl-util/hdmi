@@ -16,7 +16,7 @@ logic [23:0] rgb = 24'd0;
 logic [9:0] cx, cy, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
 // Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
 always @(posedge clk_pixel)
-  rgb <= {cx == screen_start_x ? ~8'd0 : 8'd0, cy == screen_start_y ? ~8'd0 : 8'd0, cx == frame_width - 1'd1 || cy == frame_height - 1'd1 ? ~8'd0 : 8'd0};
+  rgb <= {cx == 0 ? ~8'd0 : 8'd0, cy == 0 ? ~8'd0 : 8'd0, cx == screen_width - 1'd1 || cy == screen_width - 1'd1 ? ~8'd0 : 8'd0};
 
 // 640x480 @ 59.94Hz
 hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(59.94), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi(
@@ -29,8 +29,6 @@ hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(59.94), .AUDIO_RATE(48000), .AUDIO
   .tmds_clock(tmds_clock),
   .cx(cx),
   .cy(cy),
-  .screen_start_x(screen_start_x),
-  .screen_start_y(screen_start_y),
   .frame_width(frame_width),
   .frame_height(frame_height),
   .screen_width(screen_width),
