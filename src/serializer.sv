@@ -6,6 +6,7 @@ module serializer
 (
     input logic clk_pixel,
     input logic clk_pixel_x5,
+    input logic reset,
     input logic [9:0] tmds_internal [NUM_CHANNELS-1:0],
     output logic [2:0] tmds,
     output logic tmds_clock
@@ -21,10 +22,11 @@ module serializer
             assign tmds_internal_plus_clock = '{10'b0000011111, tmds_internal[2], tmds_internal[1], tmds_internal[0]};
             logic [1:0] cascade [NUM_CHANNELS:0];
 
-            logic reset = 1'b1;
+            // this is requried for OSERDESE2 to work
+            logic internal_reset = 1'b1;
             always @(posedge clk_pixel)
             begin
-                reset <= 1'b0;
+                internal_reset <= 1'b0;
             end
             genvar i;
             generate
@@ -59,7 +61,7 @@ module serializer
                         .TCE(1'b0),
                         .OCE(1'b1),
                         .TBYTEIN(1'b0),
-                        .RST(reset),
+                        .RST(reset || internal_reset),
                         .SHIFTIN1(cascade[i][0]),
                         .SHIFTIN2(cascade[i][1]),
                         .T1(1'b0),
@@ -96,7 +98,7 @@ module serializer
                         .TCE(1'b0),
                         .OCE(1'b1),
                         .TBYTEIN(1'b0),
-                        .RST(reset),
+                        .RST(reset || internal_reset),
                         .SHIFTIN1(1'b0),
                         .SHIFTIN2(1'b0),
                         .T1(1'b0),
@@ -142,7 +144,7 @@ module serializer
                 .pll_areset (1'b0),
                 .sync_inclock (1'b0),
                 .tx_coreclock (),
-                .tx_data_reset (1'b0),
+                .tx_data_reset (reset),
                 .tx_enable (1'b1),
                 .tx_locked (),
                 .tx_pll_enable (1'b1),

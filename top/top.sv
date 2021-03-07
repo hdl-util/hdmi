@@ -5,6 +5,7 @@ logic tmds_clock;
 logic clk_pixel;
 logic clk_pixel_x5;
 logic clk_audio;
+logic reset;
 
 pll pll(.c0(clk_pixel_x5), .c1(clk_pixel), .c2(clk_audio));
 
@@ -23,6 +24,7 @@ hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(59.94), .AUDIO_RATE(48000), .AUDIO
   .clk_pixel_x5(clk_pixel_x5),
   .clk_pixel(clk_pixel),
   .clk_audio(clk_audio),
+  .reset(reset),
   .rgb(rgb),
   .audio_sample_word(audio_sample_word),
   .tmds(tmds),
