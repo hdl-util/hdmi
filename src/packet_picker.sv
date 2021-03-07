@@ -14,6 +14,7 @@ module packet_picker
 (
     input logic clk_pixel,
     input logic clk_audio,
+    input logic reset,
     input logic video_field_end,
     input logic packet_enable,
     input logic [4:0] packet_pixel_counter,
@@ -115,7 +116,11 @@ logic [7:0] frame_counter = 8'd0;
 int k;
 always_ff @(posedge clk_pixel)
 begin
-    if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
+    if (reset)
+    begin
+        frame_counter <= 8'd0;
+    end
+    else if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin
         frame_counter = frame_counter + 8'd4;
         if (frame_counter >= 8'd192)
@@ -144,7 +149,7 @@ begin
     if (sample_buffer_used)
         sample_buffer_used <= 1'b0;
 
-    if (video_field_end)
+    if (reset || video_field_end)
     begin
         audio_info_frame_sent <= 1'b0;
         auxiliary_video_information_info_frame_sent <= 1'b0;
