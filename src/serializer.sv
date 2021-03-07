@@ -136,53 +136,111 @@ module serializer
                 position <= position == 4'd9 ? 4'd0 : position + 1'd1;
             end
         `else
-            altlvds_tx	ALTLVDS_TX_component (
-                .tx_in ({10'b1111100000, tmds_reversed[2], tmds_reversed[1], tmds_reversed[0]}),
-                .tx_inclock (clk_pixel_x5),
-                .tx_out ({tmds_clock, tmds[2], tmds[1], tmds[0]}),
-                .tx_outclock (),
-                .pll_areset (1'b0),
-                .sync_inclock (1'b0),
-                .tx_coreclock (),
-                .tx_data_reset (reset),
-                .tx_enable (1'b1),
-                .tx_locked (),
-                .tx_pll_enable (1'b1),
-                .tx_syncclock (clk_pixel));
-            defparam
-                ALTLVDS_TX_component.center_align_msb = "UNUSED",
-                ALTLVDS_TX_component.common_rx_tx_pll = "OFF",
-                ALTLVDS_TX_component.coreclock_divide_by = 1,
-                // ALTLVDS_TX_component.data_rate = "800.0 Mbps",
-                ALTLVDS_TX_component.deserialization_factor = 10,
-                ALTLVDS_TX_component.differential_drive = 0,
-                ALTLVDS_TX_component.enable_clock_pin_mode = "UNUSED",
-                ALTLVDS_TX_component.implement_in_les = "OFF",
-                ALTLVDS_TX_component.inclock_boost = 0,
-                ALTLVDS_TX_component.inclock_data_alignment = "EDGE_ALIGNED",
-                ALTLVDS_TX_component.inclock_period = int'(10000000.0 / (VIDEO_RATE * 10.0)),
-                ALTLVDS_TX_component.inclock_phase_shift = 0,
-                // ALTLVDS_TX_component.intended_device_family = "Cyclone V",
-                ALTLVDS_TX_component.lpm_hint = "CBX_MODULE_PREFIX=altlvds_tx_inst",
-                ALTLVDS_TX_component.lpm_type = "altlvds_tx",
-                ALTLVDS_TX_component.multi_clock = "OFF",
-                ALTLVDS_TX_component.number_of_channels = 4,
-                // ALTLVDS_TX_component.outclock_alignment = "EDGE_ALIGNED",
-                // ALTLVDS_TX_component.outclock_divide_by = 1,
-                // ALTLVDS_TX_component.outclock_duty_cycle = 50,
-                // ALTLVDS_TX_component.outclock_multiply_by = 1,
-                // ALTLVDS_TX_component.outclock_phase_shift = 0,
-                // ALTLVDS_TX_component.outclock_resource = "Dual-Regional clock",
-                ALTLVDS_TX_component.output_data_rate = int'(VIDEO_RATE * 10.0),
-                ALTLVDS_TX_component.pll_compensation_mode = "AUTO",
-                ALTLVDS_TX_component.pll_self_reset_on_loss_lock = "OFF",
-                ALTLVDS_TX_component.preemphasis_setting = 0,
-                // ALTLVDS_TX_component.refclk_frequency = "20.000000 MHz",
-                ALTLVDS_TX_component.registered_input = "OFF",
-                ALTLVDS_TX_component.use_external_pll = "ON",
-                ALTLVDS_TX_component.use_no_phase_shift = "ON",
-                ALTLVDS_TX_component.vod_setting = 0,
-                ALTLVDS_TX_component.clk_src_is_pll = "off";
+            `ifdef ALTERA_RESERVED_QIS
+                altlvds_tx	ALTLVDS_TX_component (
+                    .tx_in ({10'b1111100000, tmds_reversed[2], tmds_reversed[1], tmds_reversed[0]}),
+                    .tx_inclock (clk_pixel_x5),
+                    .tx_out ({tmds_clock, tmds[2], tmds[1], tmds[0]}),
+                    .tx_outclock (),
+                    .pll_areset (1'b0),
+                    .sync_inclock (1'b0),
+                    .tx_coreclock (),
+                    .tx_data_reset (reset),
+                    .tx_enable (1'b1),
+                    .tx_locked (),
+                    .tx_pll_enable (1'b1),
+                    .tx_syncclock (clk_pixel));
+                defparam
+                    ALTLVDS_TX_component.center_align_msb = "UNUSED",
+                    ALTLVDS_TX_component.common_rx_tx_pll = "OFF",
+                    ALTLVDS_TX_component.coreclock_divide_by = 1,
+                    // ALTLVDS_TX_component.data_rate = "800.0 Mbps",
+                    ALTLVDS_TX_component.deserialization_factor = 10,
+                    ALTLVDS_TX_component.differential_drive = 0,
+                    ALTLVDS_TX_component.enable_clock_pin_mode = "UNUSED",
+                    ALTLVDS_TX_component.implement_in_les = "OFF",
+                    ALTLVDS_TX_component.inclock_boost = 0,
+                    ALTLVDS_TX_component.inclock_data_alignment = "EDGE_ALIGNED",
+                    ALTLVDS_TX_component.inclock_period = int'(10000000.0 / (VIDEO_RATE * 10.0)),
+                    ALTLVDS_TX_component.inclock_phase_shift = 0,
+                    // ALTLVDS_TX_component.intended_device_family = "Cyclone V",
+                    ALTLVDS_TX_component.lpm_hint = "CBX_MODULE_PREFIX=altlvds_tx_inst",
+                    ALTLVDS_TX_component.lpm_type = "altlvds_tx",
+                    ALTLVDS_TX_component.multi_clock = "OFF",
+                    ALTLVDS_TX_component.number_of_channels = 4,
+                    // ALTLVDS_TX_component.outclock_alignment = "EDGE_ALIGNED",
+                    // ALTLVDS_TX_component.outclock_divide_by = 1,
+                    // ALTLVDS_TX_component.outclock_duty_cycle = 50,
+                    // ALTLVDS_TX_component.outclock_multiply_by = 1,
+                    // ALTLVDS_TX_component.outclock_phase_shift = 0,
+                    // ALTLVDS_TX_component.outclock_resource = "Dual-Regional clock",
+                    ALTLVDS_TX_component.output_data_rate = int'(VIDEO_RATE * 10.0),
+                    ALTLVDS_TX_component.pll_compensation_mode = "AUTO",
+                    ALTLVDS_TX_component.pll_self_reset_on_loss_lock = "OFF",
+                    ALTLVDS_TX_component.preemphasis_setting = 0,
+                    // ALTLVDS_TX_component.refclk_frequency = "20.000000 MHz",
+                    ALTLVDS_TX_component.registered_input = "OFF",
+                    ALTLVDS_TX_component.use_external_pll = "ON",
+                    ALTLVDS_TX_component.use_no_phase_shift = "ON",
+                    ALTLVDS_TX_component.vod_setting = 0,
+                    ALTLVDS_TX_component.clk_src_is_pll = "off";
+                `else
+                    // We don't know what the platform is so the best bet is an IP-less implementation.
+                    // Shift registers are loaded with a set of values from tmds_channels every clk_pixel.
+                    // They are shifted out on clk_pixel_x5 by the time the next set is loaded.
+                    logic [9:0] tmds_shift [NUM_CHANNELS-1:0] = '{10'd0, 10'd0, 10'd0};
+
+                    logic tmds_control = 1'd0;
+                    always_ff @(posedge clk_pixel)
+                        tmds_control <= !tmds_control;
+
+                    logic [3:0] tmds_control_synchronizer_chain = 4'd0;
+                    always_ff @(posedge clk_pixel_x5)
+                        tmds_control_synchronizer_chain <= {tmds_control, tmds_control_synchronizer_chain[3:1]};
+
+                    logic load;
+                    assign load = tmds_control_synchronizer_chain[1] ^ tmds_control_synchronizer_chain[0];
+                    logic [9:0] tmds_mux [NUM_CHANNELS-1:0];
+                    always_comb
+                    begin
+                        if (load)
+                            tmds_mux = tmds_internal;
+                        else
+                            tmds_mux = tmds_shift;
+                    end
+
+                    // See Section 5.4.1
+                    for (i = 0; i < NUM_CHANNELS; i++)
+                    begin: tmds_shifting
+                        always_ff @(posedge clk_pixel_x5)
+                            tmds_shift[i] <= load ? tmds_mux[i] : tmds_shift[i] >> 2;
+                    end
+
+                    logic [9:0] tmds_shift_clk_pixel = 10'b0000011111;
+                    always_ff @(posedge clk_pixel_x5)
+                        tmds_shift_clk_pixel <= load ? 10'b0000011111 : {tmds_shift_clk_pixel[1:0], tmds_shift_clk_pixel[9:2]};
+
+                    logic [NUM_CHANNELS-1:0] tmds_shift_negedge_temp;
+                    for (i = 0; i < NUM_CHANNELS; i++)
+                    begin: tmds_driving
+                        always_ff @(posedge clk_pixel_x5)
+                        begin
+                            tmds[i] <= tmds_shift[i][0];
+                            tmds_shift_negedge_temp[i] = <= tmds_shift[i][1];
+                        end
+                        always_ff @(negedge clk_pixel_x5)
+                            tmds[i] <= tmds_shift_negedge_temp[i];
+                    end
+                    logic tmds_clock_negedge_temp;
+                    always_ff @(posedge clk_pixel_x5)
+                    begin
+                        tmds_clock <= tmds_shift_clk_pixel[0];
+                        tmds_clock_negedge_temp <= tmds_shift_clk_pixel[1];
+                    end
+                    always_ff @(negedge clk_pixel_x5)
+                        tmds_clock <= tmds_shift_negedge_temp;
+
+                `endif
         `endif
     `endif
 `endif
