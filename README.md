@@ -124,7 +124,7 @@ This code is sent in the Source Product Description InfoFrame via `SOURCE_DEVICE
     * You should be able to directly use LVDS (3.3v) instead, tested up to 720x480
     * This might not work if your video has a high number of transitions or you plan to use higher resolutions
     * Solution: AC-couple the 3.3v LVDS wires to by adding 100nF capacitors in series, as close to the transmitter as possible
-        * Why? TMDS is current mode logic, and driving a CML receiver with LVDS is detailed in [Figure 9 of Interfacing LVDS with other differential-I/O types](https://m.eet.com/media/1135468/330072.pdf)
+        * Why? TMDS is current mode logic, and driving a CML receiver with LVDS is detailed in [Figure 9 of Interfacing LVDS with other differential-I/O types](https://web.archive.org/web/20151123084833/https://m.eet.com/media/1135468/330072.pdf)
             * Resistors are not needed since Vcc = 3.3v for both the transmitter and receiver
         * Example: See `J13`, on the [Arduino MKR Vivado 4000 schematic](https://content.arduino.cc/assets/vidor_c10_sch.zip), where LVDS IO Standard pins on a Cyclone 10 FPGA have 100nF series capacitors
 * Poor wiring: if you're using a breakout board or long lengths of untwisted wire, there might be a few pixels that jitter due to interference
