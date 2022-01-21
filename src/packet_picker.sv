@@ -5,6 +5,7 @@ module packet_picker
 #(
     parameter int VIDEO_ID_CODE = 4,
     parameter real VIDEO_RATE = 0,
+    parameter bit IT_CONTENT = 1'b0,
     parameter int AUDIO_BIT_WIDTH = 0,
     parameter int AUDIO_RATE = 0,
     parameter bit [8*8-1:0] VENDOR_NAME = 0,
@@ -130,7 +131,10 @@ end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .user_data_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .audio_sample_word(audio_sample_word_packet), .audio_sample_word_present(audio_sample_word_present_packet), .header(headers[2]), .sub(subs[2]));
 
 
-auxiliary_video_information_info_frame #(.VIDEO_ID_CODE(7'(VIDEO_ID_CODE))) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
+auxiliary_video_information_info_frame #(
+    .VIDEO_ID_CODE(7'(VIDEO_ID_CODE)),
+    .IT_CONTENT(IT_CONTENT)
+) auxiliary_video_information_info_frame(.header(headers[130]), .sub(subs[130]));
 
 
 source_product_description_info_frame #(.VENDOR_NAME(VENDOR_NAME), .PRODUCT_DESCRIPTION(PRODUCT_DESCRIPTION), .SOURCE_DEVICE_INFORMATION(SOURCE_DEVICE_INFORMATION)) source_product_description_info_frame(.header(headers[131]), .sub(subs[131]));
