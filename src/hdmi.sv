@@ -8,6 +8,17 @@ module hdmi
     // Pixel repetition, interlaced scans and other special output modes are not implemented (yet).
     parameter int VIDEO_ID_CODE = 1,
 
+    // The IT content bit indicates that image samples are generated in an ad-hoc
+    // manner (e.g. directly from values in a framebuffer, as by a PC video
+    // card) and therefore aren't suitable for filtering or analog
+    // reconstruction.  This is probably what you want if you treat pixels
+    // as "squares".  If you generate a properly bandlimited signal or obtain
+    // one from elsewhere (e.g. a camera), this can be turned off.
+    //
+    // This flag also tends to cause receivers to treat RGB values as full
+    // range (0-255).
+    parameter bit IT_CONTENT = 1'b1,
+
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
     parameter int BIT_WIDTH = VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
@@ -269,6 +280,7 @@ generate
         packet_picker #(
             .VIDEO_ID_CODE(VIDEO_ID_CODE),
             .VIDEO_RATE(VIDEO_RATE),
+            .IT_CONTENT(IT_CONTENT),
             .AUDIO_RATE(AUDIO_RATE),
             .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH),
             .VENDOR_NAME(VENDOR_NAME),
