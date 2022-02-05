@@ -94,8 +94,8 @@ localparam int NUM_CHANNELS = 3;
 logic hsync;
 logic vsync;
 
-logic [BIT_WIDTH-1:0] hsync_porch_start, hsync_porch_size;
-logic [BIT_HEIGHT-1:0] vsync_porch_start, vsync_porch_size;
+logic [BIT_WIDTH-1:0] hsync_pulse_start, hsync_pulse_size;
+logic [BIT_HEIGHT-1:0] vsync_pulse_start, vsync_pulse_size;
 logic invert;
 
 // See CEA-861-D for more specifics formats described below.
@@ -107,10 +107,10 @@ generate
             assign frame_height = 525;
             assign screen_width = 640;
             assign screen_height = 480;
-            assign hsync_porch_start = 16;
-            assign hsync_porch_size = 96;
-            assign vsync_porch_start = 10;
-            assign vsync_porch_size = 2;
+            assign hsync_pulse_start = 16;
+            assign hsync_pulse_size = 96;
+            assign vsync_pulse_start = 10;
+            assign vsync_pulse_size = 2;
             assign invert = 1;
             end
         2, 3:
@@ -119,10 +119,10 @@ generate
             assign frame_height = 525;
             assign screen_width = 720;
             assign screen_height = 480;
-            assign hsync_porch_start = 16;
-            assign hsync_porch_size = 62;
-            assign vsync_porch_start = 9;
-            assign vsync_porch_size = 6;
+            assign hsync_pulse_start = 16;
+            assign hsync_pulse_size = 62;
+            assign vsync_pulse_start = 9;
+            assign vsync_pulse_size = 6;
             assign invert = 1;
             end
         4:
@@ -131,10 +131,10 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync_porch_start = 110;
-            assign hsync_porch_size = 40;
-            assign vsync_porch_start = 5;
-            assign vsync_porch_size = 5;
+            assign hsync_pulse_start = 110;
+            assign hsync_pulse_size = 40;
+            assign vsync_pulse_start = 5;
+            assign vsync_pulse_size = 5;
             assign invert = 0;
         end
         16, 34:
@@ -143,10 +143,10 @@ generate
             assign frame_height = 1125;
             assign screen_width = 1920;
             assign screen_height = 1080;
-            assign hsync_porch_start = 88;
-            assign hsync_porch_size = 44;
-            assign vsync_porch_start = 4;
-            assign vsync_porch_size = 5;
+            assign hsync_pulse_start = 88;
+            assign hsync_pulse_size = 44;
+            assign vsync_pulse_start = 4;
+            assign vsync_pulse_size = 5;
             assign invert = 0;
         end
         17, 18:
@@ -155,10 +155,10 @@ generate
             assign frame_height = 625;
             assign screen_width = 720;
             assign screen_height = 576;
-            assign hsync_porch_start = 12;
-            assign hsync_porch_size = 64;
-            assign vsync_porch_start = 5;
-            assign vsync_porch_size = 5;
+            assign hsync_pulse_start = 12;
+            assign hsync_pulse_size = 64;
+            assign vsync_pulse_start = 5;
+            assign vsync_pulse_size = 5;
             assign invert = 1;
         end
         19:
@@ -167,10 +167,10 @@ generate
             assign frame_height = 750;
             assign screen_width = 1280;
             assign screen_height = 720;
-            assign hsync_porch_start = 440;
-            assign hsync_porch_size = 40;
-            assign vsync_porch_start = 5;
-            assign vsync_porch_size = 5;
+            assign hsync_pulse_start = 440;
+            assign hsync_pulse_size = 40;
+            assign vsync_pulse_start = 5;
+            assign vsync_pulse_size = 5;
             assign invert = 0;
         end
         95, 105, 97, 107:
@@ -179,16 +179,26 @@ generate
             assign frame_height = 2250;
             assign screen_width = 3840;
             assign screen_height = 2160;
-            assign hsync_porch_start = 176;
-            assign hsync_porch_size = 88;
-            assign vsync_porch_start = 8;
-            assign vsync_porch_size = 10;
+            assign hsync_pulse_start = 176;
+            assign hsync_pulse_size = 88;
+            assign vsync_pulse_start = 8;
+            assign vsync_pulse_size = 10;
             assign invert = 0;
         end
     endcase
-    assign hsync = invert ^ (cx >= screen_width + hsync_porch_start && cx < screen_width + hsync_porch_start + hsync_porch_size);
-    assign vsync = invert ^ (cy >= screen_height + vsync_porch_start && cy < screen_height + vsync_porch_start + vsync_porch_size);
 endgenerate
+
+always_comb begin
+    hsync <= invert ^ (cx >= screen_width + hsync_pulse_start && cx < screen_width + hsync_pulse_start + hsync_pulse_size);
+    // vsync pulses should begin and end at the start of hsync, so special
+    // handling is required for the lines on which vsync starts and ends
+    if (cy == screen_height + vsync_pulse_start)
+        vsync <= invert ^ (cx >= screen_width + hsync_pulse_start);
+    else if (cy == screen_height + vsync_pulse_start + vsync_pulse_size)
+        vsync <= invert ^ (cx < screen_width + hsync_pulse_start);
+    else
+        vsync <= invert ^ (cy >= screen_height + vsync_pulse_start && cy < screen_height + vsync_pulse_start + vsync_pulse_size);
+end
 
 localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6
     : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6
