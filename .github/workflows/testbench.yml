@@ -25,7 +25,7 @@ jobs:
           path: ~/intelFPGA/*
           key: ${{ runner.os }}-modelsim-20.1
       - name: Install ModelSim if not cached
-        run: stat $HOME/intelFPGA/20.1/modelsim_ase || (curl -L 'https://downloads.intel.com/akdlm/software/acdsinst/20.1std.1/720/ib_installers/ModelSimSetup-20.1.1.720-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && ./ModelSimSetup.run --mode unattended --accept_eula 1 && sed -i 's/linux_rh60/linux/g' $HOME/intelFPGA/20.1/modelsim_ase/vco )
+        run: stat $HOME/intelFPGA/20.1/modelsim_ase || (curl -L 'https://downloads.intel.com/akdlm/software/acdsinst/20.1std.1/720/ib_installers/ModelSimSetup-20.1.1.720-linux.run' -o ModelSimSetup.run && chmod +x ModelSimSetup.run && ./ModelSimSetup.run --mode unattended --accept_eula 1 )
       - name: Add ModelSim to PATH
         run: echo "$HOME/intelFPGA/20.1/modelsim_ase/bin" >> $GITHUB_PATH
       - name: Top Testbench
