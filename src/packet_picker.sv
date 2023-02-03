@@ -97,8 +97,8 @@ begin
 
     if (audio_sample_word_transfer_control_synchronizer_chain[0] ^ audio_sample_word_transfer_control_synchronizer_chain[1])
     begin
-        audio_sample_word_buffer[sample_buffer_current][samples_remaining][0] <= {audio_sample_word_transfer_mux[0], (24-AUDIO_BIT_WIDTH)'(0)};
-        audio_sample_word_buffer[sample_buffer_current][samples_remaining][1] <= {audio_sample_word_transfer_mux[1], (24-AUDIO_BIT_WIDTH)'(0)};
+        audio_sample_word_buffer[sample_buffer_current][samples_remaining][0] <=  24'(audio_sample_word_transfer_mux[0])<<(24-AUDIO_BIT_WIDTH);
+        audio_sample_word_buffer[sample_buffer_current][samples_remaining][1] <=  24'(audio_sample_word_transfer_mux[1])<<(24-AUDIO_BIT_WIDTH);
         if (samples_remaining == 2'd3)
         begin
             samples_remaining <= 2'd0;
