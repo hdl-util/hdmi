@@ -1,5 +1,6 @@
 files = [
     "hdmi.sv",
+    "hdmi_attr.sv",
     "tmds_channel.sv",
     "packet_assembler.sv",
     "packet_picker.sv",
