@@ -188,12 +188,12 @@ If you know of another good alternative, open an issue and it will be added.
 
 ## Reference Documents
 
-*These documents are not hosted here! They are available on Library Genesis and at other locations.*
+*These documents are not hosted here! They are available on [Library Genesis](https://libgen.is/) and at other locations.*
 
-* [HDMI Specification v1.4b](https://b-ok.cc/book/5499564/fe35f4)
-* [HDMI Specification v2.0](https://b-ok.cc/book/5464885/1f0b4c)
+* [HDMI Specification v1.4b](https://b-ok.cc/book/5499564/fe35f4) (dead link but also on libgen)
+* [HDMI Specification v2.0](https://b-ok.cc/book/5464885/1f0b4c) (dead link but also on libgen)
 * [EIA-CEA861-D.pdf](https://libgen.is/book/index.php?md5=CEE424CA0F098096B6B4EC32C32F80AA)
-* [CTA-861-G.pdf](https://b-ok.cc/book/5463292/52859e)
+* [CTA-861-G.pdf](https://b-ok.cc/book/5463292/52859e) (dead link but also on libgen)
 * [DVI Specification v1.0](https://www.cs.unc.edu/~stc/FAQs/Video/dvi_spec-V1_0.pdf)
 * [IEC 60958-1](https://ia803003.us.archive.org/30/items/gov.in.is.iec.60958.1.2004/is.iec.60958.1.2004.pdf)
 * [IEC 60958-3](https://ia800905.us.archive.org/22/items/gov.in.is.iec.60958.3.2003/is.iec.60958.3.2003.pdf)
