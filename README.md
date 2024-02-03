@@ -14,6 +14,12 @@ Most free and open source HDMI source (computer/gaming console) implementations 
 
 ![GIF showing VGA-compatible text mode on a monitor](demo.gif)
 
+## License
+
+This project is dual-licensed under MIT and Apache 2.0.
+
+`SPDX-License-Identifier: MIT OR Apache-2.0`
+
 ## Usage
 
 1. Take files from `src/` and add them to your own project. If you use [hdlmake](https://hdlmake.readthedocs.io/en/master/), you can add this repository itself as a remote module.
