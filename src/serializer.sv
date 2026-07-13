@@ -276,6 +276,12 @@ module serializer
                     begin: tmds_driving
                         always_ff @(posedge clk_pixel_x5)
                         begin
+                            // YOU MIGHT GET A SYNTHESIS ERROR HERE!
+                            // tmds[i] is being driven from multiple places, here and in the following
+                            // negedge-triggered always block. Some toolchains support this, and some do not.
+                            // To fix this in the GOWIN toolchain, put:
+                            //    `define GW_IDE
+                            // at the top of serializer.sv
                             tmds[i] <= tmds_shift[i][0];
                             tmds_shift_negedge_temp[i] <= tmds_shift[i][1];
                         end
