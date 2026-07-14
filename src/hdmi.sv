@@ -18,11 +18,25 @@ module hdmi
     // This flag also tends to cause receivers to treat RGB values as full
     // range (0-255).
     parameter bit IT_CONTENT = 1'b1,
+    
+    // Video parameters for custom video mode (VIDEO_ID_CODE 0)
+    parameter int CUSTOM_FRAME_WIDTH = 1650,
+    parameter int CUSTOM_FRAME_HEIGHT = 750,
+    parameter int CUSTOM_SCREEN_WIDTH = 1280,
+    parameter int CUSTOM_SCREEN_HEIGHT = 720,
+    parameter int CUSTOM_HSYNC_PULSE_START = 110,
+    parameter int CUSTOM_HSYNC_PULSE_SIZE = 40,
+    parameter int CUSTOM_VSYNC_PULSE_START = 5,
+    parameter int CUSTOM_VSYNC_PULSE_SIZE = 5,
+    parameter int CUSTOM_INVERT = 0,
+    parameter real CUSTOM_VIDEO_RATE = 74.25E6,
+    parameter int CUSTOM_BIT_WIDTH = 11,
+    parameter int CUSTOM_BIT_HEIGHT = 10,
 
     // Defaults to minimum bit lengths required to represent positions.
     // Modify these parameters if you have alternate desired bit lengths.
-    parameter int BIT_WIDTH = VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
-    parameter int BIT_HEIGHT = VIDEO_ID_CODE == 16 ? 11: 10,
+    parameter int BIT_WIDTH = VIDEO_ID_CODE == 0 ? CUSTOM_BIT_WIDTH : VIDEO_ID_CODE < 4 ? 10 : VIDEO_ID_CODE == 4 ? 11 : 12,
+    parameter int BIT_HEIGHT = VIDEO_ID_CODE == 0 ? CUSTOM_BIT_HEIGHT : VIDEO_ID_CODE == 16 ? 11: 10,
 
     // A true HDMI signal sends auxiliary data (i.e. audio, preambles) which prevents it from being parsed by DVI signal sinks.
     // HDMI signal sinks are fortunately backwards-compatible with DVI signals.
@@ -101,6 +115,19 @@ logic invert;
 // See CEA-861-D for more specifics formats described below.
 generate
     case (VIDEO_ID_CODE)
+        0:
+        begin
+            // Custom video mode
+            assign frame_width = CUSTOM_FRAME_WIDTH;
+            assign frame_height = CUSTOM_FRAME_HEIGHT;
+            assign screen_width = CUSTOM_SCREEN_WIDTH;
+            assign screen_height = CUSTOM_SCREEN_HEIGHT;
+            assign hsync_pulse_start = CUSTOM_HSYNC_PULSE_START;
+            assign hsync_pulse_size = CUSTOM_HSYNC_PULSE_SIZE;
+            assign vsync_pulse_start = CUSTOM_VSYNC_PULSE_START;
+            assign vsync_pulse_size = CUSTOM_VSYNC_PULSE_SIZE;
+            assign invert = CUSTOM_INVERT;
+            end
         1:
         begin
             assign frame_width = 800;
@@ -200,7 +227,8 @@ always_comb begin
         vsync <= invert ^ (cy >= screen_height + vsync_pulse_start && cy < screen_height + vsync_pulse_start + vsync_pulse_size);
 end
 
-localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6
+localparam real VIDEO_RATE = (VIDEO_ID_CODE == 0 ? CUSTOM_VIDEO_RATE
+    : VIDEO_ID_CODE == 1 ? 25.2E6
     : VIDEO_ID_CODE == 2 || VIDEO_ID_CODE == 3 ? 27.027E6
     : VIDEO_ID_CODE == 4 ? 74.25E6
     : VIDEO_ID_CODE == 16 ? 148.5E6
