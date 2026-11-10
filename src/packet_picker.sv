@@ -119,7 +119,7 @@ always_ff @(posedge clk_pixel)
 begin
     if (reset)
     begin
-        frame_counter <= 8'd0;
+        frame_counter = 8'd0;
     end
     else if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin

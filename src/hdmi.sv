@@ -324,7 +324,7 @@ generate
             begin
                 mode <= 3'd2;
                 video_data <= 24'd0;
-                control_data = 6'd0;
+                control_data <= 6'd0;
                 data_island_data <= 12'd0;
             end
             else
