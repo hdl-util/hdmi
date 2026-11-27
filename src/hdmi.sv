@@ -333,7 +333,9 @@ generate
                 video_data <= rgb;
                 control_data <= {{1'b0, data_island_preamble}, {1'b0, video_preamble || data_island_preamble}, {vsync, hsync}}; // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
                 data_island_data[11:4] <= packet_data[8:1];
-                data_island_data[3] <= cx != 0;
+                // D3 of channel 0 is 0 in the first clock of the data island (first packet) and 1 otherwise (HDMI 1.3, Figure 5-3).
+                // data_island_period is registered, so it is first high when cx == screen_width + 15.
+                data_island_data[3] <= !(data_island_period && cx == screen_width + 15);
                 data_island_data[2] <= packet_data[0];
                 data_island_data[1:0] <= {vsync, hsync};
             end
